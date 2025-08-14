@@ -303,6 +303,83 @@ ON CONFLICT (id) DO UPDATE SET
     is_premium = EXCLUDED.is_premium,
     updated_at = NOW();
 
+-- ===============================================
+-- 3. 데모 사용자 계정 (개발/테스트용)
+-- ===============================================
+
+INSERT INTO users (
+    id, name, email, avatar_url, level, level_title, current_points, total_points,
+    current_streak, longest_streak, completed_missions, total_days, preferences,
+    this_month_points, this_month_missions, average_rating, total_ratings,
+    category_stats, created_at, updated_at, last_login_at
+) VALUES 
+(
+    'user_01',
+    '김철수',
+    'test@example.com',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+    3,
+    'EXPLORER',
+    1250,
+    3500,
+    7,
+    15,
+    25,
+    45,
+    '{"notifications": true, "email_alerts": true}',
+    850,
+    12,
+    4.2,
+    18,
+    '{"ADVENTURE": 8, "HEALTH": 6, "CREATIVE": 4, "LEARNING": 4, "SOCIAL": 3}',
+    NOW(),
+    NOW(),
+    NOW()
+),
+(
+    '2190d61c-379d-4452-b4da-655bf67b4b71',
+    '지나니',
+    'jinani@example.com',
+    'https://images.unsplash.com/photo-1494790108755-2616b9e6e3e7?w=150&h=150&fit=crop&crop=face',
+    1,
+    'BEGINNER',
+    320,
+    890,
+    3,
+    8,
+    8,
+    12,
+    '{"notifications": true, "email_alerts": false}',
+    320,
+    8,
+    3.8,
+    5,
+    '{"ADVENTURE": 2, "HEALTH": 3, "CREATIVE": 2, "LEARNING": 1, "SOCIAL": 0}',
+    NOW(),
+    NOW(),
+    NOW()
+)
+ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    email = EXCLUDED.email,
+    avatar_url = EXCLUDED.avatar_url,
+    level = EXCLUDED.level,
+    level_title = EXCLUDED.level_title,
+    current_points = EXCLUDED.current_points,
+    total_points = EXCLUDED.total_points,
+    current_streak = EXCLUDED.current_streak,
+    longest_streak = EXCLUDED.longest_streak,
+    completed_missions = EXCLUDED.completed_missions,
+    total_days = EXCLUDED.total_days,
+    preferences = EXCLUDED.preferences,
+    this_month_points = EXCLUDED.this_month_points,
+    this_month_missions = EXCLUDED.this_month_missions,
+    average_rating = EXCLUDED.average_rating,
+    total_ratings = EXCLUDED.total_ratings,
+    category_stats = EXCLUDED.category_stats,
+    updated_at = NOW(),
+    last_login_at = NOW();
+
 
 -- ===============================================
 -- 데이터 확인 쿼리 (참고용)
@@ -310,7 +387,9 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- SELECT '=== 템플릿 미션 수 ===' as info, COUNT(*) as count FROM missions WHERE is_template = true
 -- UNION ALL
--- SELECT '=== 리워드 수 ===' as info, COUNT(*) as count FROM rewards;
+-- SELECT '=== 리워드 수 ===' as info, COUNT(*) as count FROM rewards
+-- UNION ALL
+-- SELECT '=== 데모 사용자 수 ===' as info, COUNT(*) as count FROM users;
 
 -- ===============================================
 -- 초기 데이터 설정 완료!
@@ -318,6 +397,7 @@ ON CONFLICT (id) DO UPDATE SET
 -- 이 스크립트로 다음이 생성됩니다:
 -- - 10개의 템플릿 미션 (각 카테고리별)
 -- - 6개의 플레이스홀더 리워드
+-- - 2개의 데모 사용자 계정 (김철수, 지나니)
 -- 
--- 사용자는 회원가입을 통해 생성하세요!
+-- 데모 계정으로 바로 로그인 가능합니다!
 -- 실행 후 애플리케이션에서 바로 테스트 가능합니다!
