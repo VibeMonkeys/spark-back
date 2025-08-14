@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/v1/home")
-@CrossOrigin(origins = ["http://localhost:3001", "http://localhost:3002", "http://localhost:5173"])
 class HomeController(
     private val homePageUseCase: HomePageUseCase,
     private val responseMapper: ResponseMapper

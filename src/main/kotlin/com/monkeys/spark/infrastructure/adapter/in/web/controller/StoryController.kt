@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/v1/stories")
-@CrossOrigin(origins = ["http://localhost:3001", "http://localhost:3002", "http://localhost:5173"])
 class StoryController(
     private val storyUseCase: StoryUseCase,
     private val responseMapper: ResponseMapper
