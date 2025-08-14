@@ -13,6 +13,8 @@ import com.monkeys.spark.domain.vo.story.*
 import com.monkeys.spark.domain.vo.reward.*
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.*
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
+import com.monkeys.spark.domain.model.LevelSystem
+import com.monkeys.spark.domain.model.LevelInfo
 import org.springframework.stereotype.Component
 import java.time.format.DateTimeFormatter
 
@@ -394,5 +396,172 @@ class ResponseMapper {
                 points = difficultyAndPoints.second
             )
         }
+    }
+    
+    /**
+     * 레벨 정보를 응답 DTO로 변환
+     */
+    fun toLevelInfoResponse(levelInfo: LevelInfo): LevelInfoResponse {
+        return LevelInfoResponse(
+            level = levelInfo.level,
+            levelTitle = levelInfo.levelTitle.name,
+            levelTitleDisplay = levelInfo.levelTitle.displayName,
+            requiredPoints = levelInfo.requiredPoints,
+            nextLevelPoints = levelInfo.nextLevelPoints,
+            description = levelInfo.description,
+            benefits = levelInfo.benefits,
+            icon = levelInfo.icon,
+            color = levelInfo.color,
+            badge = levelInfo.badge
+        )
+    }
+    
+    /**
+     * 사용자 레벨 진행 상황을 응답 DTO로 변환
+     */
+    fun toUserLevelProgressResponse(user: User): UserLevelProgressResponse {
+        val currentLevelInfo = LevelSystem.getLevelInfo(user.level.value)
+        val pointsToNextLevel = LevelSystem.getPointsToNextLevel(user.totalPoints.value)
+        val progressPercentage = LevelSystem.getLevelProgress(user.totalPoints.value)
+        val nextLevelPoints = if (user.level.value < 21) {
+            LevelSystem.calculatePointsForLevel(user.level.value + 1)
+        } else null
+        
+        return UserLevelProgressResponse(
+            currentLevel = user.level.value,
+            levelTitle = user.levelTitle.name,
+            levelTitleDisplay = user.levelTitle.displayName,
+            currentPoints = user.currentPoints.value,
+            totalPoints = user.totalPoints.value,
+            pointsToNextLevel = pointsToNextLevel,
+            levelProgressPercentage = progressPercentage,
+            nextLevelPoints = nextLevelPoints,
+            icon = currentLevelInfo?.icon ?: "🌱",
+            color = currentLevelInfo?.color ?: "#10B981",
+            badge = currentLevelInfo?.badge ?: "beginner-badge"
+        )
+    }
+    
+    /**
+     * 레벨 시스템 전체 정보를 응답 DTO로 변환
+     */
+    fun toLevelSystemResponse(user: User): LevelSystemResponse {
+        val userProgress = toUserLevelProgressResponse(user)
+        val allLevels = LevelSystem.getAllLevels().map { toLevelInfoResponse(it) }
+        val levelTitles = createLevelTitleGroups()
+        
+        return LevelSystemResponse(
+            userProgress = userProgress,
+            allLevels = allLevels,
+            levelTitles = levelTitles
+        )
+    }
+    
+    /**
+     * 레벨 타이틀 그룹 생성
+     */
+    private fun createLevelTitleGroups(): List<LevelTitleGroupResponse> {
+        val titleGroups = mapOf(
+            UserLevelTitle.BEGINNER to "1-2",
+            UserLevelTitle.EXPLORER to "3-5", 
+            UserLevelTitle.ADVENTURER to "6-8",
+            UserLevelTitle.EXPERT to "9-12",
+            UserLevelTitle.MASTER to "13-20",
+            UserLevelTitle.LEGEND to "21+"
+        )
+        
+        val descriptions = mapOf(
+            UserLevelTitle.BEGINNER to "미션 여행을 시작하는 단계",
+            UserLevelTitle.EXPLORER to "새로운 경험을 탐험하는 단계",
+            UserLevelTitle.ADVENTURER to "진정한 모험을 시작하는 단계", 
+            UserLevelTitle.EXPERT to "전문가 수준의 경험을 쌓은 단계",
+            UserLevelTitle.MASTER to "최고 수준의 마스터 단계",
+            UserLevelTitle.LEGEND to "전설적인 사용자 단계"
+        )
+        
+        val colors = mapOf(
+            UserLevelTitle.BEGINNER to "#10B981",
+            UserLevelTitle.EXPLORER to "#3B82F6",
+            UserLevelTitle.ADVENTURER to "#F59E0B",
+            UserLevelTitle.EXPERT to "#8B5CF6",
+            UserLevelTitle.MASTER to "#DC2626",
+            UserLevelTitle.LEGEND to "#7C3AED"
+        )
+        
+        val icons = mapOf(
+            UserLevelTitle.BEGINNER to "🌱",
+            UserLevelTitle.EXPLORER to "🔍",
+            UserLevelTitle.ADVENTURER to "⚔️",
+            UserLevelTitle.EXPERT to "🎓",
+            UserLevelTitle.MASTER to "🏆",
+            UserLevelTitle.LEGEND to "🚀"
+        )
+        
+        return UserLevelTitle.values().map { titleEnum ->
+            val levels = LevelSystem.getLevelsByTitle(titleEnum).map { toLevelInfoResponse(it) }
+            
+            LevelTitleGroupResponse(
+                title = titleEnum.name,
+                displayName = titleEnum.displayName,
+                description = descriptions[titleEnum] ?: "",
+                levelRange = titleGroups[titleEnum] ?: "",
+                color = colors[titleEnum] ?: "#10B981",
+                icon = icons[titleEnum] ?: "🌱",
+                levels = levels
+            )
+        }.filter { it.levels.isNotEmpty() }
+    }
+    
+    /**
+     * 레벨업 결과를 응답 DTO로 변환
+     */
+    fun toLevelUpResponse(
+        oldLevel: Int,
+        newLevel: Int,
+        oldLevelTitle: UserLevelTitle,
+        newLevelTitle: UserLevelTitle,
+        pointsEarned: Int,
+        totalPoints: Int
+    ): LevelUpResponse {
+        val titleChanged = oldLevelTitle != newLevelTitle
+        val newLevelInfo = LevelSystem.getLevelInfo(newLevel)
+        val newBenefits = newLevelInfo?.benefits ?: emptyList()
+        
+        val celebration = when {
+            titleChanged -> LevelCelebrationResponse(
+                title = "🎉 타이틀 승급!",
+                message = "${newLevelTitle.displayName}이 되었습니다!",
+                icon = "🏆",
+                color = "#FFD700",
+                animationType = "title_upgrade"
+            )
+            newLevel % 5 == 0 -> LevelCelebrationResponse(
+                title = "⭐ 중요 레벨!",
+                message = "레벨 ${newLevel} 달성!",
+                icon = "⭐",
+                color = "#FF6B6B",
+                animationType = "major_level"
+            )
+            else -> LevelCelebrationResponse(
+                title = "🎯 레벨 업!",
+                message = "레벨 ${newLevel}로 상승!",
+                icon = "🎯",
+                color = "#4ECDC4", 
+                animationType = "normal_level"
+            )
+        }
+        
+        return LevelUpResponse(
+            levelUp = true,
+            oldLevel = oldLevel,
+            newLevel = newLevel,
+            oldLevelTitle = oldLevelTitle.displayName,
+            newLevelTitle = newLevelTitle.displayName,
+            titleChanged = titleChanged,
+            newBenefits = newBenefits,
+            pointsEarned = pointsEarned,
+            totalPoints = totalPoints,
+            celebration = celebration
+        )
     }
 }
