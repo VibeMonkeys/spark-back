@@ -1,0 +1,32 @@
+server:
+  port: 8099
+
+spring:
+  application:
+    name: spark
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/spark
+    username: root
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+
+  # JPA 설정
+  jpa:
+    database: POSTGRESQL
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 10
+        highlight_sql: true
+
+  # SQL 초기화 설정
+  sql:
+    init:
+      mode: always
+      continue-on-error: true

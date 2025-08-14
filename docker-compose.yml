@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:17.5
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_DB: spark
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+      # 추가 환경 변수 (선택사항)
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
+      TZ: Asia/Seoul
+    ports:
+      - "5432:5432"
+    volumes:
+      # 데이터 영속성을 위한 볼륨 마운트
+      - postgres-data:/var/lib/postgresql/data
+      # 초기화 스크립트를 위한 디렉토리 (선택사항)
+      # - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - postgres-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d spark"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  postgres-data:
+    driver: local
+
+networks:
+  postgres-network:
+    driver: bridge
