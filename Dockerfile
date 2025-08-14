@@ -1,5 +1,5 @@
 # 멀티 스테이지 빌드로 최적화
-FROM gradle:8.5-jdk21 AS build
+FROM gradle:8.5-jdk21-jammy AS build
 
 # 작업 디렉토리 설정
 WORKDIR /app
@@ -18,7 +18,7 @@ COPY src/ src/
 RUN gradle build -x test --no-daemon
 
 # 런타임 이미지
-FROM openjdk:21-jre-slim
+FROM eclipse-temurin:21-jre-jammy
 
 # 타임존 설정 (선택사항)
 ENV TZ=Asia/Seoul
