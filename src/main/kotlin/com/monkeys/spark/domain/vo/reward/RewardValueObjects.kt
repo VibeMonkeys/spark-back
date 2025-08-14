@@ -56,7 +56,9 @@ enum class RewardCategory(val displayName: String) {
     COFFEE("카페"),
     SHOPPING("쇼핑"),
     ENTERTAINMENT("엔터테인먼트"),
-    PREMIUM("프리미엄")
+    PREMIUM("프리미엄"),
+    FOOD("음식"),
+    BEAUTY("뷰티")
 }
 
 enum class RewardStatus {

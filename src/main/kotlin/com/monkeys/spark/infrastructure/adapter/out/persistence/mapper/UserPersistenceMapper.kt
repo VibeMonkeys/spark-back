@@ -51,6 +51,7 @@ class UserPersistenceMapper(
                 )}
         )
         
+        entity.lastCompletedDate = domain.lastCompletedDate
         entity.createdAt = domain.createdAt
         entity.updatedAt = domain.updatedAt
         
@@ -106,6 +107,7 @@ class UserPersistenceMapper(
             totalDays = entity.totalDays,
             preferences = preferences,
             statistics = statistics,
+            lastCompletedDate = entity.lastCompletedDate,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt
         )

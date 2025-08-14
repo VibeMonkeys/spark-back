@@ -73,6 +73,9 @@ class UserEntity {
     @Column(name = "last_login_at")
     var lastLoginAt: LocalDateTime? = null
     
+    @Column(name = "last_completed_date")
+    var lastCompletedDate: LocalDateTime? = null
+    
     @PreUpdate
     fun preUpdate() {
         updatedAt = LocalDateTime.now()

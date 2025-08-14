@@ -4,6 +4,7 @@ import com.monkeys.spark.domain.vo.common.*
 import com.monkeys.spark.domain.vo.user.*
 import com.monkeys.spark.domain.vo.mission.MissionCategory
 import java.time.LocalDateTime
+import java.time.LocalDate
 
 // User Domain Aggregate Root
 data class User(
@@ -21,6 +22,7 @@ data class User(
     var totalDays: Int = 0,
     var preferences: MutableMap<MissionCategory, Boolean> = mutableMapOf(),
     var statistics: UserStatistics = UserStatistics(),
+    var lastCompletedDate: LocalDateTime? = null,
     var createdAt: LocalDateTime = LocalDateTime.now(),
     var updatedAt: LocalDateTime = LocalDateTime.now()
 ) {
@@ -56,10 +58,37 @@ data class User(
     }
     
     fun incrementStreak(): User {
-        currentStreak = currentStreak.increment()
+        val today = LocalDate.now()
+        val lastCompletedLocalDate = lastCompletedDate?.toLocalDate()
+        
+        when {
+            // 첫 완료
+            lastCompletedLocalDate == null -> {
+                currentStreak = Streak(1)
+                lastCompletedDate = LocalDateTime.now()
+            }
+            // 오늘 이미 완료한 적이 있음 - streak 변경 없음
+            lastCompletedLocalDate == today -> {
+                // streak는 변경하지 않음
+                lastCompletedDate = LocalDateTime.now()
+            }
+            // 어제 완료했음 - 연속 증가
+            lastCompletedLocalDate == today.minusDays(1) -> {
+                currentStreak = currentStreak.increment()
+                lastCompletedDate = LocalDateTime.now()
+            }
+            // 하루 이상 공백 - streak 리셋
+            else -> {
+                currentStreak = Streak(1)
+                lastCompletedDate = LocalDateTime.now()
+            }
+        }
+        
+        // 최장 연속 기록 갱신
         if (currentStreak.value > longestStreak.value) {
             longestStreak = currentStreak
         }
+        
         updatedAt = LocalDateTime.now()
         return this
     }

@@ -356,41 +356,36 @@ class ResponseMapper {
     private fun generateMockSimilarMissions(category: MissionCategory): List<SimilarMissionResponse> {
         val similarMissionsByCategory = mapOf(
             MissionCategory.ADVENTURE to listOf(
-                "버스 대신 한 정거장 걸어가기" to Pair(MissionDifficulty.EASY, 15),
-                "동네 숨은 맛집 찾기" to Pair(MissionDifficulty.MEDIUM, 25),
-                "새로운 동네 탐방하기" to Pair(MissionDifficulty.MEDIUM, 30),
-                "등산로 하나 완주하기" to Pair(MissionDifficulty.HARD, 50)
+                Triple("tpl_adv_002", "대중교통으로 끝까지 가기", Pair(MissionDifficulty.EASY, 15)),
+                Triple("tpl_hlt_001", "15분 산책하기", Pair(MissionDifficulty.EASY, 20)),
+                Triple("tpl_soc_001", "카페에서 낯선 사람과 대화하기", Pair(MissionDifficulty.MEDIUM, 30))
             ),
             MissionCategory.HEALTH to listOf(
-                "계단으로 5층 올라가기" to Pair(MissionDifficulty.EASY, 10),
-                "30분 산책하기" to Pair(MissionDifficulty.EASY, 20),
-                "스트레칭 10분 하기" to Pair(MissionDifficulty.EASY, 15),
-                "1시간 운동하기" to Pair(MissionDifficulty.MEDIUM, 40)
+                Triple("tpl_hlt_002", "계단 오르기 챌린지", Pair(MissionDifficulty.EASY, 10)),
+                Triple("tpl_adv_001", "새로운 동네 탐험하기", Pair(MissionDifficulty.EASY, 15)),
+                Triple("tpl_cre_001", "오늘의 하늘 그리기", Pair(MissionDifficulty.MEDIUM, 25))
             ),
             MissionCategory.SOCIAL to listOf(
-                "새로운 사람과 대화하기" to Pair(MissionDifficulty.MEDIUM, 25),
-                "친구에게 안부 문자하기" to Pair(MissionDifficulty.EASY, 10),
-                "동료와 점심 함께 먹기" to Pair(MissionDifficulty.EASY, 20),
-                "새로운 모임 참가하기" to Pair(MissionDifficulty.HARD, 45)
+                Triple("tpl_soc_002", "엘리베이터에서 인사하기", Pair(MissionDifficulty.EASY, 15)),
+                Triple("tpl_adv_001", "새로운 동네 탐험하기", Pair(MissionDifficulty.EASY, 15)),
+                Triple("tpl_cre_002", "하이쿠 한 편 쓰기", Pair(MissionDifficulty.MEDIUM, 30))
             ),
             MissionCategory.CREATIVE to listOf(
-                "그림 하나 그리기" to Pair(MissionDifficulty.MEDIUM, 30),
-                "시 한 편 써보기" to Pair(MissionDifficulty.MEDIUM, 35),
-                "사진 10장 찍기" to Pair(MissionDifficulty.EASY, 20),
-                "새로운 요리 만들기" to Pair(MissionDifficulty.HARD, 50)
+                Triple("tpl_cre_002", "하이쿠 한 편 쓰기", Pair(MissionDifficulty.MEDIUM, 30)),
+                Triple("tpl_lea_001", "새로운 단어 5개 배우기", Pair(MissionDifficulty.EASY, 20)),
+                Triple("tpl_hlt_001", "15분 산책하기", Pair(MissionDifficulty.EASY, 20))
             ),
             MissionCategory.LEARNING to listOf(
-                "새로운 단어 3개 외우기" to Pair(MissionDifficulty.EASY, 15),
-                "온라인 강의 하나 듣기" to Pair(MissionDifficulty.MEDIUM, 40),
-                "책 한 챕터 읽기" to Pair(MissionDifficulty.MEDIUM, 35),
-                "새로운 기술 익히기" to Pair(MissionDifficulty.HARD, 60)
+                Triple("tpl_lea_002", "유튜브로 5분 강의 듣기", Pair(MissionDifficulty.EASY, 15)),
+                Triple("tpl_cre_001", "오늘의 하늘 그리기", Pair(MissionDifficulty.MEDIUM, 25)),
+                Triple("tpl_soc_001", "카페에서 낯선 사람과 대화하기", Pair(MissionDifficulty.MEDIUM, 30))
             )
         )
         
         val missions = similarMissionsByCategory[category] ?: similarMissionsByCategory[MissionCategory.ADVENTURE]!!
-        return missions.take(3).mapIndexed { index, (title, difficultyAndPoints) ->
+        return missions.take(3).map { (id, title, difficultyAndPoints) ->
             SimilarMissionResponse(
-                id = (1000 + index).toString(),
+                id = id,
                 title = title,
                 difficulty = difficultyAndPoints.first.displayName,
                 points = difficultyAndPoints.second
