@@ -23,6 +23,7 @@ class StoryPersistenceMapper {
         entity.location = domain.location.value
         entity.autoTags = domain.autoTags.map { it.value }.joinToString(",")
         entity.userTags = domain.userTags.map { it.value }.joinToString(",")
+        entity.hashTags = domain.getAllTags().map { it.value }.joinToString(",")
         entity.isPublic = domain.isPublic
         entity.likes = domain.likes.value
         entity.comments = domain.comments.value
@@ -42,13 +43,19 @@ class StoryPersistenceMapper {
         val autoTags = if (entity.autoTags.isBlank()) {
             mutableListOf()
         } else {
-            entity.autoTags.split(",").map { HashTag(it) }.toMutableList()
+            entity.autoTags.split(",").map { tag -> 
+                val trimmed = tag.trim()
+                if (trimmed.startsWith("#")) HashTag(trimmed) else HashTag("#$trimmed")
+            }.toMutableList()
         }
         
         val userTags = if (entity.userTags.isBlank()) {
             mutableListOf()
         } else {
-            entity.userTags.split(",").map { HashTag(it) }.toMutableList()
+            entity.userTags.split(",").map { tag ->
+                val trimmed = tag.trim() 
+                if (trimmed.startsWith("#")) HashTag(trimmed) else HashTag("#$trimmed")
+            }.toMutableList()
         }
         
         return Story(
