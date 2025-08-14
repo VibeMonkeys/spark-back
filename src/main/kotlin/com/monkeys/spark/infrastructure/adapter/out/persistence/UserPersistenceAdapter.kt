@@ -24,6 +24,13 @@ class UserPersistenceAdapter(
         return userMapper.toDomain(savedEntity)
     }
     
+    fun saveWithPassword(user: User, password: String): User {
+        val entity = userMapper.toEntity(user)
+        entity.password = password
+        val savedEntity = userJpaRepository.save(entity)
+        return userMapper.toDomain(savedEntity)
+    }
+    
     override fun findById(id: UserId): User? {
         return userJpaRepository.findById(id.value)
             .map { userMapper.toDomain(it) }

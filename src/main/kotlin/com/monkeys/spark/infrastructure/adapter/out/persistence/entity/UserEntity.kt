@@ -15,6 +15,9 @@ class UserEntity {
     @Column(nullable = false, length = 50)
     var name: String = ""
     
+    @Column(nullable = false)
+    var password: String = ""
+    
     @Column(name = "avatar_url")
     var avatarUrl: String = ""
     

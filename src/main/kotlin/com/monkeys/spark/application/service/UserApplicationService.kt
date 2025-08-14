@@ -1,24 +1,28 @@
 package com.monkeys.spark.application.service
 
 import com.monkeys.spark.application.port.`in`.UserUseCase
-import com.monkeys.spark.application.port.`in`.command.*
+import com.monkeys.spark.application.port.`in`.command.CreateUserCommand
+import com.monkeys.spark.application.port.`in`.command.UpdatePreferencesCommand
+import com.monkeys.spark.application.port.`in`.command.UpdateProfileCommand
 import com.monkeys.spark.application.port.out.UserRepository
+import com.monkeys.spark.domain.model.Mission
 import com.monkeys.spark.domain.model.User
 import com.monkeys.spark.domain.model.UserStatistics
-import com.monkeys.spark.domain.model.Mission
 import com.monkeys.spark.domain.vo.common.Points
 import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.mission.MissionCategory
 import com.monkeys.spark.domain.vo.user.AvatarUrl
 import com.monkeys.spark.domain.vo.user.Email
 import com.monkeys.spark.domain.vo.user.UserName
+import com.monkeys.spark.infrastructure.adapter.out.persistence.UserPersistenceAdapter
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional
 class UserApplicationService(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val userPersistenceAdapter: UserPersistenceAdapter
 ) : UserUseCase {
 
     override fun createUser(command: CreateUserCommand): User {
@@ -34,7 +38,7 @@ class UserApplicationService(
             avatarUrl = AvatarUrl(command.avatarUrl)
         )
 
-        return userRepository.save(user)
+        return userPersistenceAdapter.saveWithPassword(user, command.password)
     }
 
     @Transactional(readOnly = true)

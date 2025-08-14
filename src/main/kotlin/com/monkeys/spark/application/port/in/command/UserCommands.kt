@@ -9,6 +9,7 @@ package com.monkeys.spark.application.port.`in`.command
  */
 data class CreateUserCommand(
     val email: String,
+    val password: String,
     val name: String,
     val avatarUrl: String
 )

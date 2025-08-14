@@ -1,12 +1,16 @@
 package com.monkeys.spark.infrastructure.adapter.`in`.web.controller
 
-import com.monkeys.spark.application.port.`in`.*
-import com.monkeys.spark.application.port.`in`.command.*
 import com.monkeys.spark.application.mapper.ResponseMapper
-import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.*
-import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.*
-import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
+import com.monkeys.spark.application.port.`in`.UserUseCase
+import com.monkeys.spark.application.port.`in`.command.CreateUserCommand
+import com.monkeys.spark.application.port.`in`.command.UpdatePreferencesCommand
+import com.monkeys.spark.application.port.`in`.command.UpdateProfileCommand
 import com.monkeys.spark.domain.vo.common.UserId
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.ApiResponse
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.CreateUserRequest
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.UpdatePreferencesRequest
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.UpdateProfileRequest
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -26,6 +30,7 @@ class UserController(
         try {
             val command = CreateUserCommand(
                 email = request.email,
+                password = request.password,
                 name = request.name,
                 avatarUrl = request.avatarUrl
             )
@@ -61,7 +66,7 @@ class UserController(
             ?: return ResponseEntity.ok(ApiResponse.error("User not found", "USER_NOT_FOUND"))
 
         val userStatistics = userUseCase.getUserStatistics(UserId(userId))
-        
+
         // TODO: 실제 업적 및 최근 미션 데이터 조회
         val achievements = listOf(
             AchievementResponse("1", "첫 걸음", "첫 미션 완료", "🎯", true),

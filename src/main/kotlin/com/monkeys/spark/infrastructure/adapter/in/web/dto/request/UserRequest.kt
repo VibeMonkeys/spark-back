@@ -5,6 +5,7 @@ package com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request
  */
 data class CreateUserRequest(
     val email: String,
+    val password: String,
     val name: String,
     val avatarUrl: String
 )
