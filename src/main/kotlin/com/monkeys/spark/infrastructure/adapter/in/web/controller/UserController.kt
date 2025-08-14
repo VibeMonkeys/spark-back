@@ -4,6 +4,8 @@ import com.monkeys.spark.application.port.`in`.*
 import com.monkeys.spark.application.port.`in`.command.*
 import com.monkeys.spark.application.mapper.ResponseMapper
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.*
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.*
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
 import com.monkeys.spark.domain.vo.common.UserId
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -196,40 +198,3 @@ class UserController(
     }
 }
 
-/**
- * 사용자 생성 요청 DTO
- */
-data class CreateUserRequest(
-    val email: String,
-    val name: String,
-    val avatarUrl: String
-)
-
-/**
- * 프로필 업데이트 요청 DTO
- */
-data class UpdateProfileRequest(
-    val name: String?,
-    val avatarUrl: String?
-)
-
-/**
- * 선호도 업데이트 요청 DTO
- */
-data class UpdatePreferencesRequest(
-    val preferences: Map<String, Boolean>
-)
-
-/**
- * 리더보드 사용자 응답 DTO
- */
-data class LeaderboardUserResponse(
-    val rank: Int,
-    val userId: String,
-    val name: String,
-    val avatarUrl: String,
-    val level: Int,
-    val levelTitle: String,
-    val points: Int,
-    val streak: Int
-)

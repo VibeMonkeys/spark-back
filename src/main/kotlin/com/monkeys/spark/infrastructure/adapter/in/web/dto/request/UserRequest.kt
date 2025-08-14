@@ -1,14 +1,11 @@
 package com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request
 
-import com.fasterxml.jackson.annotation.JsonProperty
-
 /**
  * 사용자 생성 요청 DTO
  */
 data class CreateUserRequest(
     val email: String,
     val name: String,
-    @JsonProperty("avatar_url")
     val avatarUrl: String
 )
 
@@ -17,7 +14,6 @@ data class CreateUserRequest(
  */
 data class UpdateProfileRequest(
     val name: String?,
-    @JsonProperty("avatar_url")
     val avatarUrl: String?
 )
 

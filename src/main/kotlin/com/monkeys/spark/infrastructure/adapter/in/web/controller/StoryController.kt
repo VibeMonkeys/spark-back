@@ -5,6 +5,8 @@ import com.monkeys.spark.application.port.`in`.command.*
 import com.monkeys.spark.application.port.`in`.query.*
 import com.monkeys.spark.application.mapper.ResponseMapper
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.*
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.*
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
 import com.monkeys.spark.domain.vo.common.StoryId
 import com.monkeys.spark.domain.vo.common.UserId
 import org.springframework.http.ResponseEntity
@@ -260,19 +262,4 @@ class StoryController(
     }
 }
 
-/**
- * 댓글 추가 요청 DTO
- */
-data class AddCommentRequest(
-    val content: String
-)
-
-/**
- * 스토리 수정 요청 DTO
- */
-data class UpdateStoryRequest(
-    val storyText: String,
-    val userTags: List<String> = emptyList(),
-    val isPublic: Boolean = true
-)
 

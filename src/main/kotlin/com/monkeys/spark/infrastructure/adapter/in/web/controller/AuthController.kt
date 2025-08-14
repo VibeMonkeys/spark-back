@@ -4,6 +4,8 @@ import com.monkeys.spark.application.port.`in`.*
 import com.monkeys.spark.application.port.`in`.command.*
 import com.monkeys.spark.application.mapper.ResponseMapper
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.*
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.*
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
 import com.monkeys.spark.domain.vo.common.UserId
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -123,36 +125,3 @@ class AuthController(
     }
 }
 
-/**
- * 회원가입 요청 DTO
- */
-data class SignupRequest(
-    val email: String,
-    val password: String,
-    val name: String,
-    val avatarUrl: String? = null
-)
-
-/**
- * 로그인 요청 DTO
- */
-data class LoginRequest(
-    val email: String,
-    val password: String
-)
-
-/**
- * 토큰 갱신 요청 DTO
- */
-data class RefreshTokenRequest(
-    val refreshToken: String
-)
-
-/**
- * 인증 응답 DTO
- */
-data class AuthResponse(
-    val user: UserResponse,
-    val token: String,
-    val refreshToken: String
-)
