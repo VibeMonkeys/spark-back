@@ -225,8 +225,8 @@ class MissionController(
             // 스탯 정보 추가
             statsIncreased = mapOf(
                 "category" to completedMission.category.name,
-                "pointsGained" to 2,
-                "allocatablePointsGained" to 1,
+                "pointsGained" to 1,
+                "allocatablePointsGained" to 2,
                 "totalStats" to updatedStats.totalStats
             )
         )

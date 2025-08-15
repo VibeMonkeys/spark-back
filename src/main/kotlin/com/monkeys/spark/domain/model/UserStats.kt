@@ -208,8 +208,8 @@ data class UserStats(
         )
 
         const val INITIAL_STAT = 10
-        const val MISSION_COMPLETION_STAT_POINTS = 2 // 미션 완료시 받는 스탯 포인트
-        const val MISSION_COMPLETION_ALLOCATABLE_POINTS = 1 // 미션 완료시 받는 할당 가능 포인트
+        const val MISSION_COMPLETION_STAT_POINTS = 1 // 미션 완료시 받는 스탯 포인트 (자동 증가)
+        const val MISSION_COMPLETION_ALLOCATABLE_POINTS = 2 // 미션 완료시 받는 할당 가능 포인트 (수동 할당)
 
     }
 }
