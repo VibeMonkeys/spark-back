@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import org.springframework.http.HttpMethod
 
 @Configuration
 @EnableWebSecurity
@@ -43,19 +44,30 @@ class SecurityConfig(
             }
             .authorizeHttpRequests { auth ->
                 auth
-                    // Public endpoints
+                    // Public endpoints - no authentication required
                     .requestMatchers(
                         "/api/v1/auth/**",
                         "/api/health",
                         "/error",
                         "/actuator/**",
-                        "/api/v1/missions/**",
-                        "/api/v1/users/**",
                         "/api/v1/levels/**"
                     ).permitAll()
+                    
+                    // Public mission endpoints (read-only)
+                    .requestMatchers(
+                        HttpMethod.GET, "/api/v1/missions/**"
+                    ).permitAll()
+                    
+                    // Public user endpoints (read-only) 
+                    .requestMatchers(
+                        HttpMethod.GET, "/api/v1/users/**"
+                    ).permitAll()
 
-                    // Stories require authentication (as they create content)
-                    .requestMatchers("/api/v1/stories/**").authenticated()
+                    // Protected endpoints - authentication required
+                    .requestMatchers("/api/v1/missions/**").authenticated()  // POST, PUT, DELETE missions
+                    .requestMatchers("/api/v1/users/**").authenticated()     // POST, PUT, DELETE users
+                    .requestMatchers("/api/v1/stories/**").authenticated()   // All story operations
+                    .requestMatchers("/api/v1/stats/**").authenticated()     // All stats operations
                     
                     // All other endpoints require authentication
                     .anyRequest().authenticated()

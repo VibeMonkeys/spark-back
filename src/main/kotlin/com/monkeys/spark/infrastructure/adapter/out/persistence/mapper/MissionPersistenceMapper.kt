@@ -36,7 +36,7 @@ class MissionPersistenceMapper {
     }
     
     fun toDomain(entity: MissionEntity): Mission {
-        val tips = if (entity.tips.isBlank()) {
+        val tips = if (entity.tips?.isBlank() != false) {
             mutableListOf()
         } else {
             entity.tips.split(",").toMutableList()
@@ -53,7 +53,7 @@ class MissionPersistenceMapper {
             status = MissionStatus.valueOf(entity.status),
             rewardPoints = Points(entity.rewardPoints),
             estimatedMinutes = entity.estimatedMinutes,
-            imageUrl = ImageUrl(entity.imageUrl),
+            imageUrl = ImageUrl(entity.imageUrl?.takeIf { it.isNotBlank() } ?: "https://example.com/default.jpg"),
             tips = tips,
             progress = entity.progress,
             isTemplate = entity.isTemplate,

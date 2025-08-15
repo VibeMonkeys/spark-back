@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*
 class MissionController(
     private val missionUseCase: MissionUseCase,
     private val storyUseCase: StoryUseCase,
+    private val userStatsUseCase: UserStatsUseCase,
     private val responseMapper: ResponseMapper,
     private val missionRepository: com.monkeys.spark.application.port.out.MissionRepository,
     private val userApplicationService: com.monkeys.spark.application.service.UserApplicationService
@@ -190,7 +191,13 @@ class MissionController(
         val completeMissionCommand = CompleteMissionCommand(missionId, authenticatedUserId)
         val completedMission = missionUseCase.completeMission(completeMissionCommand)
         
-        // 2. 스토리 생성 (스토리가 있는 경우에만)
+        // 2. 스탯 증가 처리
+        val updatedStats = userStatsUseCase.increaseMissionStat(
+            UserId(authenticatedUserId), 
+            completedMission.category.name
+        )
+        
+        // 3. 스토리 생성 (스토리가 있는 경우에만)
         val story = if (request.story.trim().isNotEmpty() || request.images.isNotEmpty()) {
             val createStoryCommand = CreateStoryCommand(
                 userId = authenticatedUserId,
@@ -204,17 +211,24 @@ class MissionController(
             storyUseCase.createStory(createStoryCommand)
         } else null
         
-        // 3. 사용자 정보 조회 (포인트 업데이트 반영)
+        // 4. 사용자 정보 조회 (포인트 업데이트 반영)
         val user = userApplicationService.getUser(UserId(authenticatedUserId))
             ?: throw IllegalArgumentException("User not found: $authenticatedUserId")
         
-        // 4. 응답 생성
+        // 5. 응답 생성
         val response = MissionVerificationResponse(
             storyId = story?.id?.value ?: "",
             pointsEarned = completedMission.rewardPoints.value,
             streakCount = user.currentStreak.value,
             levelUp = false, // TODO: 레벨업 로직 추가
-            newLevel = null
+            newLevel = null,
+            // 스탯 정보 추가
+            statsIncreased = mapOf(
+                "category" to completedMission.category.name,
+                "pointsGained" to 2,
+                "allocatablePointsGained" to 1,
+                "totalStats" to updatedStats.totalStats
+            )
         )
         
         return ResponseEntity.ok(ApiResponse.success(response, "미션 인증이 완료되었습니다."))

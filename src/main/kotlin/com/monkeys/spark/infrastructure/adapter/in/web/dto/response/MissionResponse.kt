@@ -113,7 +113,9 @@ data class MissionVerificationResponse(
     @JsonProperty("level_up")
     val levelUp: Boolean = false,
     @JsonProperty("new_level")
-    val newLevel: Int? = null
+    val newLevel: Int? = null,
+    @JsonProperty("stats_increased")
+    val statsIncreased: Map<String, Any>? = null
 )
 
 /**
