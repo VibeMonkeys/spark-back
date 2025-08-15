@@ -55,12 +55,12 @@ class MissionFactory(
     private fun createPersonalizedMission(user: User, template: Mission): Mission {
         return Mission.create(
             userId = user.id,
-            title = template.title,
-            description = template.description,
-            detailedDescription = template.detailedDescription,
+            title = template.title.value,
+            description = template.description.value,
+            detailedDescription = template.detailedDescription.value,
             category = template.category,
             difficulty = template.difficulty,
-            imageUrl = template.imageUrl,
+            imageUrl = template.imageUrl.value,
             tips = template.tips,
             conditions = generateConditions(template.category)
         )
