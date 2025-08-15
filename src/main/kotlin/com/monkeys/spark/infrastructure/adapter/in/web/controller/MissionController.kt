@@ -5,16 +5,19 @@ import com.monkeys.spark.application.port.`in`.command.*
 import com.monkeys.spark.application.port.`in`.query.*
 import com.monkeys.spark.application.mapper.ResponseMapper
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.*
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.*
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
 import com.monkeys.spark.domain.vo.common.MissionId
 import com.monkeys.spark.domain.vo.common.UserId
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/v1/missions")
 class MissionController(
     private val missionUseCase: MissionUseCase,
+    private val storyUseCase: StoryUseCase,
     private val responseMapper: ResponseMapper,
     private val missionRepository: com.monkeys.spark.application.port.out.MissionRepository,
     private val userApplicationService: com.monkeys.spark.application.service.UserApplicationService
@@ -169,6 +172,52 @@ class MissionController(
         )
 
         return ResponseEntity.ok(ApiResponse.success(response, "미션을 완료했습니다! ${pointsEarned}P를 획득했습니다."))
+    }
+
+    /**
+     * 미션 인증 및 완료 (스토리 자동 생성 포함)
+     * POST /api/v1/missions/{missionId}/verify
+     */
+    @PostMapping("/{missionId}/verify")
+    fun verifyMission(
+        @PathVariable missionId: String,
+        @RequestBody request: MissionVerificationRequest,
+        authentication: Authentication
+    ): ResponseEntity<ApiResponse<MissionVerificationResponse>> {
+        val authenticatedUserId = authentication.name
+        
+        // 1. 미션 완료 처리
+        val completeMissionCommand = CompleteMissionCommand(missionId, authenticatedUserId)
+        val completedMission = missionUseCase.completeMission(completeMissionCommand)
+        
+        // 2. 스토리 생성 (스토리가 있는 경우에만)
+        val story = if (request.story.trim().isNotEmpty() || request.images.isNotEmpty()) {
+            val createStoryCommand = CreateStoryCommand(
+                userId = authenticatedUserId,
+                missionId = missionId,
+                storyText = request.story.trim().ifEmpty { "미션을 완료했습니다! 🎉" },
+                images = request.images,
+                location = request.location,
+                isPublic = request.isPublic,
+                userTags = request.userTags
+            )
+            storyUseCase.createStory(createStoryCommand)
+        } else null
+        
+        // 3. 사용자 정보 조회 (포인트 업데이트 반영)
+        val user = userApplicationService.getUser(UserId(authenticatedUserId))
+            ?: throw IllegalArgumentException("User not found: $authenticatedUserId")
+        
+        // 4. 응답 생성
+        val response = MissionVerificationResponse(
+            storyId = story?.id?.value ?: "",
+            pointsEarned = completedMission.rewardPoints.value,
+            streakCount = user.currentStreak.value,
+            levelUp = false, // TODO: 레벨업 로직 추가
+            newLevel = null
+        )
+        
+        return ResponseEntity.ok(ApiResponse.success(response, "미션 인증이 완료되었습니다."))
     }
 
     /**
