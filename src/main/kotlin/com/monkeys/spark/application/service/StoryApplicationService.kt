@@ -56,6 +56,11 @@ class StoryApplicationService(
         
         // 미션 완료 처리 (이미 완료되지 않은 경우)
         if (mission.status.name != "COMPLETED") {
+            // 미션이 ASSIGNED 상태인 경우 시작 처리
+            if (mission.status.name == "ASSIGNED") {
+                mission.start()
+            }
+            
             val completedMission = mission.complete()
             missionRepository.save(completedMission)
             
@@ -72,53 +77,83 @@ class StoryApplicationService(
     }
     
     override fun getStoryFeed(query: StoryFeedQuery): List<StoryFeedItem> {
-        val stories = when (query.sortBy) {
-            "latest" -> storyRepository.findPublicStories(query.page, query.size)
-            "popular" -> storyRepository.findPopularStories(query.size)
-            else -> storyRepository.findPublicStories(query.page, query.size)
-        }
-        
-        // Category 필터링
-        val filteredStories = if (query.category != null) {
-            storyRepository.findByMissionCategory(com.monkeys.spark.domain.vo.mission.MissionCategory.valueOf(query.category))
-        } else {
-            stories
-        }
-        
-        // StoryFeedItem으로 변환
-        return filteredStories.mapNotNull { story ->
-            val user = userRepository.findById(story.userId) ?: return@mapNotNull null
-            val isLiked = query.userId?.let { 
-                storyRepository.isLikedByUser(story.id, UserId(it)) 
-            } ?: false
+        try {
+            println("🔍 [StoryApplicationService] getStoryFeed called with query: $query")
             
-            StoryFeedItem(
-                storyId = story.id,
-                user = StoryUser(
-                    userId = user.id,
-                    name = user.name,
-                    avatarUrl = user.avatarUrl,
-                    level = user.level,
-                    levelTitle = user.levelTitle
-                ),
-                mission = StoryMission(
-                    missionId = story.missionId,
-                    title = story.missionTitle,
-                    category = story.missionCategory
-                ),
-                content = StoryContent(
-                    storyText = story.storyText,
-                    images = story.images,
-                    tags = story.userTags
-                ),
-                interactions = StoryInteractions(
-                    likes = story.likes,
-                    comments = story.comments,
-                    isLikedByCurrentUser = isLiked
-                ),
-                timeAgo = story.getTimeAgo(),
-                location = story.location
-            )
+            val stories = when (query.sortBy) {
+                "latest" -> storyRepository.findPublicStories(query.page, query.size)
+                "popular" -> storyRepository.findPopularStories(query.size)
+                else -> storyRepository.findPublicStories(query.page, query.size)
+            }
+            
+            println("📚 [StoryApplicationService] Found ${stories.size} stories")
+            
+            // Category 필터링
+            val filteredStories = if (query.category != null) {
+                println("🏷️ [StoryApplicationService] Filtering by category: ${query.category}")
+                storyRepository.findByMissionCategory(com.monkeys.spark.domain.vo.mission.MissionCategory.valueOf(query.category))
+            } else {
+                stories
+            }
+            
+            println("🎯 [StoryApplicationService] After filtering: ${filteredStories.size} stories")
+            
+            // StoryFeedItem으로 변환
+            val feedItems = filteredStories.mapNotNull { story ->
+                try {
+                    println("👤 [StoryApplicationService] Processing story ${story.id.value} for user ${story.userId.value}")
+                    
+                    val user = userRepository.findById(story.userId)
+                    if (user == null) {
+                        println("⚠️ [StoryApplicationService] User not found for story ${story.id.value}: ${story.userId.value}")
+                        return@mapNotNull null
+                    }
+                    
+                    val isLiked = query.userId?.let { 
+                        storyRepository.isLikedByUser(story.id, UserId(it)) 
+                    } ?: false
+                    
+                    StoryFeedItem(
+                        storyId = story.id,
+                        user = StoryUser(
+                            userId = user.id,
+                            name = user.name,
+                            avatarUrl = user.avatarUrl,
+                            level = user.level,
+                            levelTitle = user.levelTitle
+                        ),
+                        mission = StoryMission(
+                            missionId = story.missionId,
+                            title = story.missionTitle,
+                            category = story.missionCategory
+                        ),
+                        content = StoryContent(
+                            storyText = story.storyText,
+                            images = story.images,
+                            tags = story.userTags
+                        ),
+                        interactions = StoryInteractions(
+                            likes = story.likes,
+                            comments = story.comments,
+                            isLikedByCurrentUser = isLiked
+                        ),
+                        timeAgo = story.getTimeAgo(),
+                        location = story.location
+                    )
+                } catch (e: Exception) {
+                    println("❌ [StoryApplicationService] Error processing story ${story.id.value}: ${e.message}")
+                    e.printStackTrace()
+                    null
+                }
+            }
+            
+            println("✅ [StoryApplicationService] Returning ${feedItems.size} feed items")
+            return feedItems
+            
+        } catch (e: Exception) {
+            println("🚨 [StoryApplicationService] Error in getStoryFeed: ${e.message}")
+            e.printStackTrace()
+            throw e
         }
     }
     

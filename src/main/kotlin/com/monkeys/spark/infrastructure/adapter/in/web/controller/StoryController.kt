@@ -10,6 +10,7 @@ import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
 import com.monkeys.spark.domain.vo.common.StoryId
 import com.monkeys.spark.domain.vo.common.UserId
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -25,10 +26,12 @@ class StoryController(
      */
     @PostMapping
     fun createStory(
-        @RequestBody request: MissionVerificationRequest
+        @RequestBody request: MissionVerificationRequest,
+        authentication: Authentication
     ): ResponseEntity<ApiResponse<MissionVerificationResponse>> {
+        val authenticatedUserId = authentication.name // JWT에서 추출된 실제 사용자 ID
         val command = CreateStoryCommand(
-            userId = "user_01", // TODO: 실제로는 인증된 사용자 ID를 사용해야 함
+            userId = authenticatedUserId,
             missionId = request.missionId,
             storyText = request.story,
             images = request.images,

@@ -4,7 +4,7 @@ package com.monkeys.spark.domain.vo.story
 @JvmInline
 value class StoryText(val value: String) {
     init {
-        require(value.length in 50..500) { "Story text must be between 50 and 500 characters" }
+        require(value.length in 10..500) { "Story text must be between 10 and 500 characters" }
     }
 }
 
