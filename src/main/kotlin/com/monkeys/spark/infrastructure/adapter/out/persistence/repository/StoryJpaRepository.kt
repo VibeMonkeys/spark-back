@@ -18,10 +18,10 @@ interface StoryJpaRepository : JpaRepository<StoryEntity, String> {
     @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true ORDER BY s.createdAt DESC")
     fun findPublicStoriesOrderByCreatedDesc(pageable: Pageable): List<StoryEntity>
     
-    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.missionCategory = :category ORDER BY s.likes DESC")
+    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.missionCategory = :category ORDER BY s.likeCount DESC")
     fun findPublicStoriesByCategory(@Param("category") category: String, pageable: Pageable): List<StoryEntity>
     
-    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.createdAt >= :startDate ORDER BY s.likes DESC")
+    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.createdAt >= :startDate ORDER BY s.likeCount DESC")
     fun findTrendingStories(@Param("startDate") startDate: LocalDateTime, pageable: Pageable): List<StoryEntity>
     
     @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND (s.storyText LIKE %:keyword% OR s.userTags LIKE %:keyword%)")

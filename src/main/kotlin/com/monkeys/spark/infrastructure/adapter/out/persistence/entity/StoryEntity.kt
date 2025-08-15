@@ -42,12 +42,9 @@ class StoryEntity {
     @Column(name = "is_public", nullable = false)
     var isPublic: Boolean = true
     
-    @Column(name = "likes_count", nullable = false)
-    var likes: Int = 0
-    
-    // StoryPersistenceAdapter에서 필요한 추가 필드들
-    @Column(name = "like_count")
-    var likeCount: Int? = 0
+    // 좋아요 수 (캐시용) - story_likes 테이블에서 실시간 계산도 가능
+    @Column(name = "like_count", nullable = false)
+    var likeCount: Int = 0
     
     // Comma-separated hash tags
     @Column(name = "hash_tags", columnDefinition = "TEXT")

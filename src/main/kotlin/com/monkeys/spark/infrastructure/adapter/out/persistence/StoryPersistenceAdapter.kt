@@ -6,6 +6,8 @@ import com.monkeys.spark.domain.vo.common.*
 import com.monkeys.spark.domain.vo.mission.MissionCategory
 import com.monkeys.spark.domain.vo.story.HashTag
 import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.StoryJpaRepository
+import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.StoryLikeJpaRepository
+import com.monkeys.spark.infrastructure.adapter.out.persistence.entity.StoryLikeEntity
 import com.monkeys.spark.infrastructure.adapter.out.persistence.mapper.StoryPersistenceMapper
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
@@ -14,6 +16,7 @@ import java.time.LocalDateTime
 @Component
 class StoryPersistenceAdapter(
     private val storyJpaRepository: StoryJpaRepository,
+    private val storyLikeJpaRepository: StoryLikeJpaRepository,
     private val storyMapper: StoryPersistenceMapper
 ) : StoryRepository {
     
@@ -92,8 +95,16 @@ class StoryPersistenceAdapter(
     override fun likeStory(storyId: StoryId, userId: UserId): Story? {
         return storyJpaRepository.findById(storyId.value).map { entity ->
             if (!isLikedByUser(storyId, userId)) {
-                entity.likeCount = (entity.likeCount ?: 0) + 1
-                // TODO: StoryLikeEntity 생성 로직 추가
+                // StoryLikeEntity 생성
+                val likeEntity = StoryLikeEntity().apply {
+                    this.storyId = storyId.value
+                    this.userId = userId.value
+                    this.createdAt = LocalDateTime.now()
+                }
+                storyLikeJpaRepository.save(likeEntity)
+                
+                // 좋아요 수 증가
+                entity.likeCount = entity.likeCount + 1
                 storyJpaRepository.save(entity)
             }
             storyMapper.toDomain(entity)
@@ -103,8 +114,11 @@ class StoryPersistenceAdapter(
     override fun unlikeStory(storyId: StoryId, userId: UserId): Story? {
         return storyJpaRepository.findById(storyId.value).map { entity ->
             if (isLikedByUser(storyId, userId)) {
-                entity.likeCount = maxOf(0, (entity.likeCount ?: 0) - 1)
-                // TODO: StoryLikeEntity 삭제 로직 추가
+                // StoryLikeEntity 삭제
+                storyLikeJpaRepository.deleteByStoryIdAndUserId(storyId.value, userId.value)
+                
+                // 좋아요 수 감소
+                entity.likeCount = maxOf(0, entity.likeCount - 1)
                 storyJpaRepository.save(entity)
             }
             storyMapper.toDomain(entity)
@@ -112,9 +126,7 @@ class StoryPersistenceAdapter(
     }
     
     override fun isLikedByUser(storyId: StoryId, userId: UserId): Boolean {
-        // TODO: 실제 StoryLikeEntity를 통한 조회 로직 구현
-        // 임시로 false 반환
-        return false
+        return storyLikeJpaRepository.existsByStoryIdAndUserId(storyId.value, userId.value)
     }
     
     override fun deleteById(storyId: StoryId) {

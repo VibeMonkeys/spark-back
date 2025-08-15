@@ -25,7 +25,7 @@ class StoryPersistenceMapper {
         entity.userTags = domain.userTags.map { it.value }.joinToString(",")
         entity.hashTags = domain.getAllTags().map { it.value }.joinToString(",")
         entity.isPublic = domain.isPublic
-        entity.likes = domain.likes.value
+        entity.likeCount = domain.likes.value
         entity.comments = domain.comments.value
         entity.createdAt = domain.createdAt
         entity.updatedAt = domain.updatedAt
@@ -70,7 +70,7 @@ class StoryPersistenceMapper {
             autoTags = autoTags,
             userTags = userTags,
             isPublic = entity.isPublic,
-            likes = LikeCount(entity.likes),
+            likes = LikeCount(entity.likeCount),
             comments = CommentCount(entity.comments),
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt

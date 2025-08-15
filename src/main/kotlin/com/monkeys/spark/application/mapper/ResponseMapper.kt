@@ -15,11 +15,14 @@ import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.*
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
 import com.monkeys.spark.domain.model.LevelSystem
 import com.monkeys.spark.domain.model.LevelInfo
+import com.monkeys.spark.application.port.out.StoryRepository
 import org.springframework.stereotype.Component
 import java.time.format.DateTimeFormatter
 
 @Component
-class ResponseMapper {
+class ResponseMapper(
+    private val storyRepository: StoryRepository
+) {
     
     private val dateFormatter = DateTimeFormatter.ofPattern("yyyy년 MM월")
     
@@ -156,8 +159,10 @@ class ResponseMapper {
      * Story 도메인을 StoryResponse로 변환
      */
     fun toStoryResponse(story: Story, currentUserId: String?): StoryResponse {
-        // 현재 사용자가 좋아요를 눌렀는지 확인 (임시로 false 반환)
-        val isLiked = false // TODO: 실제 구현에서는 StoryRepository에서 확인
+        // 현재 사용자가 좋아요를 눌렀는지 확인
+        val isLiked = currentUserId?.let { 
+            storyRepository.isLikedByUser(story.id, UserId(it))
+        } ?: false
         
         return StoryResponse(
             id = story.id.value,
