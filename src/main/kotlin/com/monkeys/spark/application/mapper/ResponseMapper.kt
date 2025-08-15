@@ -149,7 +149,6 @@ class ResponseMapper {
             thisMonthPoints = user.statistics.thisMonthPoints.value
         )
         
-        println("🎯 [ResponseMapper] MissionCompletionResponse created: $response")
         return response
     }
     

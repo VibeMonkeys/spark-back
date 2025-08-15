@@ -70,7 +70,6 @@ class UserPersistenceMapper(
             try {
                 MissionCategory.valueOf(key) to value
             } catch (e: IllegalArgumentException) {
-                println("⚠️ [UserPersistenceMapper] Invalid preference category: $key, skipping...")
                 null
             }
         }.toMap().toMutableMap()
@@ -88,7 +87,6 @@ class UserPersistenceMapper(
                     total = value["total"] ?: 0
                 )
             } catch (e: IllegalArgumentException) {
-                println("⚠️ [UserPersistenceMapper] Invalid category stats key: $key, skipping...")
                 null
             }
         }.toMap().toMutableMap()

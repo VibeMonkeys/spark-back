@@ -101,7 +101,6 @@ class SecurityConfig(
             maxAge = 3600L
         }
 
-        println("🌐 [CORS] Configured allowed origins: ${origins.joinToString(", ")}")
 
         return UrlBasedCorsConfigurationSource().apply {
             registerCorsConfiguration("/**", configuration)

@@ -19,7 +19,6 @@ class CustomUserDetailsService(
 
         // 비밀번호가 비어있는 경우 로그 출력
         if (userEntity.password.isBlank()) {
-            println("⚠️ [CustomUserDetailsService] User ${userEntity.email} has empty password!")
             throw UsernameNotFoundException("User password is invalid: $email")
         }
 

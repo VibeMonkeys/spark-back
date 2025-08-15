@@ -45,7 +45,6 @@ class UserStatsApplicationService(
             achievementService.checkAndGrantPointsAchievements(userId.value, savedStats.totalPoints)
         } catch (e: Exception) {
             // 업적 시스템 오류가 스탯 증가를 방해하지 않도록 로깅만 처리
-            println("업적 시스템 처리 중 오류 발생: ${e.message}")
         }
         
         return savedStats
