@@ -97,6 +97,11 @@ class MissionPersistenceAdapter(
         return emptyList()
     }
     
+    override fun findTemplateMissions(): List<Mission> {
+        return missionJpaRepository.findByIsTemplate(true)
+            .map { missionMapper.toDomain(it) }
+    }
+    
     override fun findRecommendedMissions(userId: UserId, preferences: Map<MissionCategory, Boolean>, limit: Int): List<Mission> {
         val preferredCategories = preferences.filter { it.value }.keys.map { it.name }
         return if (preferredCategories.isNotEmpty()) {

@@ -45,8 +45,8 @@ class MissionApplicationService(
 
     @Transactional(readOnly = true)
     override fun getTodaysMissions(userId: UserId): List<Mission> {
-        // 사용자가 아직 시도하지 않은 템플릿 미션들 중에서 랜덤으로 5개 선택
-        return missionRepository.findRandomAvailableTemplatesForUser(userId, 5)
+        // 사용자에게 할당된 미션들 중 ASSIGNED 상태인 것들을 반환
+        return missionRepository.findByUserIdAndStatus(userId, MissionStatus.ASSIGNED)
     }
 
     @Transactional(readOnly = true)
@@ -143,9 +143,8 @@ class MissionApplicationService(
         userRepository.findById(userId) 
             ?: throw IllegalArgumentException("User not found: $userId")
 
-        // 사용자가 아직 시도하지 않은 템플릿 미션들 중에서 랜덤으로 5개 선택
-        // (기존에 보여준 5개와는 다른 미션들이 나올 가능성이 높음)
-        return missionRepository.findRandomAvailableTemplatesForUser(userId, 5)
+        // 사용자에게 할당된 미션들 중 아직 시작하지 않은 미션들 반환
+        return missionRepository.findByUserIdAndStatus(userId, MissionStatus.ASSIGNED)
     }
 
     @Transactional(readOnly = true)

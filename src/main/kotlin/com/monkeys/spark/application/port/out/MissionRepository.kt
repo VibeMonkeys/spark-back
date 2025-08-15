@@ -77,6 +77,11 @@ interface MissionRepository {
     fun findMissionTemplates(): List<Mission>
     
     /**
+     * 템플릿 미션들 조회 (is_template = true)
+     */
+    fun findTemplateMissions(): List<Mission>
+    
+    /**
      * 사용자가 아직 시도하지 않은 템플릿 미션들 조회
      */
     fun findAvailableTemplatesForUser(userId: UserId): List<Mission>

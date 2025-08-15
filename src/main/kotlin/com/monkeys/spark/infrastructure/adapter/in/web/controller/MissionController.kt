@@ -73,25 +73,8 @@ class MissionController(
                 )
             }
 
-            val templateMission = missionRepository.findById(MissionId(missionId))
-                ?: return ResponseEntity.notFound().build()
-
-            // 템플릿 미션인 경우 사용자 전용 미션 생성
-            val mission = if (templateMission.isTemplate) {
-                val userMission = templateMission.copy(
-                    id = MissionId.generate(),
-                    userId = UserId(userId),
-                    isTemplate = false,
-                    assignedAt = java.time.LocalDateTime.now(),
-                    expiresAt = java.time.LocalDateTime.now().plusDays(1)
-                )
-                val savedMission = missionRepository.save(userMission)
-                savedMission.start()
-                missionRepository.save(savedMission)
-            } else {
-                val command = StartMissionCommand(missionId, userId)
-                missionUseCase.startMission(command)
-            }
+            val command = StartMissionCommand(missionId, userId)
+            val mission = missionUseCase.startMission(command)
 
             val response = responseMapper.toMissionResponse(mission)
             return ResponseEntity.ok(ApiResponse.success(response, "미션을 시작했습니다."))
