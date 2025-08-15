@@ -43,10 +43,17 @@ class MissionApplicationService(
         return missions.map { missionRepository.save(it) }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     override fun getTodaysMissions(userId: UserId): List<Mission> {
-        // 사용자에게 할당된 미션들 중 ASSIGNED 상태인 것들을 반환
-        return missionRepository.findByUserIdAndStatus(userId, MissionStatus.ASSIGNED)
+        // 사용자에게 할당된 미션들 중 ASSIGNED 상태인 것들을 조회
+        val assignedMissions = missionRepository.findByUserIdAndStatus(userId, MissionStatus.ASSIGNED)
+        
+        // 할당된 미션이 없으면 자동으로 일일 미션 생성
+        if (assignedMissions.isEmpty()) {
+            return generateDailyMissions(userId)
+        }
+        
+        return assignedMissions
     }
 
     @Transactional(readOnly = true)
