@@ -34,6 +34,21 @@ data class UserStats(
      * 평균 스탯 값
      */
     val averageStatValue: Double get() = totalStats / 6.0
+    
+    /**
+     * 총 포인트 (업적 시스템용)
+     */
+    val totalPoints: Int get() = totalEarnedPoints
+    
+    /**
+     * 완료한 미션 수 (업적 시스템용 - 임시)
+     */
+    val completedMissions: Int get() = totalEarnedPoints / 3 // 미션당 평균 3포인트로 추정
+    
+    /**
+     * 현재 연속 달성일 (업적 시스템용 - 임시)
+     */
+    val currentStreak: Int get() = if (totalEarnedPoints > 10) 5 else 1 // 임시 구현
 
     /**
      * 특정 스탯 값 조회

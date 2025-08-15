@@ -6,6 +6,7 @@ import com.monkeys.spark.application.port.`in`.UserRankingInfo
 import com.monkeys.spark.application.port.out.UserStatsRepository
 import com.monkeys.spark.application.port.out.UserRepository
 import com.monkeys.spark.domain.model.UserStats
+import com.monkeys.spark.domain.service.AchievementService
 import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.stat.StatType
 import org.springframework.stereotype.Service
@@ -18,7 +19,8 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 class UserStatsApplicationService(
     private val userStatsRepository: UserStatsRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val achievementService: AchievementService
 ) : UserStatsUseCase {
 
     override fun getUserStats(userId: UserId): UserStats {
@@ -35,7 +37,18 @@ class UserStatsApplicationService(
     override fun increaseMissionStat(userId: UserId, missionCategory: String): UserStats {
         val userStats = getUserStats(userId)
         val updatedStats = userStats.increaseMissionStat(missionCategory)
-        return userStatsRepository.save(updatedStats)
+        val savedStats = userStatsRepository.save(updatedStats)
+        
+        // 업적 시스템 연동: 미션 완료 시 업적 확인 및 발급
+        try {
+            achievementService.checkAndGrantMissionAchievements(userId.value, missionCategory)
+            achievementService.checkAndGrantPointsAchievements(userId.value, savedStats.totalPoints)
+        } catch (e: Exception) {
+            // 업적 시스템 오류가 스탯 증가를 방해하지 않도록 로깅만 처리
+            println("업적 시스템 처리 중 오류 발생: ${e.message}")
+        }
+        
+        return savedStats
     }
 
     override fun initializeUserStats(userId: UserId): UserStats {
