@@ -21,13 +21,29 @@ class MissionController(
 ) {
 
     /**
-     * 오늘의 미션 조회 (3개)
+     * 오늘의 미션 조회 (5개) - 제한 정보 포함
      * GET /api/v1/missions/today?userId={userId}
      */
     @GetMapping("/today")
-    fun getTodaysMissions(@RequestParam userId: String): ResponseEntity<ApiResponse<List<MissionResponse>>> {
-        val missions = missionUseCase.getTodaysMissions(UserId(userId))
-        val response = missions.map { responseMapper.toMissionResponse(it) }
+    fun getTodaysMissions(@RequestParam userId: String): ResponseEntity<ApiResponse<TodaysMissionsResponse>> {
+        val userIdVO = UserId(userId)
+        val missions = missionUseCase.getTodaysMissions(userIdVO)
+        val missionResponses = missions.map { responseMapper.toMissionResponse(it) }
+        
+        // 일일 제한 정보 조회
+        val validation = missionRepository.canStartMission(userIdVO)
+        val dailyLimitResponse = DailyMissionLimitResponse(
+            maxDailyStarts = validation.dailyLimit.maxDailyStarts,
+            currentStarted = validation.dailyLimit.currentStarted.toInt(),
+            remainingStarts = validation.dailyLimit.remainingStarts,
+            canStart = validation.dailyLimit.canStart,
+            resetTime = validation.dailyLimit.resetTime
+        )
+        
+        val response = TodaysMissionsResponse(
+            missions = missionResponses,
+            dailyLimit = dailyLimitResponse
+        )
         
         return ResponseEntity.ok(ApiResponse.success(response))
     }
@@ -48,6 +64,26 @@ class MissionController(
     }
 
     /**
+     * 일일 미션 시작 제한 정보 조회
+     * GET /api/v1/missions/daily-limit?userId={userId}
+     */
+    @GetMapping("/daily-limit")
+    fun getDailyMissionLimit(@RequestParam userId: String): ResponseEntity<ApiResponse<DailyMissionLimitResponse>> {
+        val userIdVO = UserId(userId)
+        val validation = missionRepository.canStartMission(userIdVO)
+        
+        val response = DailyMissionLimitResponse(
+            maxDailyStarts = validation.dailyLimit.maxDailyStarts,
+            currentStarted = validation.dailyLimit.currentStarted.toInt(),
+            remainingStarts = validation.dailyLimit.remainingStarts,
+            canStart = validation.dailyLimit.canStart,
+            resetTime = validation.dailyLimit.resetTime
+        )
+        
+        return ResponseEntity.ok(ApiResponse.success(response))
+    }
+
+    /**
      * 미션 시작
      * POST /api/v1/missions/{missionId}/start
      */
@@ -62,8 +98,15 @@ class MissionController(
             // 한 번의 쿼리로 미션 시작 가능 여부 검증
             val validation = missionRepository.canStartMission(userIdVO)
             if (!validation.canStart) {
+                // 제한 정보를 포함한 상세 오류 메시지 생성
+                val detailedMessage = when (validation.errorCode) {
+                    "DAILY_LIMIT_EXCEEDED" -> 
+                        "오늘 시작할 수 있는 미션 수를 초과했습니다. (${validation.dailyLimit.currentStarted}/${validation.dailyLimit.maxDailyStarts}) 내일 다시 시도해주세요."
+                    else -> validation.errorMessage!!
+                }
+                
                 return ResponseEntity.badRequest().body(
-                    ApiResponse.error(validation.errorMessage!!, validation.errorCode!!)
+                    ApiResponse.error(detailedMessage, validation.errorCode!!)
                 )
             }
 
@@ -105,17 +148,25 @@ class MissionController(
         @PathVariable missionId: String,
         @RequestParam userId: String
     ): ResponseEntity<ApiResponse<MissionCompletionResponse>> {
+        val userIdVO = UserId(userId)
         val command = CompleteMissionCommand(missionId, userId)
         val mission = missionUseCase.completeMission(command)
         
         // 업데이트된 사용자 정보 조회
-        val user = userApplicationService.getUser(UserId(userId))
+        val user = userApplicationService.getUser(userIdVO)
             ?: throw IllegalArgumentException("User not found: $userId")
         
         // 획득한 포인트는 미션의 기본 포인트 (실제로는 더 복잡한 계산이 필요할 수 있음)
         val pointsEarned = mission.rewardPoints.value
         
-        val response = responseMapper.toMissionCompletionResponse(mission, user, pointsEarned)
+        // 남은 미션 목록 조회 (완료 후 상태 업데이트를 위해)
+        val remainingMissions = missionUseCase.getTodaysMissions(userIdVO)
+            .filter { it.status.name == "ASSIGNED" || it.status.name == "IN_PROGRESS" }
+            .map { responseMapper.toMissionResponse(it) }
+        
+        val response = responseMapper.toMissionCompletionResponse(mission, user, pointsEarned).copy(
+            remainingMissions = remainingMissions
+        )
 
         return ResponseEntity.ok(ApiResponse.success(response, "미션을 완료했습니다! ${pointsEarned}P를 획득했습니다."))
     }

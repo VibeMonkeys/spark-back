@@ -94,7 +94,9 @@ data class MissionCompletionResponse(
     @JsonProperty("total_points")
     val totalPoints: Int,
     @JsonProperty("this_month_points")
-    val thisMonthPoints: Int
+    val thisMonthPoints: Int,
+    @JsonProperty("remaining_missions")
+    val remainingMissions: List<MissionResponse>? = null
 )
 
 /**
@@ -112,4 +114,31 @@ data class MissionVerificationResponse(
     val levelUp: Boolean = false,
     @JsonProperty("new_level")
     val newLevel: Int? = null
+)
+
+/**
+ * 일일 미션 시작 제한 정보 응답 DTO
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class DailyMissionLimitResponse(
+    @JsonProperty("max_daily_starts")
+    val maxDailyStarts: Int,
+    @JsonProperty("current_started")
+    val currentStarted: Int,
+    @JsonProperty("remaining_starts")
+    val remainingStarts: Int,
+    @JsonProperty("can_start")
+    val canStart: Boolean,
+    @JsonProperty("reset_time")
+    val resetTime: String
+)
+
+/**
+ * 오늘의 미션 목록 응답 DTO (제한 정보 포함)
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class TodaysMissionsResponse(
+    val missions: List<MissionResponse>,
+    @JsonProperty("daily_limit")
+    val dailyLimit: DailyMissionLimitResponse
 )
