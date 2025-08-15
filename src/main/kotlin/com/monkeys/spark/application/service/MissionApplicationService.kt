@@ -145,13 +145,20 @@ class MissionApplicationService(
         return missionRepository.findPopularMissions(limit)
     }
 
+    @Transactional
     override fun rerollMissions(userId: UserId): List<Mission> {
         // 사용자 존재 확인
         userRepository.findById(userId) 
             ?: throw IllegalArgumentException("User not found: $userId")
 
-        // 사용자에게 할당된 미션들 중 아직 시작하지 않은 미션들 반환
-        return missionRepository.findByUserIdAndStatus(userId, MissionStatus.ASSIGNED)
+        // 기존 ASSIGNED 상태의 미션들 삭제
+        val existingMissions = missionRepository.findByUserIdAndStatus(userId, MissionStatus.ASSIGNED)
+        existingMissions.forEach { mission ->
+            missionRepository.deleteById(mission.id)
+        }
+
+        // 새로운 일일 미션 5개 생성
+        return generateDailyMissions(userId)
     }
 
     @Transactional(readOnly = true)

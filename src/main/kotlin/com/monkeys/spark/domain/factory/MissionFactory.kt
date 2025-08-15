@@ -14,7 +14,7 @@ class MissionFactory(
 ) {
 
     /**
-     * 사용자별 일일 미션 3개 생성
+     * 사용자별 일일 미션 5개 생성
      */
     fun createDailyMissions(user: User): List<Mission> {
         // DB에서 템플릿 미션들 조회
@@ -28,23 +28,21 @@ class MissionFactory(
             templateMissions
         }
 
-        // 난이도별로 1개씩 선택
-        val easyMission = filteredMissions.filter { it.difficulty == MissionDifficulty.EASY }.randomOrNull()
-        val mediumMission = filteredMissions.filter { it.difficulty == MissionDifficulty.MEDIUM }.randomOrNull()
-        val hardMission = filteredMissions.filter { it.difficulty == MissionDifficulty.HARD }.randomOrNull()
+        // 난이도별로 균형있게 선택 (Easy 2개, Medium 2개, Hard 1개)
+        val easyMissions = filteredMissions.filter { it.difficulty == MissionDifficulty.EASY }.shuffled().take(2)
+        val mediumMissions = filteredMissions.filter { it.difficulty == MissionDifficulty.MEDIUM }.shuffled().take(2)
+        val hardMissions = filteredMissions.filter { it.difficulty == MissionDifficulty.HARD }.shuffled().take(1)
 
-        val selectedMissions = listOfNotNull(easyMission, mediumMission, hardMission)
+        var selectedMissions = easyMissions + mediumMissions + hardMissions
 
-        // 3개가 안되면 남은 템플릿에서 랜덤 선택
-        val missions = if (selectedMissions.size < 3) {
+        // 5개가 안되면 남은 템플릿에서 랜덤 선택
+        if (selectedMissions.size < 5) {
             val remaining = filteredMissions - selectedMissions.toSet()
-            selectedMissions + remaining.shuffled().take(3 - selectedMissions.size)
-        } else {
-            selectedMissions
+            selectedMissions = selectedMissions + remaining.shuffled().take(5 - selectedMissions.size)
         }
 
         // 사용자별 미션으로 변환
-        return missions.take(3).map { template ->
+        return selectedMissions.take(5).map { template ->
             createPersonalizedMission(user, template)
         }
     }
