@@ -20,13 +20,13 @@ class MissionFactory(
         // DB에서 템플릿 미션들 조회
         val templateMissions = missionRepository.findTemplateMissions()
 
-        // 사용자 선호도 기반으로 미션 필터링
+        // 사용자 선호도 기반으로 미션 필터링 (현재는 모든 미션 사용)
         val availableCategories = user.preferences.filter { it.value }.keys.toList()
-        val filteredMissions = if (availableCategories.isNotEmpty()) {
-            templateMissions.filter { it.category in availableCategories }
-        } else {
-            templateMissions
-        }
+        val filteredMissions = templateMissions // 임시로 필터링 비활성화
+        
+        println("DEBUG: templateMissions.size = ${templateMissions.size}")
+        println("DEBUG: availableCategories = $availableCategories")
+        println("DEBUG: filteredMissions.size = ${filteredMissions.size}")
 
         // 난이도별로 균형있게 선택 (Easy 2개, Medium 2개, Hard 1개)
         val easyMissions = filteredMissions.filter { it.difficulty == MissionDifficulty.EASY }.shuffled().take(2)
