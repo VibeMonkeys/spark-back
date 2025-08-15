@@ -48,9 +48,15 @@ class SecurityConfig(
                         "/api/v1/auth/**",
                         "/api/health",
                         "/error",
-                        "/actuator/**"
+                        "/actuator/**",
+                        "/api/v1/missions/**",
+                        "/api/v1/users/**",
+                        "/api/v1/levels/**"
                     ).permitAll()
 
+                    // Stories require authentication (as they create content)
+                    .requestMatchers("/api/v1/stories/**").authenticated()
+                    
                     // All other endpoints require authentication
                     .anyRequest().authenticated()
             }

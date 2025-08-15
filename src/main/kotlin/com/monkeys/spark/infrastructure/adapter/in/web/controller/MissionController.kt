@@ -57,19 +57,13 @@ class MissionController(
         @RequestParam userId: String
     ): ResponseEntity<ApiResponse<MissionResponse>> {
         try {
-            // 진행 중인 미션이 있는지 확인
-            val ongoingMissions = missionUseCase.getOngoingMissions(UserId(userId))
-            if (ongoingMissions.isNotEmpty()) {
+            val userIdVO = UserId(userId)
+            
+            // 한 번의 쿼리로 미션 시작 가능 여부 검증
+            val validation = missionRepository.canStartMission(userIdVO)
+            if (!validation.canStart) {
                 return ResponseEntity.badRequest().body(
-                    ApiResponse.error("이미 진행 중인 미션이 있습니다.", "MISSION_IN_PROGRESS")
-                )
-            }
-
-            // 오늘 시작한 미션 개수 확인 (일일 제한)
-            val todayStartedCount = missionRepository.countTodayStartedMissions(UserId(userId))
-            if (todayStartedCount >= 3) { // 하루 최대 3개 미션 제한
-                return ResponseEntity.badRequest().body(
-                    ApiResponse.error("오늘 시작할 수 있는 미션 수를 초과했습니다.", "DAILY_LIMIT_EXCEEDED")
+                    ApiResponse.error(validation.errorMessage!!, validation.errorCode!!)
                 )
             }
 

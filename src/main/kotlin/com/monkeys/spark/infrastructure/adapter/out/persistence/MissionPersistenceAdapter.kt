@@ -2,6 +2,7 @@ package com.monkeys.spark.infrastructure.adapter.out.persistence
 
 import com.monkeys.spark.application.port.out.MissionRepository
 import com.monkeys.spark.domain.model.Mission
+import com.monkeys.spark.domain.model.StartMissionValidation
 import com.monkeys.spark.domain.vo.common.*
 import com.monkeys.spark.domain.vo.mission.*
 import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.MissionJpaRepository
@@ -207,5 +208,30 @@ class MissionPersistenceAdapter(
             startOfDay,
             endOfDay
         )
+    }
+    
+    override fun canStartMission(userId: UserId): StartMissionValidation {
+        // 단일 쿼리로 진행 중인 미션과 오늘 시작한 미션 수를 한 번에 조회하도록 최적화
+        val today = LocalDateTime.now().toLocalDate()
+        val startOfDay = today.atStartOfDay()
+        val endOfDay = today.plusDays(1).atStartOfDay()
+        
+        // 진행 중인 미션 존재 여부 체크 (더 빠른 단일 쿼리)
+        val ongoingCount = missionJpaRepository.countByUserIdAndStatus(userId.value, MissionStatus.IN_PROGRESS.name)
+        if (ongoingCount > 0) {
+            return StartMissionValidation.hasOngoingMission(ongoingCount)
+        }
+        
+        // 오늘 시작한 미션 수 체크 (이미 최적화된 메서드 사용)
+        val todayStartedCount = missionJpaRepository.countByUserIdAndStartedAtBetween(
+            userId.value,
+            startOfDay,
+            endOfDay
+        )
+        if (todayStartedCount >= 3) {
+            return StartMissionValidation.dailyLimitExceeded(todayStartedCount)
+        }
+        
+        return StartMissionValidation.allowedToStart(todayStartedCount)
     }
 }

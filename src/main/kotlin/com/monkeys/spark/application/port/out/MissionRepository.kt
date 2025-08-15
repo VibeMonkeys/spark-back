@@ -1,6 +1,7 @@
 package com.monkeys.spark.application.port.out
 
 import com.monkeys.spark.domain.model.Mission
+import com.monkeys.spark.domain.model.StartMissionValidation
 import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.common.MissionId
 import com.monkeys.spark.domain.vo.common.Location
@@ -144,4 +145,9 @@ interface MissionRepository {
      * 오늘 시작한 미션 개수 조회 (일일 제한 체크용)
      */
     fun countTodayStartedMissions(userId: UserId): Long
+    
+    /**
+     * 미션 시작 가능 여부를 한 번에 체크 (진행 중인 미션 존재 여부 + 오늘 시작한 미션 수)
+     */
+    fun canStartMission(userId: UserId): StartMissionValidation
 }
