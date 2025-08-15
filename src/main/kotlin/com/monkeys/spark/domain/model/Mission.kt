@@ -103,8 +103,15 @@ data class Mission(
     }
     
     fun complete(): Mission {
-        require(status == MissionStatus.IN_PROGRESS) { "Mission must be in progress to complete" }
+        require(status == MissionStatus.IN_PROGRESS || status == MissionStatus.ASSIGNED) { 
+            "Mission must be assigned or in progress to complete" 
+        }
         require(!isExpired()) { "Cannot complete expired mission" }
+        
+        // ASSIGNED 상태에서 바로 완료하는 경우 시작 시간도 설정
+        if (status == MissionStatus.ASSIGNED) {
+            startedAt = LocalDateTime.now()
+        }
         
         status = MissionStatus.COMPLETED
         progress = 100
