@@ -31,13 +31,10 @@ class AuthService(
             throw IllegalArgumentException("이미 사용 중인 이메일입니다.")
         }
 
-        // 비밀번호 암호화
-        val encodedPassword = passwordEncoder.encode(password)
-
-        // 사용자 생성
+        // 사용자 생성 (UserApplicationService에서 비밀번호 해시 처리)
         val command = CreateUserCommand(
             email = email,
-            password = encodedPassword,
+            password = password, // 원본 비밀번호 전달
             name = name,
             avatarUrl = avatarUrl ?: generateDefaultAvatarUrl(name)
         )

@@ -20,6 +20,7 @@ class UserPersistenceMapper(
         val entity = UserEntity()
         entity.id = domain.id.value
         entity.email = domain.email.value
+        entity.password = domain.password
         entity.name = domain.name.value
         entity.avatarUrl = domain.avatarUrl.value
         entity.level = domain.level.value
@@ -65,9 +66,14 @@ class UserPersistenceMapper(
         } catch (e: Exception) {
             emptyMap()
         }
-        val preferences = preferencesMap.mapKeys { 
-            MissionCategory.valueOf(it.key) 
-        }.toMutableMap()
+        val preferences = preferencesMap.mapNotNull { (key, value) ->
+            try {
+                MissionCategory.valueOf(key) to value
+            } catch (e: IllegalArgumentException) {
+                println("⚠️ [UserPersistenceMapper] Invalid preference category: $key, skipping...")
+                null
+            }
+        }.toMap().toMutableMap()
         
         // Parse category stats from JSON
         val categoryStatsMap: Map<String, Map<String, Int>> = try {
@@ -75,14 +81,17 @@ class UserPersistenceMapper(
         } catch (e: Exception) {
             emptyMap()
         }
-        val categoryStats = categoryStatsMap.mapKeys { 
-            MissionCategory.valueOf(it.key) 
-        }.mapValues {
-            CategoryStat(
-                completed = it.value["completed"] ?: 0,
-                total = it.value["total"] ?: 0
-            )
-        }.toMutableMap()
+        val categoryStats = categoryStatsMap.mapNotNull { (key, value) ->
+            try {
+                MissionCategory.valueOf(key) to CategoryStat(
+                    completed = value["completed"] ?: 0,
+                    total = value["total"] ?: 0
+                )
+            } catch (e: IllegalArgumentException) {
+                println("⚠️ [UserPersistenceMapper] Invalid category stats key: $key, skipping...")
+                null
+            }
+        }.toMap().toMutableMap()
         
         val statistics = UserStatistics(
             categoryStats = categoryStats,
@@ -95,6 +104,7 @@ class UserPersistenceMapper(
         return User(
             id = UserId(entity.id),
             email = Email(entity.email),
+            password = entity.password,
             name = UserName(entity.name),
             avatarUrl = AvatarUrl(entity.avatarUrl),
             level = Level(entity.level),

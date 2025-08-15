@@ -21,27 +21,6 @@ class UserController(
     private val responseMapper: ResponseMapper
 ) {
 
-    /**
-     * 사용자 생성 (회원가입)
-     * POST /api/v1/users
-     */
-    @PostMapping
-    fun createUser(@RequestBody request: CreateUserRequest): ResponseEntity<ApiResponse<UserResponse>> {
-        try {
-            val command = CreateUserCommand(
-                email = request.email,
-                password = request.password,
-                name = request.name,
-                avatarUrl = request.avatarUrl
-            )
-            val user = userUseCase.createUser(command)
-            val response = responseMapper.toUserResponse(user)
-
-            return ResponseEntity.ok(ApiResponse.success(response, "회원가입이 완료되었습니다."))
-        } catch (e: IllegalArgumentException) {
-            return ResponseEntity.ok(ApiResponse.error(e.message ?: "회원가입에 실패했습니다.", "SIGNUP_FAILED"))
-        }
-    }
 
     /**
      * 사용자 조회

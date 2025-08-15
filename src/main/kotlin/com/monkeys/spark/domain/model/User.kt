@@ -10,6 +10,7 @@ import java.time.LocalDate
 data class User(
     var id: UserId,
     var email: Email,
+    var password: String = "", // 암호화된 비밀번호
     var name: UserName,
     var avatarUrl: AvatarUrl,
     var level: Level = Level(1),

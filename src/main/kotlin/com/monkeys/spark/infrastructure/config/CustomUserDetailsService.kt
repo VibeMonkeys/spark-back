@@ -10,18 +10,24 @@ import org.springframework.stereotype.Service
 
 @Service
 class CustomUserDetailsService(
-    private val userRepository: UserJpaRepository
+    private val userJpaRepository: UserJpaRepository
 ) : UserDetailsService {
 
     override fun loadUserByUsername(email: String): UserDetails {
-        val user = userRepository.findByEmail(email)
+        val userEntity = userJpaRepository.findByEmail(email)
             ?: throw UsernameNotFoundException("User not found with email: $email")
+
+        // 비밀번호가 비어있는 경우 로그 출력
+        if (userEntity.password.isBlank()) {
+            println("⚠️ [CustomUserDetailsService] User ${userEntity.email} has empty password!")
+            throw UsernameNotFoundException("User password is invalid: $email")
+        }
 
         val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
 
         return User.builder()
-            .username(user.id) // Use user ID as username for JWT
-            .password(user.password)
+            .username(userEntity.id) // Use user ID as username for JWT
+            .password(userEntity.password)
             .authorities(authorities)
             .accountExpired(false)
             .accountLocked(false)
@@ -31,14 +37,14 @@ class CustomUserDetailsService(
     }
 
     fun loadUserById(userId: String): UserDetails? {
-        val user = userRepository.findById(userId).orElse(null)
+        val userEntity = userJpaRepository.findById(userId).orElse(null)
             ?: return null
 
         val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
 
         return User.builder()
-            .username(user.id)
-            .password(user.password)
+            .username(userEntity.id)
+            .password(userEntity.password)
             .authorities(authorities)
             .accountExpired(false)
             .accountLocked(false)

@@ -10,12 +10,14 @@ import java.time.LocalDateTime
 import com.monkeys.spark.infrastructure.adapter.out.persistence.entity.UserEntity
 import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.UserJpaRepository
 import com.monkeys.spark.infrastructure.adapter.out.persistence.mapper.UserPersistenceMapper
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 
 @Component
 class UserPersistenceAdapter(
     private val userJpaRepository: UserJpaRepository,
-    private val userMapper: UserPersistenceMapper
+    private val userMapper: UserPersistenceMapper,
+    private val passwordEncoder: PasswordEncoder
 ) : UserRepository {
     
     override fun save(user: User): User {
@@ -25,8 +27,9 @@ class UserPersistenceAdapter(
     }
     
     fun saveWithPassword(user: User, password: String): User {
+        // User 도메인 모델에 해시된 비밀번호 설정
+        user.password = passwordEncoder.encode(password)
         val entity = userMapper.toEntity(user)
-        entity.password = password
         val savedEntity = userJpaRepository.save(entity)
         return userMapper.toDomain(savedEntity)
     }

@@ -26,7 +26,7 @@ class SecurityConfig(
     private val customUserDetailsService: CustomUserDetailsService
 ) {
 
-    @Value("\${cors.allowed-origins:http://localhost:3001,http://localhost:3002,http://localhost:5173}")
+    @Value("\${cors.allowed-origins:http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:5173}")
     private lateinit var allowedOrigins: String
 
     @Bean
