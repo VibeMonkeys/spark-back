@@ -108,8 +108,8 @@ class MissionApplicationService(
         mission.complete()
         val completedMission = missionRepository.save(mission)
 
-        // 사용자 포인트 및 통계 업데이트
-        userApplicationService.addPoints(userId, mission.calculateFinalPoints())
+        // 사용자 업데이트 (일반 포인트 + 통계)
+        userApplicationService.addPoints(userId, mission.rewardPoints) // 미션 기본 포인트만
         userApplicationService.incrementStreak(userId)
         userApplicationService.incrementCompletedMissions(userId)
 

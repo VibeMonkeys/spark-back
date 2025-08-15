@@ -9,6 +9,8 @@ import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.*
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
 import com.monkeys.spark.domain.vo.common.MissionId
 import com.monkeys.spark.domain.vo.common.UserId
+import com.monkeys.spark.domain.model.UserStats.Companion.MISSION_COMPLETION_STAT_POINTS
+import com.monkeys.spark.domain.model.UserStats.Companion.MISSION_COMPLETION_ALLOCATABLE_POINTS
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
@@ -225,8 +227,8 @@ class MissionController(
             // 스탯 정보 추가
             statsIncreased = mapOf(
                 "category" to completedMission.category.name,
-                "pointsGained" to 1,
-                "allocatablePointsGained" to 2,
+                "pointsGained" to MISSION_COMPLETION_STAT_POINTS,
+                "allocatablePointsGained" to MISSION_COMPLETION_ALLOCATABLE_POINTS,
                 "totalStats" to updatedStats.totalStats
             )
         )
