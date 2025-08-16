@@ -134,7 +134,7 @@ class AuthController(
             return ResponseEntity.ok(ApiResponse.success(demoUsers, "데모 사용자 목록을 조회했습니다."))
         } catch (e: Exception) {
             return ResponseEntity.badRequest().body(
-                ApiResponse.error("DEMO_USERS_FAILED", "데모 사용자 조회에 실패했습니다: ${e.message}")
+                ApiResponse.error("데모 사용자 조회에 실패했습니다: ${e.message}", "DEMO_USERS_FAILED")
             )
         }
     }
@@ -148,7 +148,7 @@ class AuthController(
         // 데모 계정인지 확인 (5, 6, 7번 사용자만 허용)
         if (userId !in listOf(5L, 6L, 7L)) {
             return ResponseEntity.badRequest().body(
-                ApiResponse.error("INVALID_DEMO_USER", "유효하지 않은 데모 사용자입니다.")
+                ApiResponse.error("유효하지 않은 데모 사용자입니다.", "INVALID_DEMO_USER")
             )
         }
 
@@ -170,7 +170,7 @@ class AuthController(
             return ResponseEntity.ok(ApiResponse.success(authResponse, "데모 로그인이 완료되었습니다."))
         } catch (e: Exception) {
             return ResponseEntity.badRequest().body(
-                ApiResponse.error("DEMO_LOGIN_FAILED", "데모 로그인에 실패했습니다: ${e.message}")
+                ApiResponse.error("데모 로그인에 실패했습니다: ${e.message}", "DEMO_LOGIN_FAILED")
             )
         }
     }
