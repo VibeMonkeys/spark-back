@@ -17,7 +17,7 @@ INSERT INTO users (
 (
     '테스트유저1',
     'testuser1@spark.com',
-    '$2a$10$demopassword.encrypted.hash.for.testing.purposes.only',
+    '$2a$10$mu5IuyTEAHBLffa8vmbJw.zhvcwCObkvq8vT5U6LAtheSXFXOFfYG',
     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
     5,
     'EXPLORER', 
@@ -40,7 +40,7 @@ INSERT INTO users (
 (
     '테스트유저2',
     'testuser2@spark.com',
-    '$2a$10$demopassword.encrypted.hash.for.testing.purposes.only',
+    '$2a$10$mu5IuyTEAHBLffa8vmbJw.zhvcwCObkvq8vT5U6LAtheSXFXOFfYG',
     'https://images.unsplash.com/photo-1494790108755-2616b9e6e3e7?w=150&h=150&fit=crop&crop=face',
     8,
     'EXPLORER',
@@ -63,7 +63,7 @@ INSERT INTO users (
 (
     '고급유저',
     'premium@spark.com',
-    '$2a$10$demopassword.encrypted.hash.for.testing.purposes.only',
+    '$2a$10$mu5IuyTEAHBLffa8vmbJw.zhvcwCObkvq8vT5U6LAtheSXFXOFfYG',
     'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
     15,
     'ADVENTURER',
