@@ -14,6 +14,17 @@ import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.AuthRespon
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
+data class DemoUserResponse(
+    val id: Long,
+    val name: String,
+    val email: String,
+    val level: Int,
+    val levelTitle: String,
+    val currentPoints: Int,
+    val totalPoints: Int,
+    val avatarUrl: String
+)
+
 @RestController
 @RequestMapping("/api/v1/auth")
 class AuthController(
@@ -94,6 +105,38 @@ class AuthController(
         )
 
         return ResponseEntity.ok(ApiResponse.success(authResponse, "토큰이 갱신되었습니다."))
+    }
+
+    /**
+     * 데모 사용자 목록 조회 (개발용)
+     * GET /api/v1/auth/demo-users
+     */
+    @GetMapping("/demo-users")
+    fun getDemoUsers(): ResponseEntity<ApiResponse<List<DemoUserResponse>>> {
+        try {
+            val demoEmails = listOf("testuser1@spark.com", "testuser2@spark.com", "premium@spark.com")
+            val demoUsers = demoEmails.mapNotNull { email ->
+                val user = userUseCase.getUserByEmail(email)
+                user?.let { 
+                    DemoUserResponse(
+                        id = it.id.value,
+                        name = it.name.value,
+                        email = it.email.value,
+                        level = it.level.value,
+                        levelTitle = it.levelTitle.displayName,
+                        currentPoints = it.currentPoints.value,
+                        totalPoints = it.totalPoints.value,
+                        avatarUrl = it.avatarUrl.value
+                    )
+                }
+            }
+            
+            return ResponseEntity.ok(ApiResponse.success(demoUsers, "데모 사용자 목록을 조회했습니다."))
+        } catch (e: Exception) {
+            return ResponseEntity.badRequest().body(
+                ApiResponse.error("DEMO_USERS_FAILED", "데모 사용자 조회에 실패했습니다: ${e.message}")
+            )
+        }
     }
 
     /**
