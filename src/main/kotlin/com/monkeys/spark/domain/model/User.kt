@@ -115,12 +115,15 @@ data class User(
         return this
     }
     
-    fun updateProfile(newName: UserName? = null, newBio: String? = null): User {
+    fun updateProfile(newName: UserName? = null, newBio: String? = null, newAvatarUrl: AvatarUrl? = null): User {
         if (newName != null) {
             this.name = newName
         }
         if (newBio != null) {
             this.bio = if (newBio.isBlank()) null else newBio
+        }
+        if (newAvatarUrl != null) {
+            this.avatarUrl = newAvatarUrl
         }
         updatedAt = LocalDateTime.now()
         return this

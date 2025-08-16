@@ -26,7 +26,7 @@ class UserPersistenceAdapter(
         return userMapper.toDomain(savedEntity)
     }
     
-    fun saveWithPassword(user: User, password: String): User {
+    override fun saveWithPassword(user: User, password: String): User {
         // User 도메인 모델에 해시된 비밀번호 설정
         user.password = passwordEncoder.encode(password)
         val entity = userMapper.toEntity(user)

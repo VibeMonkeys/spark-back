@@ -1,8 +1,14 @@
 package com.monkeys.spark.infrastructure.adapter.`in`.web.controller
 
-import com.monkeys.spark.application.port.`in`.*
-import com.monkeys.spark.application.port.`in`.command.*
-import com.monkeys.spark.application.port.`in`.query.*
+import com.monkeys.spark.application.port.`in`.StoryUseCase
+import com.monkeys.spark.application.port.`in`.command.CreateStoryCommand
+import com.monkeys.spark.application.port.`in`.command.LikeStoryCommand
+import com.monkeys.spark.application.port.`in`.command.UnlikeStoryCommand
+import com.monkeys.spark.application.port.`in`.command.AddCommentCommand
+import com.monkeys.spark.application.port.`in`.command.UpdateStoryCommand
+import com.monkeys.spark.application.port.`in`.command.DeleteStoryCommand
+import com.monkeys.spark.application.port.`in`.query.StoryFeedQuery
+import com.monkeys.spark.application.port.`in`.query.SearchStoriesQuery
 import com.monkeys.spark.application.mapper.ResponseMapper
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.*
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.*

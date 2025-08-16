@@ -1,16 +1,26 @@
 package com.monkeys.spark.infrastructure.adapter.`in`.web.controller
 
-import com.monkeys.spark.application.port.`in`.*
-import com.monkeys.spark.application.port.`in`.command.*
-import com.monkeys.spark.application.port.`in`.query.*
 import com.monkeys.spark.application.mapper.ResponseMapper
-import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.*
-import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.*
-import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
+import com.monkeys.spark.application.port.`in`.MissionUseCase
+import com.monkeys.spark.application.port.`in`.StoryUseCase
+import com.monkeys.spark.application.port.`in`.UserStatsUseCase
+import com.monkeys.spark.application.port.`in`.command.StartMissionCommand
+import com.monkeys.spark.application.port.`in`.command.UpdateProgressCommand
+import com.monkeys.spark.application.port.`in`.command.CompleteMissionCommand
+import com.monkeys.spark.application.port.`in`.command.CreateStoryCommand
+import com.monkeys.spark.application.port.`in`.command.AbandonMissionCommand
+import com.monkeys.spark.application.port.`in`.query.CompletedMissionsQuery
+import com.monkeys.spark.application.port.out.MissionRepository
+import com.monkeys.spark.application.service.UserApplicationService
+import com.monkeys.spark.domain.model.UserStats.Companion.MISSION_COMPLETION_ALLOCATABLE_POINTS
+import com.monkeys.spark.domain.model.UserStats.Companion.MISSION_COMPLETION_STAT_POINTS
 import com.monkeys.spark.domain.vo.common.MissionId
 import com.monkeys.spark.domain.vo.common.UserId
-import com.monkeys.spark.domain.model.UserStats.Companion.MISSION_COMPLETION_STAT_POINTS
-import com.monkeys.spark.domain.model.UserStats.Companion.MISSION_COMPLETION_ALLOCATABLE_POINTS
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.ApiResponse
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.PageInfo
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.PagedResponse
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.MissionVerificationRequest
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
@@ -22,8 +32,8 @@ class MissionController(
     private val storyUseCase: StoryUseCase,
     private val userStatsUseCase: UserStatsUseCase,
     private val responseMapper: ResponseMapper,
-    private val missionRepository: com.monkeys.spark.application.port.out.MissionRepository,
-    private val userApplicationService: com.monkeys.spark.application.service.UserApplicationService
+    private val missionRepository: MissionRepository,
+    private val userApplicationService: UserApplicationService
 ) {
 
     /**
@@ -35,7 +45,7 @@ class MissionController(
         val userIdVO = UserId(userId)
         val missions = missionUseCase.getTodaysMissions(userIdVO)
         val missionResponses = missions.map { responseMapper.toMissionResponse(it) }
-        
+
         // 일일 제한 정보 조회
         val validation = missionRepository.canStartMission(userIdVO)
         val dailyLimitResponse = DailyMissionLimitResponse(
@@ -45,12 +55,12 @@ class MissionController(
             canStart = validation.dailyLimit.canStart,
             resetTime = validation.dailyLimit.resetTime
         )
-        
+
         val response = TodaysMissionsResponse(
             missions = missionResponses,
             dailyLimit = dailyLimitResponse
         )
-        
+
         return ResponseEntity.ok(ApiResponse.success(response))
     }
 
@@ -61,8 +71,6 @@ class MissionController(
     @GetMapping("/{missionId}")
     fun getMissionDetail(@PathVariable missionId: String): ResponseEntity<ApiResponse<MissionDetailResponse>> {
         val mission = missionUseCase.getMissionDetail(MissionId(missionId))
-            ?: return ResponseEntity.ok(ApiResponse.error("Mission not found", "MISSION_NOT_FOUND"))
-
         val similarMissions = missionUseCase.getSimilarMissions(MissionId(missionId), 3)
         val response = responseMapper.toMissionDetailResponse(mission, similarMissions)
 
@@ -77,7 +85,7 @@ class MissionController(
     fun getDailyMissionLimit(@RequestParam userId: String): ResponseEntity<ApiResponse<DailyMissionLimitResponse>> {
         val userIdVO = UserId(userId)
         val validation = missionRepository.canStartMission(userIdVO)
-        
+
         val response = DailyMissionLimitResponse(
             maxDailyStarts = validation.dailyLimit.maxDailyStarts,
             currentStarted = validation.dailyLimit.currentStarted.toInt(),
@@ -85,7 +93,7 @@ class MissionController(
             canStart = validation.dailyLimit.canStart,
             resetTime = validation.dailyLimit.resetTime
         )
-        
+
         return ResponseEntity.ok(ApiResponse.success(response))
     }
 
@@ -98,34 +106,11 @@ class MissionController(
         @PathVariable missionId: String,
         @RequestParam userId: String
     ): ResponseEntity<ApiResponse<MissionResponse>> {
-        try {
-            val userIdVO = UserId(userId)
-            
-            // 한 번의 쿼리로 미션 시작 가능 여부 검증
-            val validation = missionRepository.canStartMission(userIdVO)
-            if (!validation.canStart) {
-                // 제한 정보를 포함한 상세 오류 메시지 생성
-                val detailedMessage = when (validation.errorCode) {
-                    "DAILY_LIMIT_EXCEEDED" -> 
-                        "오늘 시작할 수 있는 미션 수를 초과했습니다. (${validation.dailyLimit.currentStarted}/${validation.dailyLimit.maxDailyStarts}) 내일 다시 시도해주세요."
-                    else -> validation.errorMessage!!
-                }
-                
-                return ResponseEntity.badRequest().body(
-                    ApiResponse.error(detailedMessage, validation.errorCode!!)
-                )
-            }
+        val command = StartMissionCommand(missionId, userId)
+        val mission = missionUseCase.startMission(command)
 
-            val command = StartMissionCommand(missionId, userId)
-            val mission = missionUseCase.startMission(command)
-
-            val response = responseMapper.toMissionResponse(mission)
-            return ResponseEntity.ok(ApiResponse.success(response, "미션을 시작했습니다."))
-        } catch (e: Exception) {
-            return ResponseEntity.internalServerError().body(
-                ApiResponse.error("알 수 없는 오류가 발생했습니다.", "UNKNOWN_ERROR")
-            )
-        }
+        val response = responseMapper.toMissionResponse(mission)
+        return ResponseEntity.ok(ApiResponse.success(response, "미션을 시작했습니다."))
     }
 
     /**
@@ -157,19 +142,19 @@ class MissionController(
         val userIdVO = UserId(userId)
         val command = CompleteMissionCommand(missionId, userId)
         val mission = missionUseCase.completeMission(command)
-        
+
         // 업데이트된 사용자 정보 조회
         val user = userApplicationService.getUser(userIdVO)
             ?: throw IllegalArgumentException("User not found: $userId")
-        
+
         // 획득한 포인트는 미션의 기본 포인트 (실제로는 더 복잡한 계산이 필요할 수 있음)
         val pointsEarned = mission.rewardPoints.value
-        
+
         // 남은 미션 목록 조회 (완료 후 상태 업데이트를 위해)
         val remainingMissions = missionUseCase.getTodaysMissions(userIdVO)
             .filter { it.status.name == "ASSIGNED" || it.status.name == "IN_PROGRESS" }
             .map { responseMapper.toMissionResponse(it) }
-        
+
         val response = responseMapper.toMissionCompletionResponse(mission, user, pointsEarned).copy(
             remainingMissions = remainingMissions
         )
@@ -188,17 +173,17 @@ class MissionController(
         authentication: Authentication
     ): ResponseEntity<ApiResponse<MissionVerificationResponse>> {
         val authenticatedUserId = authentication.name
-        
+
         // 1. 미션 완료 처리
         val completeMissionCommand = CompleteMissionCommand(missionId, authenticatedUserId)
         val completedMission = missionUseCase.completeMission(completeMissionCommand)
-        
+
         // 2. 스탯 증가 처리
         val updatedStats = userStatsUseCase.increaseMissionStat(
-            UserId(authenticatedUserId), 
+            UserId(authenticatedUserId),
             completedMission.category.name
         )
-        
+
         // 3. 스토리 생성 (스토리가 있는 경우에만)
         val story = if (request.story.trim().isNotEmpty() || request.images.isNotEmpty()) {
             val createStoryCommand = CreateStoryCommand(
@@ -212,11 +197,11 @@ class MissionController(
             )
             storyUseCase.createStory(createStoryCommand)
         } else null
-        
+
         // 4. 사용자 정보 조회 (포인트 업데이트 반영)
         val user = userApplicationService.getUser(UserId(authenticatedUserId))
             ?: throw IllegalArgumentException("User not found: $authenticatedUserId")
-        
+
         // 5. 응답 생성
         val response = MissionVerificationResponse(
             storyId = story?.id?.value ?: "",
@@ -232,7 +217,7 @@ class MissionController(
                 "totalStats" to updatedStats.totalStats
             )
         )
-        
+
         return ResponseEntity.ok(ApiResponse.success(response, "미션 인증이 완료되었습니다."))
     }
 
@@ -340,23 +325,11 @@ class MissionController(
         @PathVariable missionId: String,
         @RequestParam userId: String
     ): ResponseEntity<ApiResponse<MissionResponse>> {
-        val mission = missionUseCase.getMissionDetail(MissionId(missionId))
-            ?: return ResponseEntity.ok(ApiResponse.error("Mission not found", "MISSION_NOT_FOUND"))
-
-        // 미션이 해당 사용자의 것인지 확인
-        if (mission.userId.value != userId) {
-            return ResponseEntity.ok(ApiResponse.error("Mission does not belong to user", "INVALID_USER"))
-        }
-
-        // 진행 중인 미션만 포기 가능
-        if (mission.status != com.monkeys.spark.domain.vo.mission.MissionStatus.IN_PROGRESS) {
-            return ResponseEntity.ok(ApiResponse.error("Only in-progress missions can be abandoned", "INVALID_STATUS"))
-        }
-
-        val abandonedMission = mission.expire()
-        val savedMission = missionRepository.save(abandonedMission)
-        val response = responseMapper.toMissionResponse(savedMission)
+        val command = AbandonMissionCommand(missionId, userId)
+        val mission = missionUseCase.abandonMission(command)
+        val response = responseMapper.toMissionResponse(mission)
 
         return ResponseEntity.ok(ApiResponse.success(response, "미션이 포기되었습니다."))
     }
+
 }

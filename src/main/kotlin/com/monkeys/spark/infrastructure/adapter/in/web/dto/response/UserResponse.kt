@@ -103,16 +103,16 @@ data class UserSummaryResponse(
 data class ProfilePageResponse(
     val user: UserResponse,
     val statistics: UserStatisticsResponse,
-    val achievements: List<AchievementResponse>,
+    val achievements: List<ProfileAchievementResponse>,
     @JsonProperty("recent_missions")
     val recentMissions: List<RecentMissionResponse>
 )
 
 /**
- * 업적 응답 DTO
+ * 프로필용 업적 요약 응답 DTO
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class AchievementResponse(
+data class ProfileAchievementResponse(
     val id: String,
     val name: String,
     val description: String,

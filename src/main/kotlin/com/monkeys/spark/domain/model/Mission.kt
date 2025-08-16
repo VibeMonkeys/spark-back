@@ -141,6 +141,8 @@ data class Mission(
     
     fun isActive(): Boolean = status in listOf(MissionStatus.ASSIGNED, MissionStatus.IN_PROGRESS) && !isExpired()
     
+    fun canBeCompleted(): Boolean = status == MissionStatus.IN_PROGRESS && !isExpired()
+    
     fun addTip(tip: String): Mission {
         tips.add(tip)
         updatedAt = LocalDateTime.now()

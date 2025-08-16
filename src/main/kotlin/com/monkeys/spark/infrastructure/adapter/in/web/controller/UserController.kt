@@ -31,8 +31,6 @@ class UserController(
     @GetMapping("/{userId}")
     fun getUser(@PathVariable userId: String): ResponseEntity<ApiResponse<UserResponse>> {
         val user = userUseCase.getUser(UserId(userId))
-            ?: return ResponseEntity.ok(ApiResponse.error("User not found", "USER_NOT_FOUND"))
-
         val response = responseMapper.toUserResponse(user)
         return ResponseEntity.ok(ApiResponse.success(response))
     }
@@ -44,18 +42,16 @@ class UserController(
     @GetMapping("/{userId}/profile")
     fun getProfilePage(@PathVariable userId: String): ResponseEntity<ApiResponse<ProfilePageResponse>> {
         val user = userUseCase.getUser(UserId(userId))
-            ?: return ResponseEntity.ok(ApiResponse.error("User not found", "USER_NOT_FOUND"))
-
         val userStatistics = userUseCase.getUserStatistics(UserId(userId))
 
         // TODO: 실제 업적 및 최근 미션 데이터 조회
         val achievements = listOf(
-            AchievementResponse("1", "첫 걸음", "첫 미션 완료", "🎯", true),
-            AchievementResponse("2", "불타는 열정", "7일 연속 미션 완료", "🔥", true),
-            AchievementResponse("3", "소셜 버터플라이", "사교적 미션 10개 완료", "🦋", true),
-            AchievementResponse("4", "모험왕", "모험적 미션 15개 완료", "🗺️", true),
-            AchievementResponse("5", "마라토너", "30일 연속 미션 완료", "🏃", false),
-            AchievementResponse("6", "마스터", "레벨 10 달성", "👑", false)
+            ProfileAchievementResponse("1", "첫 걸음", "첫 미션 완료", "🎯", true),
+            ProfileAchievementResponse("2", "불타는 열정", "7일 연속 미션 완료", "🔥", true),
+            ProfileAchievementResponse("3", "소셜 버터플라이", "사교적 미션 10개 완료", "🦋", true),
+            ProfileAchievementResponse("4", "모험왕", "모험적 미션 15개 완료", "🗺️", true),
+            ProfileAchievementResponse("5", "마라토너", "30일 연속 미션 완료", "🏃", false),
+            ProfileAchievementResponse("6", "마스터", "레벨 10 달성", "👑", false)
         )
 
         val recentMissions = listOf(
@@ -82,20 +78,16 @@ class UserController(
         @PathVariable userId: String,
         @RequestBody request: UpdateProfileRequest
     ): ResponseEntity<ApiResponse<UserResponse>> {
-        try {
-            val command = UpdateProfileCommand(
-                userId = userId,
-                name = request.name,
-                bio = request.bio,
-                avatarUrl = request.avatarUrl
-            )
-            val user = userUseCase.updateProfile(command)
-            val response = responseMapper.toUserResponse(user)
+        val command = UpdateProfileCommand(
+            userId = userId,
+            name = request.name,
+            bio = request.bio,
+            avatarUrl = request.avatarUrl
+        )
+        val user = userUseCase.updateProfile(command)
+        val response = responseMapper.toUserResponse(user)
 
-            return ResponseEntity.ok(ApiResponse.success(response, "프로필이 업데이트되었습니다."))
-        } catch (e: IllegalArgumentException) {
-            return ResponseEntity.ok(ApiResponse.error(e.message ?: "프로필 업데이트에 실패했습니다.", "UPDATE_FAILED"))
-        }
+        return ResponseEntity.ok(ApiResponse.success(response, "프로필이 업데이트되었습니다."))
     }
 
     /**
@@ -107,22 +99,13 @@ class UserController(
         @PathVariable userId: String,
         @RequestBody request: ChangePasswordRequest
     ): ResponseEntity<ApiResponse<String>> {
-        try {
-            val command = ChangePasswordCommand(
-                userId = userId,
-                currentPassword = request.currentPassword,
-                newPassword = request.newPassword
-            )
-            userUseCase.changePassword(command)
-            return ResponseEntity.ok(ApiResponse.success("비밀번호가 성공적으로 변경되었습니다."))
-        } catch (e: IllegalArgumentException) {
-            val errorMessage = when {
-                e.message?.contains("Current password is incorrect") == true -> "현재 비밀번호가 올바르지 않습니다."
-                e.message?.contains("User not found") == true -> "사용자를 찾을 수 없습니다."
-                else -> e.message ?: "비밀번호 변경에 실패했습니다."
-            }
-            return ResponseEntity.ok(ApiResponse.error(errorMessage, "PASSWORD_CHANGE_FAILED"))
-        }
+        val command = ChangePasswordCommand(
+            userId = userId,
+            currentPassword = request.currentPassword,
+            newPassword = request.newPassword
+        )
+        userUseCase.changePassword(command)
+        return ResponseEntity.ok(ApiResponse.success("비밀번호가 성공적으로 변경되었습니다."))
     }
 
     /**
@@ -134,18 +117,14 @@ class UserController(
         @PathVariable userId: String,
         @RequestBody request: UpdatePreferencesRequest
     ): ResponseEntity<ApiResponse<UserResponse>> {
-        try {
-            val command = UpdatePreferencesCommand(
-                userId = userId,
-                preferences = request.preferences
-            )
-            val user = userUseCase.updatePreferences(command)
-            val response = responseMapper.toUserResponse(user)
+        val command = UpdatePreferencesCommand(
+            userId = userId,
+            preferences = request.preferences
+        )
+        val user = userUseCase.updatePreferences(command)
+        val response = responseMapper.toUserResponse(user)
 
-            return ResponseEntity.ok(ApiResponse.success(response, "선호도가 업데이트되었습니다."))
-        } catch (e: IllegalArgumentException) {
-            return ResponseEntity.ok(ApiResponse.error(e.message ?: "선호도 업데이트에 실패했습니다.", "UPDATE_FAILED"))
-        }
+        return ResponseEntity.ok(ApiResponse.success(response, "선호도가 업데이트되었습니다."))
     }
 
     /**
