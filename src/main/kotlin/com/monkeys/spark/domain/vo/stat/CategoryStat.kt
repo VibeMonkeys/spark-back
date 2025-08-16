@@ -1,4 +1,4 @@
-package com.monkeys.spark.domain.model
+package com.monkeys.spark.domain.vo.stat
 
 import com.monkeys.spark.domain.vo.common.CompletionRate
 

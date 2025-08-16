@@ -2,7 +2,7 @@ package com.monkeys.spark.infrastructure.adapter.out.persistence.mapper
 
 import com.monkeys.spark.domain.model.User
 import com.monkeys.spark.domain.model.UserStatistics
-import com.monkeys.spark.domain.model.CategoryStat
+import com.monkeys.spark.domain.vo.stat.CategoryStat
 import com.monkeys.spark.domain.vo.common.*
 import com.monkeys.spark.domain.vo.user.*
 import com.monkeys.spark.domain.vo.mission.MissionCategory

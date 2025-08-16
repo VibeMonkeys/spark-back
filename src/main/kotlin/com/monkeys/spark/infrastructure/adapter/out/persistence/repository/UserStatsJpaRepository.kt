@@ -1,4 +1,4 @@
-package com.monkeys.spark.infrastructure.adapter.out.persistence
+package com.monkeys.spark.infrastructure.adapter.out.persistence.repository
 
 import com.monkeys.spark.infrastructure.adapter.out.persistence.entity.UserStatsEntity
 import org.springframework.data.jpa.repository.JpaRepository
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface UserStatsJpaRepository : JpaRepository<UserStatsEntity, String> {
-    
+
     /**
      * 사용자 ID로 스탯 조회
      */
@@ -20,23 +20,27 @@ interface UserStatsJpaRepository : JpaRepository<UserStatsEntity, String> {
     /**
      * 특정 스탯 값 이상인 사용자들 조회 (랭킹 시스템용)
      */
-    @Query("""
+    @Query(
+        """
         SELECT us FROM UserStatsEntity us 
         WHERE (us.strengthCurrent + us.intelligenceCurrent + us.creativityCurrent + 
                us.sociabilityCurrent + us.adventurousCurrent + us.disciplineCurrent) >= :totalStats
         ORDER BY (us.strengthCurrent + us.intelligenceCurrent + us.creativityCurrent + 
                   us.sociabilityCurrent + us.adventurousCurrent + us.disciplineCurrent) DESC
-    """)
+    """
+    )
     fun findUsersWithTotalStatsGreaterThan(@Param("totalStats") totalStats: Int): List<UserStatsEntity>
 
     /**
      * 전체 스탯 순 랭킹 조회
      */
-    @Query("""
+    @Query(
+        """
         SELECT us FROM UserStatsEntity us 
         ORDER BY (us.strengthCurrent + us.intelligenceCurrent + us.creativityCurrent + 
                   us.sociabilityCurrent + us.adventurousCurrent + us.disciplineCurrent) DESC
-    """)
+    """
+    )
     fun findAllOrderByTotalStatsDesc(): List<UserStatsEntity>
 
     /**

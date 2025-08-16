@@ -1,6 +1,8 @@
 package com.monkeys.spark.domain.model
 
-import com.monkeys.spark.domain.vo.common.*
+import com.monkeys.spark.domain.vo.common.ImageUrl
+import com.monkeys.spark.domain.vo.common.Points
+import com.monkeys.spark.domain.vo.common.RewardId
 import com.monkeys.spark.domain.vo.reward.*
 import java.time.LocalDateTime
 
@@ -50,72 +52,8 @@ data class Reward(
                 isPremium = isPremium
             )
         }
-        
-        fun createPremiumSubscription(): Reward {
-            return Reward(
-                id = RewardId.generate(),
-                title = RewardTitle("MONKEYS Premium 1개월"),
-                description = RewardDescription("무제한 리롤, 프리미엄 미션, 광고 제거"),
-                category = RewardCategory.PREMIUM,
-                brand = BrandName("MONKEYS"),
-                originalPrice = OriginalPrice("₩4,900"),
-                requiredPoints = Points(1200),
-                discountPercentage = DiscountPercentage(100), // FREE
-                imageUrl = ImageUrl("premium-badge-image-url"),
-                expirationDays = ExpirationDays(1), // Immediate activation
-                isPremium = true
-            )
-        }
     }
-    
-    fun markAsPopular(): Reward {
-        isPopular = true
-        updatedAt = LocalDateTime.now()
-        return this
-    }
-    
-    fun unmarkAsPopular(): Reward {
-        isPopular = false
-        updatedAt = LocalDateTime.now()
-        return this
-    }
-    
-    fun activate(): Reward {
-        isActive = true
-        updatedAt = LocalDateTime.now()
-        return this
-    }
-    
-    fun deactivate(): Reward {
-        isActive = false
-        updatedAt = LocalDateTime.now()
-        return this
-    }
-    
-    fun recordExchange(): Reward {
-        totalExchanged++
-        updatedAt = LocalDateTime.now()
-        
-        // Auto-mark as popular if exchanged frequently
-        if (totalExchanged >= 50 && !isPopular) {
-            markAsPopular()
-        }
-        
-        return this
-    }
-    
-    fun updateRequiredPoints(newPoints: Int): Reward {
-        requiredPoints = Points(newPoints)
-        updatedAt = LocalDateTime.now()
-        return this
-    }
-    
-    fun updateDiscount(newDiscountPercentage: Int): Reward {
-        discountPercentage = DiscountPercentage(newDiscountPercentage)
-        updatedAt = LocalDateTime.now()
-        return this
-    }
-    
+
     fun getDiscountText(): String {
         return when {
             discountPercentage.value == 100 -> "FREE"
@@ -123,7 +61,7 @@ data class Reward(
             else -> ""
         }
     }
-    
+
     fun getExpirationText(): String {
         return when {
             expirationDays.value == 1 -> "즉시 적용"

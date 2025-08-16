@@ -1,12 +1,12 @@
 package com.monkeys.spark.application.service
 
 import com.monkeys.spark.application.port.`in`.UserStatsUseCase
-import com.monkeys.spark.application.port.`in`.UserStatsRankingItem
-import com.monkeys.spark.application.port.`in`.UserRankingInfo
+import com.monkeys.spark.application.port.`in`.dto.UserStatsRankingItem
+import com.monkeys.spark.application.port.`in`.dto.UserRankingInfo
 import com.monkeys.spark.application.port.out.UserStatsRepository
 import com.monkeys.spark.application.port.out.UserRepository
 import com.monkeys.spark.domain.model.UserStats
-import com.monkeys.spark.domain.service.AchievementService
+import com.monkeys.spark.application.coordinator.AchievementCoordinator
 import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.stat.StatType
 import org.springframework.stereotype.Service
@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 class UserStatsApplicationService(
     private val userStatsRepository: UserStatsRepository,
     private val userRepository: UserRepository,
-    private val achievementService: AchievementService
+    private val achievementCoordinator: AchievementCoordinator
 ) : UserStatsUseCase {
 
     override fun getUserStats(userId: UserId): UserStats {
@@ -42,8 +42,8 @@ class UserStatsApplicationService(
         // 업적 시스템 연동: 미션 완료 시 업적 확인 및 발급
         // 업적 시스템 오류가 스탯 증가를 방해하지 않도록 처리하되, 로깅은 수행
         try {
-            achievementService.checkAndGrantMissionAchievements(userId.value, missionCategory)
-            achievementService.checkAndGrantPointsAchievements(userId.value, savedStats.totalPoints)
+            achievementCoordinator.checkAndGrantMissionAchievements(userId.value, missionCategory)
+            achievementCoordinator.checkAndGrantPointsAchievements(userId.value, savedStats.totalPoints)
         } catch (e: Exception) {
             // TODO: 적절한 로깅 프레임워크를 사용하여 에러 로깅
             println("Achievement system error for user ${userId.value}: ${e.message}")

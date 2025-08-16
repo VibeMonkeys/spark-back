@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "missions")
-class MissionEntity {
+class MissionEntity : BaseEntity() {
     @Id
     var id: String = ""
     
@@ -94,17 +94,6 @@ class MissionEntity {
     
     @Column(name = "expires_at", nullable = false)
     var expiresAt: LocalDateTime = LocalDateTime.now().plusDays(1)
-    
-    @Column(name = "created_at", nullable = false)
-    var createdAt: LocalDateTime = LocalDateTime.now()
-    
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now()
-    
-    @PreUpdate
-    fun preUpdate() {
-        updatedAt = LocalDateTime.now()
-    }
     
     // Index annotations for better query performance
     companion object {

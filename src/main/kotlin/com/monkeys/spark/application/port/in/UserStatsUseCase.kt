@@ -1,5 +1,7 @@
 package com.monkeys.spark.application.port.`in`
 
+import com.monkeys.spark.application.port.`in`.dto.UserRankingInfo
+import com.monkeys.spark.application.port.`in`.dto.UserStatsRankingItem
 import com.monkeys.spark.domain.model.UserStats
 import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.stat.StatType
@@ -44,31 +46,3 @@ interface UserStatsUseCase {
      */
     fun getUserRankingInfo(userId: UserId): UserRankingInfo
 }
-
-/**
- * 스탯 랭킹 아이템
- */
-data class UserStatsRankingItem(
-    val rank: Int,
-    val userId: String,
-    val username: String,
-    val avatarUrl: String?,
-    val statValue: Int,
-    val statType: StatType? = null,
-    val totalStats: Int
-)
-
-/**
- * 사용자 랭킹 정보
- */
-data class UserRankingInfo(
-    val userId: String,
-    val totalStatsRank: Int,
-    val strengthRank: Int,
-    val intelligenceRank: Int,
-    val creativityRank: Int,
-    val sociabilityRank: Int,
-    val adventurousRank: Int,
-    val disciplineRank: Int,
-    val totalUsers: Long
-)

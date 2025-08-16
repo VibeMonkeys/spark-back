@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "story_comments")
-class StoryCommentEntity {
+class StoryCommentEntity : BaseEntity() {
     @Id
     var id: String = ""
     
@@ -23,10 +23,4 @@ class StoryCommentEntity {
     
     @Column(columnDefinition = "TEXT", nullable = false)
     var content: String = ""
-    
-    @Column(name = "created_at", nullable = false)
-    var createdAt: LocalDateTime = LocalDateTime.now()
-    
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now()
 }

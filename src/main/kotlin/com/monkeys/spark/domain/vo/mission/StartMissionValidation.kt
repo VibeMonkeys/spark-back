@@ -1,4 +1,4 @@
-package com.monkeys.spark.domain.model
+package com.monkeys.spark.domain.vo.mission
 
 /**
  * 미션 시작 가능 여부 검증 결과
@@ -21,20 +21,7 @@ data class StartMissionValidation(
                 dailyLimit = dailyLimit
             )
         }
-        
-        // 여러 미션 동시 진행을 허용하므로 현재는 사용되지 않음
-        // fun hasOngoingMission(count: Long): StartMissionValidation {
-        //     val dailyLimit = DailyMissionLimit.create(count)
-        //     return StartMissionValidation(
-        //         canStart = false,
-        //         hasOngoingMission = true,
-        //         todayStartedCount = count,
-        //         dailyLimit = dailyLimit,
-        //         errorCode = "MISSION_IN_PROGRESS",
-        //         errorMessage = "이미 진행 중인 미션이 있습니다."
-        //     )
-        // }
-        
+
         fun dailyLimitExceeded(count: Long): StartMissionValidation {
             val dailyLimit = DailyMissionLimit.create(count)
             return StartMissionValidation(
@@ -46,7 +33,7 @@ data class StartMissionValidation(
                 errorMessage = "오늘 시작할 수 있는 미션 수를 초과했습니다. (${count}/${DailyMissionLimit.MAX_DAILY_STARTS})"
             )
         }
-        
+
         fun allowedToStart(todayCount: Long): StartMissionValidation {
             val dailyLimit = DailyMissionLimit.create(todayCount)
             return StartMissionValidation(

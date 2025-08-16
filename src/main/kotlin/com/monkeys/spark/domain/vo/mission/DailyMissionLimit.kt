@@ -1,4 +1,4 @@
-package com.monkeys.spark.domain.model
+package com.monkeys.spark.domain.vo.mission
 
 /**
  * 일일 미션 시작 제한 정보

@@ -9,9 +9,9 @@ import jakarta.transaction.Transactional
 interface StoryLikeJpaRepository : JpaRepository<StoryLikeEntity, Long> {
     fun existsByStoryIdAndUserId(storyId: String, userId: String): Boolean
     fun findByStoryIdAndUserId(storyId: String, userId: String): StoryLikeEntity?
-    
+
     @Transactional
     fun deleteByStoryIdAndUserId(storyId: String, userId: String)
-    
+
     fun countByStoryId(storyId: String): Long
 }

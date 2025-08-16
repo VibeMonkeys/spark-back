@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "users")
-class UserEntity {
+class UserEntity : BaseEntity() {
     @Id
     var id: String = ""
     
@@ -66,12 +66,6 @@ class UserEntity {
     @Column(name = "category_stats", columnDefinition = "TEXT")
     var categoryStats: String = "{}"
     
-    @Column(name = "created_at", nullable = false)
-    var createdAt: LocalDateTime = LocalDateTime.now()
-    
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now()
-    
     // UserPersistenceAdapter에서 필요한 추가 필드들
     @Column(name = "last_login_at")
     var lastLoginAt: LocalDateTime? = null
@@ -82,9 +76,4 @@ class UserEntity {
     // 프로필 관리 필드
     @Column(name = "bio", length = 200)
     var bio: String? = null
-    
-    @PreUpdate
-    fun preUpdate() {
-        updatedAt = LocalDateTime.now()
-    }
 }

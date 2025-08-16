@@ -16,8 +16,8 @@ class RewardNotActiveException(rewardId: String) : DomainException(
 )
 
 class UserRewardNotFoundException(userRewardId: String) : EntityNotFoundException(
-    "UserReward", 
-    userRewardId, 
+    "UserReward",
+    userRewardId,
     "USER_REWARD_NOT_FOUND"
 )
 

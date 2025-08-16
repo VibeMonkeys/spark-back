@@ -1,7 +1,7 @@
 package com.monkeys.spark.application.port.out
 
 import com.monkeys.spark.domain.model.Mission
-import com.monkeys.spark.domain.model.StartMissionValidation
+import com.monkeys.spark.domain.vo.mission.StartMissionValidation
 import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.common.MissionId
 import com.monkeys.spark.domain.vo.common.Location

@@ -1,7 +1,7 @@
 package com.monkeys.spark.infrastructure.adapter.`in`.web.controller
 
 import com.monkeys.spark.application.mapper.ResponseMapper
-import com.monkeys.spark.application.service.AuthService
+import com.monkeys.spark.application.service.AuthApplicationService
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.ApiResponse
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.LoginRequest
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.RefreshTokenRequest
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1/auth")
 class AuthController(
-    private val authService: AuthService,
+    private val authApplicationService: AuthApplicationService,
     private val responseMapper: ResponseMapper
 ) {
 
@@ -26,7 +26,7 @@ class AuthController(
      */
     @PostMapping("/signup")
     fun signup(@RequestBody request: SignupRequest): ResponseEntity<ApiResponse<AuthResponse>> {
-        val authResult = authService.register(
+        val authResult = authApplicationService.register(
             email = request.email,
             password = request.password,
             name = request.name,
@@ -49,7 +49,7 @@ class AuthController(
      */
     @PostMapping("/login")
     fun login(@RequestBody request: LoginRequest): ResponseEntity<ApiResponse<AuthResponse>> {
-        val authResult = authService.login(
+        val authResult = authApplicationService.login(
             email = request.email,
             password = request.password
         )
@@ -70,7 +70,7 @@ class AuthController(
      */
     @PostMapping("/logout")
     fun logout(@RequestBody request: RefreshTokenRequest): ResponseEntity<ApiResponse<String>> {
-        authService.logout(request.refreshToken)
+        authApplicationService.logout(request.refreshToken)
         return ResponseEntity.ok(ApiResponse.success("logout_success", "로그아웃이 완료되었습니다."))
     }
 
@@ -80,7 +80,7 @@ class AuthController(
      */
     @PostMapping("/refresh")
     fun refresh(@RequestBody request: RefreshTokenRequest): ResponseEntity<ApiResponse<AuthResponse>> {
-        val authResult = authService.refreshToken(request.refreshToken)
+        val authResult = authApplicationService.refreshToken(request.refreshToken)
 
         val userResponse = responseMapper.toUserResponse(authResult.user)
         val authResponse = AuthResponse(

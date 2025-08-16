@@ -1,7 +1,9 @@
 package com.monkeys.spark.domain.model
 
-import com.monkeys.spark.domain.vo.common.*
+import com.monkeys.spark.domain.vo.common.Points
+import com.monkeys.spark.domain.vo.common.Rating
 import com.monkeys.spark.domain.vo.mission.MissionCategory
+import com.monkeys.spark.domain.vo.stat.CategoryStat
 
 /**
  * 사용자 통계 Value Object
@@ -19,17 +21,10 @@ data class UserStatistics(
             categoryStats.putIfAbsent(category, CategoryStat())
         }
     }
-    
+
     fun incrementCategoryCount(category: MissionCategory): UserStatistics {
         val stat = categoryStats[category] ?: CategoryStat()
         categoryStats[category] = stat.copy(completed = stat.completed + 1)
-        return this
-    }
-    
-    fun updateAverageRating(newRating: Rating): UserStatistics {
-        val totalScore = averageRating.value * totalRatings + newRating.value
-        totalRatings++
-        averageRating = Rating(totalScore / totalRatings)
         return this
     }
 }

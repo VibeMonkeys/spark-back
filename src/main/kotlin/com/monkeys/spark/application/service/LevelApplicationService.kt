@@ -2,14 +2,14 @@ package com.monkeys.spark.application.service
 
 import com.monkeys.spark.application.port.`in`.LevelUseCase
 import com.monkeys.spark.application.port.out.UserRepository
-import com.monkeys.spark.domain.model.LevelInfo
-import com.monkeys.spark.domain.model.LevelSystem
+import com.monkeys.spark.domain.vo.user.LevelInfo
+import com.monkeys.spark.domain.service.LevelSystem
 import com.monkeys.spark.domain.model.User
 import com.monkeys.spark.domain.vo.common.UserId
 import org.springframework.stereotype.Service
 
 @Service
-class LevelService(
+class LevelApplicationService(
     private val userRepository: UserRepository
 ) : LevelUseCase {
     

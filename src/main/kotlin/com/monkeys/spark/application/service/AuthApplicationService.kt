@@ -2,25 +2,27 @@ package com.monkeys.spark.application.service
 
 import com.monkeys.spark.application.port.`in`.UserUseCase
 import com.monkeys.spark.application.port.`in`.command.CreateUserCommand
+import com.monkeys.spark.domain.exception.InvalidCredentialsException
+import com.monkeys.spark.domain.exception.UserAlreadyExistsException
+import com.monkeys.spark.domain.exception.UserNotFoundException
+import com.monkeys.spark.domain.exception.ValidationException
 import com.monkeys.spark.domain.model.User
 import com.monkeys.spark.domain.vo.common.UserId
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.AuthResult
 import com.monkeys.spark.infrastructure.adapter.out.persistence.entity.RefreshTokenEntity
 import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.RefreshTokenJpaRepository
 import com.monkeys.spark.infrastructure.config.JwtUtil
-import com.monkeys.spark.domain.exception.*
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 @Service
 @Transactional
-class AuthService(
+class AuthApplicationService(
     private val userUseCase: UserUseCase,
     private val jwtUtil: JwtUtil,
-    private val passwordEncoder: PasswordEncoder,
     private val authenticationManager: AuthenticationManager,
     private val refreshTokenRepository: RefreshTokenJpaRepository
 ) {

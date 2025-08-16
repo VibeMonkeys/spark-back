@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "user_rewards")
-class UserRewardEntity {
+class UserRewardEntity : BaseEntity() {
     @Id
     var id: String = ""
     
@@ -36,18 +36,7 @@ class UserRewardEntity {
     @Column(name = "used_at")
     var usedAt: LocalDateTime? = null
     
-    @Column(name = "created_at", nullable = false)
-    var createdAt: LocalDateTime = LocalDateTime.now()
-    
     // UserRewardPersistenceAdapter에서 필요한 추가 필드들
     @Column(name = "exchanged_at")
     var exchangedAt: LocalDateTime? = null
-    
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now()
-    
-    @PreUpdate
-    fun preUpdate() {
-        updatedAt = LocalDateTime.now()
-    }
 }

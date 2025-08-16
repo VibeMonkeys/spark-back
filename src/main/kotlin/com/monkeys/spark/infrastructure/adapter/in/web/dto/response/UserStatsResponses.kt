@@ -1,7 +1,7 @@
 package com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response
 
-import com.monkeys.spark.application.port.`in`.UserStatsRankingItem
-import com.monkeys.spark.application.port.`in`.UserRankingInfo
+import com.monkeys.spark.application.port.`in`.dto.UserStatsRankingItem
+import com.monkeys.spark.application.port.`in`.dto.UserRankingInfo
 import com.monkeys.spark.domain.model.UserStats
 import com.monkeys.spark.domain.vo.stat.StatValue
 

@@ -1,6 +1,6 @@
 package com.monkeys.spark.application.port.`in`
 
-import com.monkeys.spark.domain.model.LevelInfo
+import com.monkeys.spark.domain.vo.user.LevelInfo
 import com.monkeys.spark.domain.model.User
 
 interface LevelUseCase {

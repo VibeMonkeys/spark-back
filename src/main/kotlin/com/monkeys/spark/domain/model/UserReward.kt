@@ -1,7 +1,11 @@
 package com.monkeys.spark.domain.model
 
-import com.monkeys.spark.domain.vo.common.*
-import com.monkeys.spark.domain.vo.reward.*
+import com.monkeys.spark.domain.vo.common.Points
+import com.monkeys.spark.domain.vo.common.RewardId
+import com.monkeys.spark.domain.vo.common.UserId
+import com.monkeys.spark.domain.vo.reward.BrandName
+import com.monkeys.spark.domain.vo.reward.RewardStatus
+import com.monkeys.spark.domain.vo.reward.RewardTitle
 import java.time.LocalDateTime
 
 /**
@@ -28,7 +32,7 @@ data class UserReward(
         ): UserReward {
             val exchangeCode = generateExchangeCode(reward.brand.value)
             val expiresAt = reward.expirationDays.toExpirationDate()
-            
+
             return UserReward(
                 id = java.util.UUID.randomUUID().toString(),
                 userId = userId,
@@ -40,7 +44,7 @@ data class UserReward(
                 expiresAt = expiresAt
             )
         }
-        
+
         private fun generateExchangeCode(brandName: String): String {
             val prefix = when (brandName.lowercase()) {
                 "스타벅스" -> "STBK"
@@ -55,31 +59,24 @@ data class UserReward(
             return "$prefix-$randomNumber-$randomSuffix"
         }
     }
-    
+
     fun use(): UserReward {
         require(status == RewardStatus.AVAILABLE) { "Reward must be available to use" }
         require(!isExpired()) { "Cannot use expired reward" }
-        
+
         status = RewardStatus.USED
         usedAt = LocalDateTime.now()
         return this
     }
-    
-    fun expire(): UserReward {
-        require(status == RewardStatus.AVAILABLE) { "Can only expire available rewards" }
-        
-        status = RewardStatus.EXPIRED
-        return this
-    }
-    
+
     fun isExpired(): Boolean = LocalDateTime.now().isAfter(expiresAt)
-    
+
     fun getTimeUntilExpiration(): String {
         if (isExpired()) return "만료됨"
-        
+
         val now = LocalDateTime.now()
         val duration = java.time.Duration.between(now, expiresAt)
-        
+
         return when {
             duration.toDays() > 0 -> "${duration.toDays()}일 남음"
             duration.toHours() > 0 -> "${duration.toHours()}시간 남음"
@@ -87,7 +84,7 @@ data class UserReward(
             else -> "곧 만료"
         }
     }
-    
+
     fun getUsageStatusText(): String {
         return when (status) {
             RewardStatus.AVAILABLE -> if (isExpired()) "만료됨" else "사용 가능"
@@ -95,7 +92,7 @@ data class UserReward(
             RewardStatus.EXPIRED -> "만료됨"
         }
     }
-    
+
     fun getUsageTimeText(): String {
         return when (status) {
             RewardStatus.USED -> usedAt?.let { getTimeAgo(it) } ?: ""
@@ -103,11 +100,11 @@ data class UserReward(
             RewardStatus.AVAILABLE -> getTimeUntilExpiration()
         }
     }
-    
+
     private fun getTimeAgo(dateTime: LocalDateTime): String {
         val now = LocalDateTime.now()
         val duration = java.time.Duration.between(dateTime, now)
-        
+
         return when {
             duration.toDays() > 0 -> "${duration.toDays()}일 전"
             duration.toHours() > 0 -> "${duration.toHours()}시간 전"

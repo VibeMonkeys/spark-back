@@ -1,5 +1,6 @@
 package com.monkeys.spark.infrastructure.adapter.out.persistence.entity
 
+import com.monkeys.spark.domain.vo.inquiry.InquiryStatus
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
@@ -24,7 +25,7 @@ data class InquiryEntity(
 
     @Column(name = "status", length = 20, nullable = false)
     @Enumerated(EnumType.STRING)
-    var status: InquiryStatusEntity = InquiryStatusEntity.PENDING,
+    var status: InquiryStatus = InquiryStatus.PENDING,
 
     @Column(name = "response", columnDefinition = "TEXT", nullable = true)
     var response: String? = null,
@@ -33,20 +34,5 @@ data class InquiryEntity(
     var respondedAt: LocalDateTime? = null,
 
     @Column(name = "responded_by", length = 100, nullable = true)
-    var respondedBy: String? = null,
-
-    @Column(name = "created_at", nullable = false)
-    var createdAt: LocalDateTime = LocalDateTime.now(),
-
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now()
-) {
-    @PreUpdate
-    fun preUpdate() {
-        updatedAt = LocalDateTime.now()
-    }
-}
-
-enum class InquiryStatusEntity {
-    PENDING, IN_PROGRESS, RESPONDED, CLOSED
-}
+    var respondedBy: String? = null
+) : BaseEntity()

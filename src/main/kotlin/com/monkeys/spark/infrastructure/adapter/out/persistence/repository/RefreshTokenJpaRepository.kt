@@ -8,23 +8,23 @@ import org.springframework.data.repository.query.Param
 import java.time.LocalDateTime
 
 interface RefreshTokenJpaRepository : JpaRepository<RefreshTokenEntity, String> {
-    
+
     fun findByTokenAndIsActive(token: String, isActive: Boolean = true): RefreshTokenEntity?
-    
+
     fun findByUserIdAndIsActive(userId: String, isActive: Boolean = true): List<RefreshTokenEntity>
-    
+
     @Modifying
     @Query("UPDATE RefreshTokenEntity r SET r.isActive = false WHERE r.userId = :userId")
     fun revokeAllTokensByUserId(@Param("userId") userId: String)
-    
+
     @Modifying
     @Query("UPDATE RefreshTokenEntity r SET r.isActive = false WHERE r.token = :token")
     fun revokeTokenByToken(@Param("token") token: String)
-    
+
     @Modifying
     @Query("DELETE FROM RefreshTokenEntity r WHERE r.expiresAt < :now")
     fun deleteExpiredTokens(@Param("now") now: LocalDateTime)
-    
+
     @Query("SELECT COUNT(r) FROM RefreshTokenEntity r WHERE r.userId = :userId AND r.isActive = true")
     fun countActiveTokensByUserId(@Param("userId") userId: String): Long
 }

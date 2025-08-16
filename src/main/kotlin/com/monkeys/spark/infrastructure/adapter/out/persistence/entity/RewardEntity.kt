@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "rewards")
-class RewardEntity {
+class RewardEntity : BaseEntity() {
     @Id
     var id: String = ""
     
@@ -54,15 +54,4 @@ class RewardEntity {
     
     @Column(name = "last_exchanged_at")
     var lastExchangedAt: LocalDateTime? = null
-    
-    @Column(name = "created_at", nullable = false)
-    var createdAt: LocalDateTime = LocalDateTime.now()
-    
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now()
-    
-    @PreUpdate
-    fun preUpdate() {
-        updatedAt = LocalDateTime.now()
-    }
 }

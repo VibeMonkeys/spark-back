@@ -1,4 +1,4 @@
-package com.monkeys.spark.application.service
+package com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response
 
 import com.monkeys.spark.domain.model.User
 

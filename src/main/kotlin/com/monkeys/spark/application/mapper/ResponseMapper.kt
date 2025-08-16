@@ -3,7 +3,7 @@ package com.monkeys.spark.application.mapper
 import com.monkeys.spark.application.port.`in`.dto.HomePageData
 import com.monkeys.spark.application.port.`in`.dto.UserSummary
 import com.monkeys.spark.application.port.`in`.query.UserPointsSummary
-import com.monkeys.spark.domain.model.CategoryStat
+import com.monkeys.spark.domain.vo.stat.CategoryStat
 import com.monkeys.spark.domain.model.*
 import com.monkeys.spark.application.dto.StoryFeedItem
 import com.monkeys.spark.domain.vo.common.*
@@ -13,8 +13,8 @@ import com.monkeys.spark.domain.vo.story.*
 import com.monkeys.spark.domain.vo.reward.*
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.*
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
-import com.monkeys.spark.domain.model.LevelSystem
-import com.monkeys.spark.domain.model.LevelInfo
+import com.monkeys.spark.domain.service.LevelSystem
+import com.monkeys.spark.domain.vo.user.LevelInfo
 import com.monkeys.spark.application.port.out.StoryRepository
 import org.springframework.stereotype.Component
 import java.time.format.DateTimeFormatter

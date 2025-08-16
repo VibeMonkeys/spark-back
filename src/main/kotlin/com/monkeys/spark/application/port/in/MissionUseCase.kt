@@ -3,7 +3,7 @@ package com.monkeys.spark.application.port.`in`
 import com.monkeys.spark.application.port.`in`.command.*
 import com.monkeys.spark.application.port.`in`.query.*
 import com.monkeys.spark.domain.model.Mission
-import com.monkeys.spark.domain.model.CategoryStat
+import com.monkeys.spark.domain.vo.stat.CategoryStat
 import com.monkeys.spark.domain.vo.common.*
 import com.monkeys.spark.domain.vo.mission.*
 

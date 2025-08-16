@@ -1,10 +1,10 @@
 package com.monkeys.spark.application.service
 
 import com.monkeys.spark.application.port.`in`.AchievementUseCase
+import com.monkeys.spark.application.coordinator.AchievementCoordinator
 import com.monkeys.spark.domain.model.UserAchievement
-import com.monkeys.spark.domain.service.AchievementService
 import com.monkeys.spark.domain.vo.common.UserId
-import com.monkeys.spark.port.outbound.UserAchievementPort
+import com.monkeys.spark.application.port.out.UserAchievementRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -14,22 +14,22 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional
 class AchievementApplicationService(
-    private val achievementService: AchievementService,
-    private val userAchievementPort: UserAchievementPort
+    private val achievementCoordinator: AchievementCoordinator,
+    private val userAchievementRepository: UserAchievementRepository
 ) : AchievementUseCase {
     
     @Transactional
     override fun getUserAchievements(userId: UserId): List<UserAchievement> {
-        return achievementService.getUserAchievements(userId.value)
+        return achievementCoordinator.getUserAchievements(userId.value)
     }
     
     @Transactional(readOnly = true)
     override fun getUserAchievementCount(userId: UserId): Int {
-        return userAchievementPort.countUnlockedByUserId(userId.value)
+        return userAchievementRepository.countUnlockedByUserId(userId.value)
     }
     
     @Transactional(readOnly = true)
     override fun getAchievementStatistics(): Map<String, Int> {
-        return userAchievementPort.getAchievementStatistics()
+        return userAchievementRepository.getAchievementStatistics()
     }
 }
