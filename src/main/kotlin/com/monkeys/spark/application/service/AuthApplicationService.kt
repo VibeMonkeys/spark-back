@@ -38,15 +38,15 @@ class AuthApplicationService(
             throw UserAlreadyExistsException(command.email)
         }
 
-        // 사용자 생성
+        // 사용자 생성 (비밀번호는 빈 문자열로 초기화)
         val user = User.create(
             email = Email(command.email),
-            password = command.password, // 암호화는 application service에서 처리
+            password = "", // 비밀번호는 repository에서 해싱하여 설정
             name = UserName(command.name),
             avatarUrl = AvatarUrl(command.avatarUrl ?: generateDefaultAvatarUrl(command.name))
         )
 
-        val savedUser = userRepository.save(user)
+        val savedUser = userRepository.saveWithPassword(user, command.password)
 
         // JWT 토큰 생성
         return generateTokens(savedUser)
