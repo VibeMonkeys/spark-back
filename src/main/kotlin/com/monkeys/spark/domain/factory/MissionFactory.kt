@@ -1,24 +1,20 @@
 package com.monkeys.spark.domain.factory
 
-import com.monkeys.spark.application.port.out.MissionRepository
 import com.monkeys.spark.domain.model.Mission
 import com.monkeys.spark.domain.model.MissionConditions
 import com.monkeys.spark.domain.model.User
 import com.monkeys.spark.domain.vo.common.*
 import com.monkeys.spark.domain.vo.mission.*
-import org.springframework.stereotype.Component
 
-@Component
-class MissionFactory(
-    private val missionRepository: MissionRepository
-) {
+/**
+ * 순수한 도메인 Factory - 외부 의존성 없음
+ */
+class MissionFactory {
 
     /**
      * 사용자별 일일 미션 5개 생성
      */
-    fun createDailyMissions(user: User): List<Mission> {
-        // DB에서 템플릿 미션들 조회
-        val templateMissions = missionRepository.findTemplateMissions()
+    fun createDailyMissions(user: User, templateMissions: List<Mission>): List<Mission> {
 
         // 사용자 선호도 기반으로 미션 필터링
         val availableCategories = user.preferences.filter { it.value }.keys.toList()
