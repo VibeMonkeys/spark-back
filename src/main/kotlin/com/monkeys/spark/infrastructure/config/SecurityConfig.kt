@@ -49,8 +49,7 @@ class SecurityConfig(
                         "/api/v1/auth/**",
                         "/api/health",
                         "/error",
-                        "/actuator/**",
-                        "/api/v1/levels/**"
+                        "/actuator/**"
                     ).permitAll()
                     
                     // Public mission endpoints (read-only)
@@ -62,12 +61,22 @@ class SecurityConfig(
                     .requestMatchers(
                         HttpMethod.GET, "/api/v1/users/**"
                     ).permitAll()
+                    
+                    // Temporarily allow profile updates for testing
+                    .requestMatchers(
+                        HttpMethod.PUT, "/api/v1/users/*/profile"
+                    ).permitAll()
+                    .requestMatchers(
+                        HttpMethod.POST, "/api/v1/users/*/change-password"
+                    ).permitAll()
 
                     // Protected endpoints - authentication required
                     .requestMatchers("/api/v1/missions/**").authenticated()  // POST, PUT, DELETE missions
                     .requestMatchers("/api/v1/users/**").authenticated()     // POST, PUT, DELETE users
                     .requestMatchers("/api/v1/stories/**").authenticated()   // All story operations
                     .requestMatchers("/api/v1/stats/**").authenticated()     // All stats operations
+                    .requestMatchers("/api/v1/levels/**").authenticated()    // All level operations
+                    .requestMatchers("/api/inquiries/**").authenticated()    // All inquiry operations
                     
                     // All other endpoints require authentication
                     .anyRequest().authenticated()

@@ -44,6 +44,7 @@ class ResponseMapper(
             completedMissions = user.completedMissions,
             totalDays = user.totalDays,
             joinDate = user.createdAt.format(dateFormatter),
+            bio = user.bio,
             preferences = user.preferences.mapKeys { it.key.displayName },
             statistics = toUserStatisticsResponse(user.statistics)
         )
@@ -561,6 +562,26 @@ class ResponseMapper(
             pointsEarned = pointsEarned,
             totalPoints = totalPoints,
             celebration = celebration
+        )
+    }
+    
+    /**
+     * Inquiry 도메인을 InquiryResponse로 변환
+     */
+    fun toInquiryResponse(inquiry: Inquiry): InquiryResponse {
+        return InquiryResponse(
+            id = inquiry.id.value,
+            userId = inquiry.userId?.value,
+            email = inquiry.email,
+            subject = inquiry.subject,
+            message = inquiry.message,
+            status = inquiry.status.name,
+            statusDisplay = inquiry.status.displayName,
+            response = inquiry.response,
+            respondedAt = inquiry.respondedAt,
+            respondedBy = inquiry.respondedBy,
+            createdAt = inquiry.createdAt,
+            updatedAt = inquiry.updatedAt
         )
     }
 }

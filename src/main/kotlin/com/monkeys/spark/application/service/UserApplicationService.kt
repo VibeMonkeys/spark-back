@@ -4,6 +4,7 @@ import com.monkeys.spark.application.port.`in`.UserUseCase
 import com.monkeys.spark.application.port.`in`.command.CreateUserCommand
 import com.monkeys.spark.application.port.`in`.command.UpdatePreferencesCommand
 import com.monkeys.spark.application.port.`in`.command.UpdateProfileCommand
+import com.monkeys.spark.application.port.`in`.command.ChangePasswordCommand
 import com.monkeys.spark.application.port.out.UserRepository
 import com.monkeys.spark.domain.model.Mission
 import com.monkeys.spark.domain.model.User
@@ -59,10 +60,32 @@ class UserApplicationService(
         command.name?.let {
             user.name = UserName(it)
         }
+        
+        command.bio?.let {
+            user.bio = if (it.isBlank()) null else it
+        }
 
         command.avatarUrl?.let {
             user.avatarUrl = AvatarUrl(it)
         }
+
+        return userRepository.save(user)
+    }
+
+    override fun changePassword(command: ChangePasswordCommand): User {
+        val userId = UserId(command.userId)
+        val user = userRepository.findById(userId)
+            ?: throw IllegalArgumentException("User not found: ${command.userId}")
+
+        // 현재 비밀번호 검증 (실제 구현에서는 BCrypt 등을 사용하여 해시 비교)
+        // 지금은 단순 비교로 구현
+        if (user.password != command.currentPassword) {
+            throw IllegalArgumentException("Current password is incorrect")
+        }
+
+        // 새 비밀번호 암호화 (실제 구현에서는 BCrypt 등을 사용)
+        // 지금은 단순히 저장
+        user.changePassword(command.newPassword)
 
         return userRepository.save(user)
     }

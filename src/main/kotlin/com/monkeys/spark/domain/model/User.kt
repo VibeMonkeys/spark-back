@@ -24,6 +24,7 @@ data class User(
     var preferences: MutableMap<MissionCategory, Boolean> = mutableMapOf(),
     var statistics: UserStatistics = UserStatistics(),
     var lastCompletedDate: LocalDateTime? = null,
+    var bio: String? = null, // 한줄소개
     var createdAt: LocalDateTime = LocalDateTime.now(),
     var updatedAt: LocalDateTime = LocalDateTime.now()
 ) {
@@ -110,6 +111,24 @@ data class User(
     
     fun updatePreferences(newPreferences: Map<MissionCategory, Boolean>): User {
         preferences.putAll(newPreferences)
+        updatedAt = LocalDateTime.now()
+        return this
+    }
+    
+    fun updateProfile(newName: UserName? = null, newBio: String? = null): User {
+        if (newName != null) {
+            this.name = newName
+        }
+        if (newBio != null) {
+            this.bio = if (newBio.isBlank()) null else newBio
+        }
+        updatedAt = LocalDateTime.now()
+        return this
+    }
+    
+    fun changePassword(newPassword: String): User {
+        require(newPassword.isNotBlank()) { "Password cannot be blank" }
+        this.password = newPassword // 실제로는 암호화된 패스워드가 들어옴
         updatedAt = LocalDateTime.now()
         return this
     }

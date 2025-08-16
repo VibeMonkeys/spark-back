@@ -31,6 +31,11 @@ interface UserUseCase {
     fun updateProfile(command: UpdateProfileCommand): User
 
     /**
+     * 사용자 비밀번호 변경
+     */
+    fun changePassword(command: ChangePasswordCommand): User
+
+    /**
      * 사용자 선호도 업데이트
      */
     fun updatePreferences(command: UpdatePreferencesCommand): User

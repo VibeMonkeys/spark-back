@@ -30,6 +30,7 @@ data class UserResponse(
     val totalDays: Int,
     @JsonProperty("join_date")
     val joinDate: String,
+    val bio: String? = null,
     val preferences: Map<String, Boolean>? = null,
     val statistics: UserStatisticsResponse? = null
 )

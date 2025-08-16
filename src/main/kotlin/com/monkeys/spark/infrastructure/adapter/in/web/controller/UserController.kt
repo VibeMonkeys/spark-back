@@ -5,11 +5,13 @@ import com.monkeys.spark.application.port.`in`.UserUseCase
 import com.monkeys.spark.application.port.`in`.command.CreateUserCommand
 import com.monkeys.spark.application.port.`in`.command.UpdatePreferencesCommand
 import com.monkeys.spark.application.port.`in`.command.UpdateProfileCommand
+import com.monkeys.spark.application.port.`in`.command.ChangePasswordCommand
 import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.ApiResponse
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.CreateUserRequest
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.UpdatePreferencesRequest
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.UpdateProfileRequest
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.ChangePasswordRequest
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -76,7 +78,7 @@ class UserController(
      * PUT /api/v1/users/{userId}/profile
      */
     @PutMapping("/{userId}/profile")
-    fun updateProfile(
+    fun updateUserProfile(
         @PathVariable userId: String,
         @RequestBody request: UpdateProfileRequest
     ): ResponseEntity<ApiResponse<UserResponse>> {
@@ -84,6 +86,7 @@ class UserController(
             val command = UpdateProfileCommand(
                 userId = userId,
                 name = request.name,
+                bio = request.bio,
                 avatarUrl = request.avatarUrl
             )
             val user = userUseCase.updateProfile(command)
@@ -92,6 +95,33 @@ class UserController(
             return ResponseEntity.ok(ApiResponse.success(response, "프로필이 업데이트되었습니다."))
         } catch (e: IllegalArgumentException) {
             return ResponseEntity.ok(ApiResponse.error(e.message ?: "프로필 업데이트에 실패했습니다.", "UPDATE_FAILED"))
+        }
+    }
+
+    /**
+     * 비밀번호 변경
+     * POST /api/v1/users/{userId}/change-password  
+     */
+    @PostMapping("/{userId}/change-password")
+    fun changePassword(
+        @PathVariable userId: String,
+        @RequestBody request: ChangePasswordRequest
+    ): ResponseEntity<ApiResponse<String>> {
+        try {
+            val command = ChangePasswordCommand(
+                userId = userId,
+                currentPassword = request.currentPassword,
+                newPassword = request.newPassword
+            )
+            userUseCase.changePassword(command)
+            return ResponseEntity.ok(ApiResponse.success("비밀번호가 성공적으로 변경되었습니다."))
+        } catch (e: IllegalArgumentException) {
+            val errorMessage = when {
+                e.message?.contains("Current password is incorrect") == true -> "현재 비밀번호가 올바르지 않습니다."
+                e.message?.contains("User not found") == true -> "사용자를 찾을 수 없습니다."
+                else -> e.message ?: "비밀번호 변경에 실패했습니다."
+            }
+            return ResponseEntity.ok(ApiResponse.error(errorMessage, "PASSWORD_CHANGE_FAILED"))
         }
     }
 

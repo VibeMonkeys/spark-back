@@ -79,6 +79,10 @@ class UserEntity {
     @Column(name = "last_completed_date")
     var lastCompletedDate: LocalDateTime? = null
     
+    // 프로필 관리 필드
+    @Column(name = "bio", length = 200)
+    var bio: String? = null
+    
     @PreUpdate
     fun preUpdate() {
         updatedAt = LocalDateTime.now()
