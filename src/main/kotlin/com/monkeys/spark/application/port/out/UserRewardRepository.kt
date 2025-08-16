@@ -2,39 +2,21 @@ package com.monkeys.spark.application.port.out
 
 import com.monkeys.spark.domain.model.UserReward
 import com.monkeys.spark.domain.vo.common.Points
-import com.monkeys.spark.domain.vo.common.RewardId
 import com.monkeys.spark.domain.vo.common.UserId
+import com.monkeys.spark.domain.vo.common.UserRewardId
 
 interface UserRewardRepository {
 
     fun save(userReward: UserReward): UserReward
 
-    fun findById(userRewardId: String): UserReward?
+    fun findById(userRewardId: UserRewardId): UserReward?
 
     fun findByUserId(userId: UserId): List<UserReward>
 
-    fun findAvailableByUserId(userId: UserId): List<UserReward>
-
-    fun findUsedByUserId(userId: UserId): List<UserReward>
-
-    fun findExpiredByUserId(userId: UserId): List<UserReward>
-
-    fun findByExchangeCode(exchangeCode: String): UserReward?
-
     fun findExpiringWithinDays(days: Int): List<UserReward>
-
-    fun markAsUsed(userRewardId: String): UserReward?
-
-    fun markExpiredRewards(): List<UserReward>
 
     fun getTotalPointsSpentByUserId(userId: UserId): Points
 
     fun getThisMonthPointsSpentByUserId(userId: UserId): Points
-
-    fun getExchangeCountByRewardId(rewardId: RewardId): Int
-
-    fun deleteById(userRewardId: String)
-
-    fun deleteByUserId(userId: UserId)
 
 }

@@ -9,11 +9,11 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 @Repository
-interface StoryJpaRepository : JpaRepository<StoryEntity, String> {
+interface StoryJpaRepository : JpaRepository<StoryEntity, Long> {
 
-    fun findByUserId(userId: String): List<StoryEntity>
+    fun findByUserId(userId: Long): List<StoryEntity>
 
-    fun findByMissionId(missionId: String): List<StoryEntity>
+    fun findByMissionId(missionId: Long): List<StoryEntity>
 
     @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true ORDER BY s.createdAt DESC")
     fun findPublicStoriesOrderByCreatedDesc(pageable: Pageable): List<StoryEntity>
@@ -46,7 +46,26 @@ interface StoryJpaRepository : JpaRepository<StoryEntity, String> {
 
     fun findByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<StoryEntity>
 
-    fun deleteByUserId(userId: String)
+    fun deleteByUserId(userId: Long)
 
-    fun deleteByMissionId(missionId: String)
+    fun deleteByMissionId(missionId: Long)
+
+    // 커서 기반 페이지네이션을 위한 메서드들
+    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.id < :cursor ORDER BY s.id DESC")
+    fun findPublicStoriesBeforeCursor(@Param("cursor") cursor: Long, pageable: Pageable): List<StoryEntity>
+
+    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.id > :cursor ORDER BY s.id ASC")
+    fun findPublicStoriesAfterCursor(@Param("cursor") cursor: Long, pageable: Pageable): List<StoryEntity>
+
+    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true ORDER BY s.id DESC")
+    fun findPublicStoriesWithoutCursor(pageable: Pageable): List<StoryEntity>
+
+    @Query("SELECT s FROM StoryEntity s WHERE s.userId = :userId AND s.id < :cursor ORDER BY s.id DESC")
+    fun findUserStoriesBeforeCursor(@Param("userId") userId: Long, @Param("cursor") cursor: Long, pageable: Pageable): List<StoryEntity>
+
+    @Query("SELECT s FROM StoryEntity s WHERE s.userId = :userId AND s.id > :cursor ORDER BY s.id ASC")
+    fun findUserStoriesAfterCursor(@Param("userId") userId: Long, @Param("cursor") cursor: Long, pageable: Pageable): List<StoryEntity>
+
+    @Query("SELECT s FROM StoryEntity s WHERE s.userId = :userId ORDER BY s.id DESC")
+    fun findUserStoriesWithoutCursor(@Param("userId") userId: Long, pageable: Pageable): List<StoryEntity>
 }

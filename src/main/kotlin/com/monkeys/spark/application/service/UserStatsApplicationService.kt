@@ -1,12 +1,12 @@
 package com.monkeys.spark.application.service
 
-import com.monkeys.spark.application.port.`in`.UserStatsUseCase
-import com.monkeys.spark.application.port.`in`.dto.UserStatsRankingItem
-import com.monkeys.spark.application.port.`in`.dto.UserRankingInfo
-import com.monkeys.spark.application.port.out.UserStatsRepository
-import com.monkeys.spark.application.port.out.UserRepository
-import com.monkeys.spark.domain.model.UserStats
 import com.monkeys.spark.application.coordinator.AchievementCoordinator
+import com.monkeys.spark.application.port.`in`.UserStatsUseCase
+import com.monkeys.spark.application.port.`in`.dto.UserRankingInfo
+import com.monkeys.spark.application.port.`in`.dto.UserStatsRankingItem
+import com.monkeys.spark.application.port.out.UserRepository
+import com.monkeys.spark.application.port.out.UserStatsRepository
+import com.monkeys.spark.domain.model.UserStats
 import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.stat.StatType
 import org.springframework.stereotype.Service
@@ -28,35 +28,42 @@ class UserStatsApplicationService(
             ?: initializeUserStats(userId)
     }
 
-    override fun allocateStatPoints(userId: UserId, statType: StatType, points: Int): UserStats {
+    override fun allocateStatPoints(
+        userId: UserId,
+        statType: StatType,
+        points: Int
+    ): UserStats {
         val userStats = getUserStats(userId)
         val updatedStats = userStats.allocateStatPoints(statType, points)
         return userStatsRepository.save(updatedStats)
     }
 
-    override fun increaseMissionStat(userId: UserId, missionCategory: String): UserStats {
+    override fun increaseMissionStat(
+        userId: UserId,
+        missionCategory: String
+    ): UserStats {
         val userStats = getUserStats(userId)
         val updatedStats = userStats.increaseMissionStat(missionCategory)
         val savedStats = userStatsRepository.save(updatedStats)
-        
+
         // 업적 시스템 연동: 미션 완료 시 업적 확인 및 발급
         // 업적 시스템 오류가 스탯 증가를 방해하지 않도록 처리하되, 로깅은 수행
         try {
-            achievementCoordinator.checkAndGrantMissionAchievements(userId.value, missionCategory)
-            achievementCoordinator.checkAndGrantPointsAchievements(userId.value, savedStats.totalPoints)
+            achievementCoordinator.checkAndGrantMissionAchievements(userId, missionCategory)
+            achievementCoordinator.checkAndGrantPointsAchievements(userId, savedStats.totalPoints)
         } catch (e: Exception) {
             // TODO: 적절한 로깅 프레임워크를 사용하여 에러 로깅
             println("Achievement system error for user ${userId.value}: ${e.message}")
             // 업적 시스템 실패가 스탯 업데이트를 방해하지 않도록 계속 진행
         }
-        
+
         return savedStats
     }
 
     override fun initializeUserStats(userId: UserId): UserStats {
         // 사용자가 존재하는지 확인
         val user = userRepository.findById(userId)
-            ?: throw com.monkeys.spark.domain.exception.UserNotFoundException(userId.value)
+            ?: throw com.monkeys.spark.domain.exception.UserNotFoundException(userId.value.toString())
 
         val initialStats = UserStats.createInitial(userId)
         return userStatsRepository.save(initialStats)
@@ -65,7 +72,7 @@ class UserStatsApplicationService(
     @Transactional(readOnly = true)
     override fun getTotalStatsRanking(limit: Int): List<UserStatsRankingItem> {
         val rankings = userStatsRepository.findRankingByTotalStats(limit)
-        
+
         return rankings.mapIndexed { index, userStats ->
             val user = userRepository.findById(userStats.userId)
             UserStatsRankingItem(
@@ -82,7 +89,7 @@ class UserStatsApplicationService(
     @Transactional(readOnly = true)
     override fun getStatRanking(statType: StatType, limit: Int): List<UserStatsRankingItem> {
         val rankings = userStatsRepository.findRankingByStat(statType, limit)
-        
+
         return rankings.mapIndexed { index, userStats ->
             val user = userRepository.findById(userStats.userId)
             UserStatsRankingItem(

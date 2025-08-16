@@ -2,16 +2,17 @@ package com.monkeys.spark.infrastructure.adapter.out.persistence
 
 import com.monkeys.spark.application.port.out.UserRepository
 import com.monkeys.spark.domain.model.User
-import com.monkeys.spark.domain.vo.common.*
-import com.monkeys.spark.domain.vo.user.*
+import com.monkeys.spark.domain.vo.common.Points
+import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.mission.MissionCategory
-import org.springframework.data.domain.PageRequest
-import java.time.LocalDateTime
-import com.monkeys.spark.infrastructure.adapter.out.persistence.entity.UserEntity
-import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.UserJpaRepository
+import com.monkeys.spark.domain.vo.user.Email
+import com.monkeys.spark.domain.vo.user.Level
 import com.monkeys.spark.infrastructure.adapter.out.persistence.mapper.UserPersistenceMapper
+import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.UserJpaRepository
+import org.springframework.data.domain.PageRequest
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
 
 @Component
 class UserPersistenceAdapter(
@@ -26,7 +27,10 @@ class UserPersistenceAdapter(
         return userMapper.toDomain(savedEntity)
     }
 
-    override fun saveWithPassword(user: User, password: String): User {
+    override fun saveWithPassword(
+        user: User,
+        password: String
+    ): User {
         // User 도메인 모델에 해시된 비밀번호 설정
         user.password = passwordEncoder.encode(password)
         val entity = userMapper.toEntity(user)
@@ -90,11 +94,17 @@ class UserPersistenceAdapter(
             .map { userMapper.toDomain(it) }
     }
 
-    override fun countByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): Long {
+    override fun countByCreatedAtBetween(
+        startDate: LocalDateTime,
+        endDate: LocalDateTime
+    ): Long {
         return userJpaRepository.countByCreatedAtBetween(startDate, endDate)
     }
 
-    override fun updatePreferences(userId: UserId, preferences: Map<MissionCategory, Boolean>): User? {
+    override fun updatePreferences(
+        userId: UserId,
+        preferences: Map<MissionCategory, Boolean>
+    ): User? {
         return userJpaRepository.findById(userId.value).map { entity ->
             // JSON 형태로 선호도 저장
             val preferencesJson = preferences.entries.joinToString(",") { "\"${it.key.name}\":${it.value}" }
@@ -105,7 +115,10 @@ class UserPersistenceAdapter(
         }.orElse(null)
     }
 
-    override fun updateStatistics(userId: UserId, categoryStats: Map<MissionCategory, Int>): User? {
+    override fun updateStatistics(
+        userId: UserId,
+        categoryStats: Map<MissionCategory, Int>
+    ): User? {
         return userJpaRepository.findById(userId.value).map { entity ->
             // JSON 형태로 통계 저장
             val statsJson = categoryStats.entries.joinToString(",") { "\"${it.key.name}\":${it.value}" }
@@ -120,4 +133,5 @@ class UserPersistenceAdapter(
         return userJpaRepository.findByLastLoginAtBefore(lastLoginBefore)
             .map { userMapper.toDomain(it) }
     }
+
 }

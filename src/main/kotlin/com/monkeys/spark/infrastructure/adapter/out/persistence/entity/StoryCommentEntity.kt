@@ -1,26 +1,26 @@
 package com.monkeys.spark.infrastructure.adapter.out.persistence.entity
 
 import jakarta.persistence.*
-import java.time.LocalDateTime
 
 @Entity
 @Table(name = "story_comments")
 class StoryCommentEntity : BaseEntity() {
     @Id
-    var id: String = ""
-    
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long = 0L
+
     @Column(name = "story_id", nullable = false)
-    var storyId: String = ""
-    
+    var storyId: Long = 0L
+
     @Column(name = "user_id", nullable = false)
-    var userId: String = ""
-    
+    var userId: Long = 0L
+
     @Column(name = "user_name", nullable = false, length = 50)
     var userName: String = ""
-    
+
     @Column(name = "user_avatar_url")
     var userAvatarUrl: String = ""
-    
+
     @Column(columnDefinition = "TEXT", nullable = false)
     var content: String = ""
 }

@@ -8,39 +8,17 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 @Repository
-interface MissionJpaRepository : JpaRepository<MissionEntity, String> {
+interface MissionJpaRepository : JpaRepository<MissionEntity, Long> {
 
-    fun findByUserId(userId: String): List<MissionEntity>
+    fun findByUserId(userId: Long): List<MissionEntity>
 
-    fun findByUserIdAndStatus(userId: String, status: String): List<MissionEntity>
-
-    @Query("SELECT m FROM MissionEntity m WHERE m.userId = :userId AND m.status IN :statuses")
-    fun findByUserIdAndStatusIn(
-        @Param("userId") userId: String,
-        @Param("statuses") statuses: List<String>
-    ): List<MissionEntity>
+    fun findByUserIdAndStatus(userId: Long, status: String): List<MissionEntity>
 
     @Query("SELECT m FROM MissionEntity m WHERE m.expiresAt < :currentTime AND m.status = 'ASSIGNED'")
     fun findExpiredMissions(@Param("currentTime") currentTime: LocalDateTime): List<MissionEntity>
 
-    @Query("SELECT m FROM MissionEntity m WHERE m.category = :category AND m.difficulty = :difficulty ORDER BY m.createdAt DESC")
-    fun findByCategoryAndDifficulty(
-        @Param("category") category: String,
-        @Param("difficulty") difficulty: String
-    ): List<MissionEntity>
-
-    @Query("SELECT COUNT(m) FROM MissionEntity m WHERE m.status = 'COMPLETED' AND m.completedAt >= :startDate")
-    fun countCompletedMissionsAfter(@Param("startDate") startDate: LocalDateTime): Long
-
-    @Query("SELECT m FROM MissionEntity m WHERE m.assignedAt >= :startDate AND m.assignedAt < :endDate ORDER BY m.assignedAt DESC")
-    fun findMissionsAssignedBetween(
-        @Param("startDate") startDate: LocalDateTime,
-        @Param("endDate") endDate: LocalDateTime
-    ): List<MissionEntity>
-
-    // MissionPersistenceAdapter에서 필요한 추가 메서드들
     fun findByUserIdAndCreatedAtBetween(
-        userId: String,
+        userId: Long,
         startDate: LocalDateTime,
         endDate: LocalDateTime
     ): List<MissionEntity>
@@ -52,7 +30,7 @@ interface MissionJpaRepository : JpaRepository<MissionEntity, String> {
     fun findByCategoryAndDifficultyAndIdNot(
         category: String,
         difficulty: String,
-        excludeId: String
+        excludeId: Long
     ): List<MissionEntity>
 
     fun findByCategoryInAndStatus(categories: List<String>, status: String): List<MissionEntity>
@@ -63,13 +41,13 @@ interface MissionJpaRepository : JpaRepository<MissionEntity, String> {
 
     fun countByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): Long
 
-    fun countByUserId(userId: String): Long
+    fun countByUserId(userId: Long): Long
 
-    fun countByUserIdAndStatus(userId: String, status: String): Long
+    fun countByUserIdAndStatus(userId: Long, status: String): Long
 
-    fun countByUserIdAndCategoryAndStatus(userId: String, category: String, status: String): Long
+    fun countByUserIdAndCategoryAndStatus(userId: Long, category: String, status: String): Long
 
-    fun deleteByUserId(userId: String)
+    fun deleteByUserId(userId: Long)
 
     // 사용자가 아직 시도하지 않은 템플릿 미션들 조회
     @Query(
@@ -84,7 +62,7 @@ interface MissionJpaRepository : JpaRepository<MissionEntity, String> {
         )
     """
     )
-    fun findAvailableTemplatesForUser(@Param("userId") userId: String): List<MissionEntity>
+    fun findAvailableTemplatesForUser(@Param("userId") userId: Long): List<MissionEntity>
 
     // 사용자가 완료했거나 진행 중인 템플릿 미션 ID들
     @Query(
@@ -95,7 +73,7 @@ interface MissionJpaRepository : JpaRepository<MissionEntity, String> {
         AND (m.status = 'COMPLETED' OR m.status = 'IN_PROGRESS' OR m.status = 'ASSIGNED')
     """
     )
-    fun findUserCompletedOrOngoingTemplateIds(@Param("userId") userId: String): List<String>
+    fun findUserCompletedOrOngoingTemplateIds(@Param("userId") userId: Long): List<String>
 
     // 랜덤으로 미션 조회 (Native Query 사용)
     @Query(
@@ -113,10 +91,11 @@ interface MissionJpaRepository : JpaRepository<MissionEntity, String> {
     """, nativeQuery = true
     )
     fun findRandomAvailableTemplatesForUser(
-        @Param("userId") userId: String,
+        @Param("userId") userId: Long,
         @Param("limit") limit: Int
     ): List<MissionEntity>
 
     // 오늘 시작한 미션 개수 조회
-    fun countByUserIdAndStartedAtBetween(userId: String, startDate: LocalDateTime, endDate: LocalDateTime): Long
+    fun countByUserIdAndStartedAtBetween(userId: Long, startDate: LocalDateTime, endDate: LocalDateTime): Long
+
 }

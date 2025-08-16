@@ -2,24 +2,11 @@ package com.monkeys.spark.application.port.out
 
 import com.monkeys.spark.domain.model.StoryComment
 import com.monkeys.spark.domain.vo.common.StoryId
-import com.monkeys.spark.domain.vo.common.UserId
 
 interface StoryCommentRepository {
 
     fun save(storyComment: StoryComment): StoryComment
 
-    fun findById(commentId: String): StoryComment?
-
     fun findByStoryId(storyId: StoryId): List<StoryComment>
-
-    fun findByUserId(userId: UserId): List<StoryComment>
-
-    fun countByStoryId(storyId: StoryId): Int
-
-    fun deleteById(commentId: String)
-
-    fun deleteByStoryId(storyId: StoryId)
-
-    fun deleteByUserId(userId: UserId)
 
 }

@@ -25,7 +25,7 @@ data class UpdateStoryRequest(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class MissionVerificationRequest(
     @JsonProperty("mission_id")
-    val missionId: String,
+    val missionId: Long,
     val story: String,
     val images: List<String> = emptyList(),
     val location: String,

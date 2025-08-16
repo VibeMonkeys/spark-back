@@ -8,7 +8,7 @@ import java.time.LocalDateTime
  * Story Comment Domain Object
  */
 data class StoryComment(
-    val id: String,
+    val id: Long,
     val storyId: StoryId,
     val userId: UserId,
     val userName: UserName,
@@ -28,7 +28,7 @@ data class StoryComment(
             require(content.length <= 500) { "Comment cannot exceed 500 characters" }
             
             return StoryComment(
-                id = java.util.UUID.randomUUID().toString(),
+                id = 0L, // Auto-increment will assign the actual ID
                 storyId = storyId,
                 userId = userId,
                 userName = userName,

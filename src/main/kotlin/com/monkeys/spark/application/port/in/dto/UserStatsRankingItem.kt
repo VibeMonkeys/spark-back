@@ -7,7 +7,7 @@ import com.monkeys.spark.domain.vo.stat.StatType
  */
 data class UserStatsRankingItem(
     val rank: Int,
-    val userId: String,
+    val userId: Long,
     val username: String,
     val avatarUrl: String?,
     val statValue: Int,

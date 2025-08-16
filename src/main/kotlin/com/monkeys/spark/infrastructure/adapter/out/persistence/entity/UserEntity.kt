@@ -7,7 +7,8 @@ import java.time.LocalDateTime
 @Table(name = "users")
 class UserEntity : BaseEntity() {
     @Id
-    var id: String = ""
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long = 0L
     
     @Column(unique = true, nullable = false)
     var email: String = ""

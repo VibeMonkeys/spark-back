@@ -8,7 +8,6 @@ import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.Achievemen
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.AchievementResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
-import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping("/api/v1/achievements")
-@CrossOrigin(origins = ["http://localhost:5173"])
 class AchievementController(
     private val achievementUseCase: AchievementUseCase
 ) {
@@ -30,7 +28,7 @@ class AchievementController(
     fun getUserAchievements(
         authentication: Authentication
     ): ResponseEntity<ApiResponse<List<AchievementResponse>>> {
-        val userId = UserId(authentication.name)
+        val userId = UserId(authentication.name.toLong())
         val achievements = achievementUseCase.getUserAchievements(userId)
 
         val response = achievements.map { achievement ->
@@ -62,7 +60,7 @@ class AchievementController(
     fun getUserAchievementCount(
         authentication: Authentication
     ): ResponseEntity<ApiResponse<AchievementCountResponse>> {
-        val userId = UserId(authentication.name)
+        val userId = UserId(authentication.name.toLong())
         val count = achievementUseCase.getUserAchievementCount(userId)
 
         val response = AchievementCountResponse(

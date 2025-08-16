@@ -14,13 +14,13 @@ class StoryLikeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = 0
-    
+
     @Column(name = "story_id", nullable = false)
-    var storyId: String = ""
-    
+    var storyId: Long = 0
+
     @Column(name = "user_id", nullable = false)
-    var userId: String = ""
-    
+    var userId: Long = 0
+
     @Column(name = "created_at", nullable = false)
     var createdAt: LocalDateTime = LocalDateTime.now()
 }

@@ -4,7 +4,7 @@ package com.monkeys.spark.application.port.`in`.dto
  * 사용자 랭킹 정보
  */
 data class UserRankingInfo(
-    val userId: String,
+    val userId: Long,
     val totalStatsRank: Int,
     val strengthRank: Int,
     val intelligenceRank: Int,

@@ -11,7 +11,7 @@ class UserRewardPersistenceMapper {
     
     fun toEntity(domain: UserReward): UserRewardEntity {
         val entity = UserRewardEntity()
-        entity.id = domain.id
+        entity.id = domain.id.value
         entity.userId = domain.userId.value
         entity.rewardId = domain.rewardId.value
         entity.rewardTitle = domain.rewardTitle.value
@@ -29,7 +29,7 @@ class UserRewardPersistenceMapper {
     
     fun toDomain(entity: UserRewardEntity): UserReward {
         return UserReward(
-            id = entity.id,
+            id = UserRewardId(entity.id),
             userId = UserId(entity.userId),
             rewardId = RewardId(entity.rewardId),
             rewardTitle = RewardTitle(entity.rewardTitle),

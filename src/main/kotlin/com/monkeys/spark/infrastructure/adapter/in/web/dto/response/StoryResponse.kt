@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class StoryResponse(
-    val id: String,
+    val id: Long,
     val user: StoryUserResponse,
     val mission: StoryMissionResponse,
     val story: String,
@@ -50,7 +50,7 @@ data class StoryMissionResponse(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class StoryCommentResponse(
-    val id: String,
+    val id: Long,
     val userName: String,
     val userAvatarUrl: String,
     val content: String,

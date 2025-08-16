@@ -51,6 +51,6 @@ class RewardDomainService {
      * 사용자가 해당 UserReward를 사용할 수 있는지 검증
      */
     fun canUseUserReward(userReward: UserReward, userId: String): Boolean {
-        return userReward.userId.value == userId
+        return userReward.userId.value == userId.toLong()
     }
 }

@@ -11,14 +11,14 @@ data class CreateUserCommand(
     val email: String,
     val password: String,
     val name: String,
-    val avatarUrl: String
+    val avatarUrl: String?
 )
 
 /**
  * 프로필 업데이트 커맨드
  */
 data class UpdateProfileCommand(
-    val userId: String,
+    val userId: Long,
     val name: String?,
     val bio: String?,
     val avatarUrl: String?
@@ -28,7 +28,7 @@ data class UpdateProfileCommand(
  * 선호도 업데이트 커맨드
  */
 data class UpdatePreferencesCommand(
-    val userId: String,
+    val userId: Long,
     val preferences: Map<String, Boolean>
 )
 
@@ -36,7 +36,7 @@ data class UpdatePreferencesCommand(
  * 비밀번호 변경 커맨드
  */
 data class ChangePasswordCommand(
-    val userId: String,
+    val userId: Long,
     val currentPassword: String,
     val newPassword: String
 )

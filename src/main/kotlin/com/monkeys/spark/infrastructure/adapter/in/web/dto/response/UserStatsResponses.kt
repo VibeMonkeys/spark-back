@@ -1,7 +1,7 @@
 package com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response
 
-import com.monkeys.spark.application.port.`in`.dto.UserStatsRankingItem
 import com.monkeys.spark.application.port.`in`.dto.UserRankingInfo
+import com.monkeys.spark.application.port.`in`.dto.UserStatsRankingItem
 import com.monkeys.spark.domain.model.UserStats
 import com.monkeys.spark.domain.vo.stat.StatValue
 
@@ -9,7 +9,7 @@ import com.monkeys.spark.domain.vo.stat.StatValue
  * 사용자 스탯 응답 DTO
  */
 data class UserStatsResponse(
-    val userId: String,
+    val userId: Long,
     val strength: StatResponse,
     val intelligence: StatResponse,
     val creativity: StatResponse,
@@ -27,7 +27,7 @@ data class UserStatsResponse(
     companion object {
         fun from(userStats: UserStats): UserStatsResponse {
             val (dominantStatType, dominantStatValue) = userStats.dominantStat
-            
+
             return UserStatsResponse(
                 userId = userStats.userId.value,
                 strength = StatResponse.from(userStats.strength, "힘", "💪", "#EF4444"),
@@ -120,7 +120,7 @@ data class DominantStatResponse(
  */
 data class UserStatsRankingResponse(
     val rank: Int,
-    val userId: String,
+    val userId: Long,
     val username: String,
     val avatarUrl: String?,
     val statValue: Int,
@@ -146,7 +146,7 @@ data class UserStatsRankingResponse(
  * 사용자 랭킹 정보 응답 DTO
  */
 data class UserRankingInfoResponse(
-    val userId: String,
+    val userId: Long,
     val totalStatsRank: Int,
     val strengthRank: Int,
     val intelligenceRank: Int,

@@ -8,14 +8,14 @@ package com.monkeys.spark.application.port.`in`.command
  * 리워드 교환 커맨드
  */
 data class ExchangeRewardCommand(
-    val userId: String,
-    val rewardId: String
+    val userId: Long,
+    val rewardId: Long
 )
 
 /**
  * 리워드 사용 커맨드
  */
 data class UseRewardCommand(
-    val userRewardId: String,
-    val userId: String
+    val userRewardId: Long,
+    val userId: Long
 )

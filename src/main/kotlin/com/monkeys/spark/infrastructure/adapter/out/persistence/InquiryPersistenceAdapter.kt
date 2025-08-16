@@ -28,20 +28,31 @@ class InquiryPersistenceAdapter(
             .orElse(null)
     }
 
-    override fun findByUserId(userId: UserId, page: Int, size: Int): List<Inquiry> {
+    override fun findByUserId(
+        userId: UserId,
+        page: Int,
+        size: Int
+    ): List<Inquiry> {
         val pageable = PageRequest.of(page, size)
         return jpaInquiryRepository.findByUserIdOrderByCreatedAtDesc(userId.value, pageable)
             .map(mapper::toDomain)
     }
 
-    override fun findByStatus(status: InquiryStatus, page: Int, size: Int): List<Inquiry> {
+    override fun findByStatus(
+        status: InquiryStatus,
+        page: Int,
+        size: Int
+    ): List<Inquiry> {
         val entityStatus = toEntityStatus(status)
         val pageable = PageRequest.of(page, size)
         return jpaInquiryRepository.findByStatusOrderByCreatedAtDesc(entityStatus, pageable)
             .map(mapper::toDomain)
     }
 
-    override fun findAll(page: Int, size: Int): List<Inquiry> {
+    override fun findAll(
+        page: Int,
+        size: Int
+    ): List<Inquiry> {
         val pageable = PageRequest.of(page, size)
         return jpaInquiryRepository.findAllOrderByCreatedAtDesc(pageable)
             .map(mapper::toDomain)
@@ -64,4 +75,5 @@ class InquiryPersistenceAdapter(
             InquiryStatus.CLOSED -> InquiryStatus.CLOSED
         }
     }
+
 }

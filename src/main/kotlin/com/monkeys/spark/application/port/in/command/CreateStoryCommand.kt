@@ -4,8 +4,8 @@ package com.monkeys.spark.application.port.`in`.command
  * 스토리 생성 커맨드
  */
 data class CreateStoryCommand(
-    val userId: String,
-    val missionId: String,
+    val userId: Long,
+    val missionId: Long,
     val storyText: String,
     val images: List<String> = emptyList(),
     val location: String,

@@ -29,9 +29,19 @@ interface StoryUseCase {
     fun getStoryFeed(query: StoryFeedQuery): List<StoryFeedItem>
     
     /**
+     * 커서 기반 스토리 피드 조회
+     */
+    fun getStoryFeedWithCursor(userId: String?, cursor: Long?, size: Int, isNext: Boolean): List<StoryFeedItem>
+    
+    /**
      * 사용자의 스토리 조회
      */
     fun getUserStories(userId: UserId, page: Int, size: Int): List<Story>
+    
+    /**
+     * 커서 기반 사용자 스토리 조회
+     */
+    fun getUserStoriesWithCursor(userId: UserId, cursor: Long?, size: Int, isNext: Boolean): List<Story>
     
     /**
      * 스토리 좋아요

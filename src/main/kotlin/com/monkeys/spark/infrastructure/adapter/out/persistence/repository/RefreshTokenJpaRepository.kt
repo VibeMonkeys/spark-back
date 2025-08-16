@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import java.time.LocalDateTime
 
-interface RefreshTokenJpaRepository : JpaRepository<RefreshTokenEntity, String> {
+interface RefreshTokenJpaRepository : JpaRepository<RefreshTokenEntity, Long> {
 
     fun findByTokenAndIsActive(token: String, isActive: Boolean = true): RefreshTokenEntity?
 

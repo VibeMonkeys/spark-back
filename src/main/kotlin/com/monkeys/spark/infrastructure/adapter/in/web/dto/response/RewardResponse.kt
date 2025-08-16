@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class RewardResponse(
-    val id: String,
+    val id: Long,
     val title: String,
     val description: String,
     val category: String,
@@ -30,7 +30,7 @@ data class RewardResponse(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class UserRewardResponse(
-    val id: String,
+    val id: Long,
     val title: String,
     val brand: String,
     val points: Int,

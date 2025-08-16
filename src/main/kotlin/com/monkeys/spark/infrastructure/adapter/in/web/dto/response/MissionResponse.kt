@@ -9,7 +9,7 @@ import java.time.LocalDateTime
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class MissionResponse(
-    val id: String,
+    val id: Long,
     val title: String,
     val description: String,
     @JsonProperty("detailed_description")
@@ -43,7 +43,7 @@ data class MissionResponse(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class MissionDetailResponse(
-    val id: String,
+    val id: Long,
     val title: String,
     val description: String,
     @JsonProperty("detailed_description")
@@ -71,7 +71,7 @@ data class MissionDetailResponse(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class SimilarMissionResponse(
-    val id: String,
+    val id: Long,
     val title: String,
     val difficulty: String,
     val points: Int
@@ -105,7 +105,7 @@ data class MissionCompletionResponse(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class MissionVerificationResponse(
     @JsonProperty("story_id")
-    val storyId: String,
+    val storyId: Long,
     @JsonProperty("points_earned")
     val pointsEarned: Int,
     @JsonProperty("streak_count")

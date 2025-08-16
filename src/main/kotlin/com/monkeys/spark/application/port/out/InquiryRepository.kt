@@ -10,7 +10,7 @@ interface InquiryRepository {
     fun save(inquiry: Inquiry): Inquiry
     
     fun findById(id: InquiryId): Inquiry?
-    
+
     fun findByUserId(userId: UserId, page: Int = 0, size: Int = 20): List<Inquiry>
     
     fun findByStatus(status: InquiryStatus, page: Int = 0, size: Int = 20): List<Inquiry>

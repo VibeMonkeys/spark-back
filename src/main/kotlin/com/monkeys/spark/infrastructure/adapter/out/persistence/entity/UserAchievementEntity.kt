@@ -20,32 +20,32 @@ import java.time.LocalDateTime
     ]
 )
 class UserAchievementEntity : BaseEntity {
-    
+
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    var id: String = ""
-    
-    @Column(name = "user_id", nullable = false, length = 100)
-    var userId: String = ""
-    
+    var id: Long = 0L
+
+    @Column(name = "user_id", nullable = false)
+    var userId: Long = 0L
+
     @Enumerated(EnumType.STRING)
     @Column(name = "achievement_type", nullable = false, length = 50)
     var achievementType: AchievementType = AchievementType.FIRST_MISSION
-    
+
     @Column(name = "unlocked_at", nullable = false)
     var unlockedAt: LocalDateTime = LocalDateTime.now()
-    
+
     @Column(name = "progress", nullable = false)
     var progress: Int = 0
-    
+
     @Column(name = "is_notified", nullable = false)
     var isNotified: Boolean = false
-    
+
     constructor()
-    
+
     constructor(
-        userId: String,
+        userId: Long,
         achievementType: AchievementType,
         unlockedAt: LocalDateTime,
         progress: Int,

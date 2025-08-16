@@ -46,7 +46,10 @@ class RewardPersistenceAdapter(
             .map { rewardMapper.toDomain(it) }
     }
 
-    override fun findByPointsRange(minPoints: Points, maxPoints: Points): List<Reward> {
+    override fun findByPointsRange(
+        minPoints: Points,
+        maxPoints: Points
+    ): List<Reward> {
         return rewardJpaRepository.findByRequiredPointsBetween(minPoints.value, maxPoints.value)
             .map { rewardMapper.toDomain(it) }
     }
@@ -69,7 +72,10 @@ class RewardPersistenceAdapter(
         rewardJpaRepository.deleteById(rewardId.value)
     }
 
-    override fun updateActiveStatus(rewardId: RewardId, isActive: Boolean): Reward? {
+    override fun updateActiveStatus(
+        rewardId: RewardId,
+        isActive: Boolean
+    ): Reward? {
         return rewardJpaRepository.findById(rewardId.value).map { entity ->
             entity.isActive = isActive
             entity.updatedAt = java.time.LocalDateTime.now()

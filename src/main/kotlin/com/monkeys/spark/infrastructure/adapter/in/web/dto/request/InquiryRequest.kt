@@ -1,7 +1,7 @@
 package com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request
 
 data class CreateInquiryRequest(
-    val userId: String? = null,
+    val userId: Long? = null,
     val email: String,
     val subject: String,
     val message: String

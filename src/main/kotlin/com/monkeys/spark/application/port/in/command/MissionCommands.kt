@@ -9,16 +9,16 @@ package com.monkeys.spark.application.port.`in`.command
  * 미션 시작 커맨드
  */
 data class StartMissionCommand(
-    val missionId: String,
-    val userId: String
+    val missionId: Long,
+    val userId: Long
 )
 
 /**
  * 진행도 업데이트 커맨드
  */
 data class UpdateProgressCommand(
-    val missionId: String,
-    val userId: String,
+    val missionId: Long,
+    val userId: Long,
     val progress: Int
 )
 
@@ -26,15 +26,15 @@ data class UpdateProgressCommand(
  * 미션 완료 커맨드
  */
 data class CompleteMissionCommand(
-    val missionId: String,
-    val userId: String
+    val missionId: Long,
+    val userId: Long
 )
 
 /**
  * 미션 포기 커맨드
  */
 data class AbandonMissionCommand(
-    val missionId: String,
-    val userId: String
+    val missionId: Long,
+    val userId: Long
 )
 

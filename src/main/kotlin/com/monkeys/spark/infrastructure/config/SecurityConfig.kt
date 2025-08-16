@@ -62,6 +62,16 @@ class SecurityConfig(
                         HttpMethod.GET, "/api/v1/users/**"
                     ).permitAll()
                     
+                    // Public story endpoints (read-only)
+                    .requestMatchers(
+                        HttpMethod.GET, "/api/v1/stories/feed"
+                    ).permitAll()
+                    
+                    // Public level endpoints (read-only) - for level system display
+                    .requestMatchers(
+                        HttpMethod.GET, "/api/v1/levels/**"
+                    ).permitAll()
+                    
                     // Temporarily allow profile updates for testing
                     .requestMatchers(
                         HttpMethod.PUT, "/api/v1/users/*/profile"

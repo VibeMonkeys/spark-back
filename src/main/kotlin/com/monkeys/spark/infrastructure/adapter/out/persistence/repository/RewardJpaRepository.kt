@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
 @Repository
-interface RewardJpaRepository : JpaRepository<RewardEntity, String> {
+interface RewardJpaRepository : JpaRepository<RewardEntity, Long> {
 
     @Query("SELECT r FROM RewardEntity r WHERE r.isActive = true ORDER BY r.isPopular DESC, r.requiredPoints ASC")
     fun findActiveRewardsOrderByPopularityAndPoints(): List<RewardEntity>

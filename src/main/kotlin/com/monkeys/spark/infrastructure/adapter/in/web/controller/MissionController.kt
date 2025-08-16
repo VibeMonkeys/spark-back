@@ -41,7 +41,7 @@ class MissionController(
      * GET /api/v1/missions/today?userId={userId}
      */
     @GetMapping("/today")
-    fun getTodaysMissions(@RequestParam userId: String): ResponseEntity<ApiResponse<TodaysMissionsResponse>> {
+    fun getTodaysMissions(@RequestParam userId: Long): ResponseEntity<ApiResponse<TodaysMissionsResponse>> {
         val userIdVO = UserId(userId)
         val missions = missionUseCase.getTodaysMissions(userIdVO)
         val missionResponses = missions.map { responseMapper.toMissionResponse(it) }
@@ -69,7 +69,7 @@ class MissionController(
      * GET /api/v1/missions/{missionId}
      */
     @GetMapping("/{missionId}")
-    fun getMissionDetail(@PathVariable missionId: String): ResponseEntity<ApiResponse<MissionDetailResponse>> {
+    fun getMissionDetail(@PathVariable missionId: Long): ResponseEntity<ApiResponse<MissionDetailResponse>> {
         val mission = missionUseCase.getMissionDetail(MissionId(missionId))
         val similarMissions = missionUseCase.getSimilarMissions(MissionId(missionId), 3)
         val response = responseMapper.toMissionDetailResponse(mission, similarMissions)
@@ -82,7 +82,7 @@ class MissionController(
      * GET /api/v1/missions/daily-limit?userId={userId}
      */
     @GetMapping("/daily-limit")
-    fun getDailyMissionLimit(@RequestParam userId: String): ResponseEntity<ApiResponse<DailyMissionLimitResponse>> {
+    fun getDailyMissionLimit(@RequestParam userId: Long): ResponseEntity<ApiResponse<DailyMissionLimitResponse>> {
         val userIdVO = UserId(userId)
         val validation = missionRepository.canStartMission(userIdVO)
 
@@ -103,8 +103,8 @@ class MissionController(
      */
     @PostMapping("/{missionId}/start")
     fun startMission(
-        @PathVariable missionId: String,
-        @RequestParam userId: String
+        @PathVariable missionId: Long,
+        @RequestParam userId: Long
     ): ResponseEntity<ApiResponse<MissionResponse>> {
         val command = StartMissionCommand(missionId, userId)
         val mission = missionUseCase.startMission(command)
@@ -119,8 +119,8 @@ class MissionController(
      */
     @PutMapping("/{missionId}/progress")
     fun updateMissionProgress(
-        @PathVariable missionId: String,
-        @RequestParam userId: String,
+        @PathVariable missionId: Long,
+        @RequestParam userId: Long,
         @RequestParam progress: Int
     ): ResponseEntity<ApiResponse<MissionResponse>> {
         val command = UpdateProgressCommand(missionId, userId, progress)
@@ -136,8 +136,8 @@ class MissionController(
      */
     @PostMapping("/{missionId}/complete")
     fun completeMission(
-        @PathVariable missionId: String,
-        @RequestParam userId: String
+        @PathVariable missionId: Long,
+        @RequestParam userId: Long
     ): ResponseEntity<ApiResponse<MissionCompletionResponse>> {
         val userIdVO = UserId(userId)
         val command = CompleteMissionCommand(missionId, userId)
@@ -168,26 +168,26 @@ class MissionController(
      */
     @PostMapping("/{missionId}/verify")
     fun verifyMission(
-        @PathVariable missionId: String,
+        @PathVariable missionId: Long,
         @RequestBody request: MissionVerificationRequest,
         authentication: Authentication
     ): ResponseEntity<ApiResponse<MissionVerificationResponse>> {
         val authenticatedUserId = authentication.name
 
         // 1. 미션 완료 처리
-        val completeMissionCommand = CompleteMissionCommand(missionId, authenticatedUserId)
+        val completeMissionCommand = CompleteMissionCommand(missionId, authenticatedUserId.toLong())
         val completedMission = missionUseCase.completeMission(completeMissionCommand)
 
         // 2. 스탯 증가 처리
         val updatedStats = userStatsUseCase.increaseMissionStat(
-            UserId(authenticatedUserId),
+            UserId(authenticatedUserId.toLong()),
             completedMission.category.name
         )
 
         // 3. 스토리 생성 (스토리가 있는 경우에만)
         val story = if (request.story.trim().isNotEmpty() || request.images.isNotEmpty()) {
             val createStoryCommand = CreateStoryCommand(
-                userId = authenticatedUserId,
+                userId = authenticatedUserId.toLong(),
                 missionId = missionId,
                 storyText = request.story.trim().ifEmpty { "미션을 완료했습니다! 🎉" },
                 images = request.images,
@@ -199,12 +199,12 @@ class MissionController(
         } else null
 
         // 4. 사용자 정보 조회 (포인트 업데이트 반영)
-        val user = userApplicationService.getUser(UserId(authenticatedUserId))
+        val user = userApplicationService.getUser(UserId(authenticatedUserId.toLong()))
             ?: throw IllegalArgumentException("User not found: $authenticatedUserId")
 
         // 5. 응답 생성
         val response = MissionVerificationResponse(
-            storyId = story?.id?.value ?: "",
+            storyId = story?.id?.value ?: 0L,
             pointsEarned = completedMission.rewardPoints.value,
             streakCount = user.currentStreak.value,
             levelUp = false, // TODO: 레벨업 로직 추가
@@ -226,7 +226,7 @@ class MissionController(
      * GET /api/v1/missions/ongoing?userId={userId}
      */
     @GetMapping("/ongoing")
-    fun getOngoingMissions(@RequestParam userId: String): ResponseEntity<ApiResponse<List<MissionResponse>>> {
+    fun getOngoingMissions(@RequestParam userId: Long): ResponseEntity<ApiResponse<List<MissionResponse>>> {
         val missions = missionUseCase.getOngoingMissions(UserId(userId))
         val response = missions.map { responseMapper.toMissionResponse(it) }
 
@@ -239,7 +239,7 @@ class MissionController(
      */
     @GetMapping("/completed")
     fun getCompletedMissions(
-        @RequestParam userId: String,
+        @RequestParam userId: Long,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
         @RequestParam(required = false) category: String?
@@ -281,7 +281,7 @@ class MissionController(
      * POST /api/v1/missions/reroll
      */
     @PostMapping("/reroll")
-    fun rerollMissions(@RequestParam userId: String): ResponseEntity<ApiResponse<List<MissionResponse>>> {
+    fun rerollMissions(@RequestParam userId: Long): ResponseEntity<ApiResponse<List<MissionResponse>>> {
         val missions = missionUseCase.rerollMissions(UserId(userId))
         val response = missions.map { responseMapper.toMissionResponse(it) }
 
@@ -294,7 +294,7 @@ class MissionController(
      */
     @GetMapping("/category-stats")
     fun getCategoryStatistics(
-        @RequestParam userId: String
+        @RequestParam userId: Long
     ): ResponseEntity<ApiResponse<List<CategoryStatResponse>>> {
         val stats = missionUseCase.getCategoryStatistics(UserId(userId))
         val response = stats.map { (category, stat) ->
@@ -309,7 +309,7 @@ class MissionController(
      * POST /api/v1/missions/generate-daily
      */
     @PostMapping("/generate-daily")
-    fun generateDailyMissions(@RequestParam userId: String): ResponseEntity<ApiResponse<List<MissionResponse>>> {
+    fun generateDailyMissions(@RequestParam userId: Long): ResponseEntity<ApiResponse<List<MissionResponse>>> {
         val missions = missionUseCase.generateDailyMissions(UserId(userId))
         val response = missions.map { responseMapper.toMissionResponse(it) }
 
@@ -322,8 +322,8 @@ class MissionController(
      */
     @PostMapping("/{missionId}/abandon")
     fun abandonMission(
-        @PathVariable missionId: String,
-        @RequestParam userId: String
+        @PathVariable missionId: Long,
+        @RequestParam userId: Long
     ): ResponseEntity<ApiResponse<MissionResponse>> {
         val command = AbandonMissionCommand(missionId, userId)
         val mission = missionUseCase.abandonMission(command)

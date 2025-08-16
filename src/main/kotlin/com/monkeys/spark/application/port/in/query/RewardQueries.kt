@@ -8,7 +8,7 @@ package com.monkeys.spark.application.port.`in`.query
  * 사용 가능한 리워드 조회 쿼리
  */
 data class AvailableRewardsQuery(
-    val userId: String,
+    val userId: Long,
     val category: String? = null,
     val maxPoints: Int? = null,
     val page: Int = 0,
@@ -19,7 +19,7 @@ data class AvailableRewardsQuery(
  * 사용자 리워드 조회 쿼리
  */
 data class UserRewardsQuery(
-    val userId: String,
+    val userId: Long,
     val status: String? = null, // "AVAILABLE", "USED", "EXPIRED"
     val page: Int = 0,
     val size: Int = 20

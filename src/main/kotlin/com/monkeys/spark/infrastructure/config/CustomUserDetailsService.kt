@@ -25,7 +25,7 @@ class CustomUserDetailsService(
         val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
 
         return User.builder()
-            .username(userEntity.id) // Use user ID as username for JWT
+            .username(userEntity.id.toString())
             .password(userEntity.password)
             .authorities(authorities)
             .accountExpired(false)
@@ -36,13 +36,13 @@ class CustomUserDetailsService(
     }
 
     fun loadUserById(userId: String): UserDetails? {
-        val userEntity = userJpaRepository.findById(userId).orElse(null)
+        val userEntity = userJpaRepository.findById(userId.toLong()).orElse(null)
             ?: return null
 
         val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
 
         return User.builder()
-            .username(userEntity.id)
+            .username(userEntity.id.toString())
             .password(userEntity.password)
             .authorities(authorities)
             .accountExpired(false)

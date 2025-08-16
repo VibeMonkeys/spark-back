@@ -1,12 +1,18 @@
 package com.monkeys.spark.infrastructure.adapter.`in`.web.controller
 
-import com.monkeys.spark.application.port.`in`.*
 import com.monkeys.spark.application.mapper.ResponseMapper
-import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.*
-import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
+import com.monkeys.spark.application.port.`in`.HomePageUseCase
 import com.monkeys.spark.domain.vo.common.UserId
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.ApiResponse
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.HomePageResponse
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.MissionResponse
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.StoryResponse
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.UserSummaryResponse
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/v1/home")
@@ -20,13 +26,15 @@ class HomeController(
      * GET /api/v1/home?userId={userId}
      */
     @GetMapping
-    fun getHomePageData(@RequestParam userId: String): ResponseEntity<ApiResponse<HomePageResponse>> {
+    fun getHomePageData(
+        @RequestParam userId: Long
+    ): ResponseEntity<ApiResponse<HomePageResponse>> {
         val homePageData = homePageUseCase.getHomePageData(UserId(userId))
-        
+
         val response = HomePageResponse(
             userSummary = responseMapper.toUserSummaryResponse(homePageData.userSummary),
             todaysMissions = homePageData.todaysMissions.map { responseMapper.toMissionResponse(it) },
-            recentStories = homePageData.recentStories.map { responseMapper.toStoryResponse(it, userId) }
+            recentStories = homePageData.recentStories.map { responseMapper.toStoryResponse(it, userId.toString()) }
         )
 
         return ResponseEntity.ok(ApiResponse.success(response))
@@ -37,7 +45,9 @@ class HomeController(
      * GET /api/v1/home/user-summary?userId={userId}
      */
     @GetMapping("/user-summary")
-    fun getUserSummary(@RequestParam userId: String): ResponseEntity<ApiResponse<UserSummaryResponse>> {
+    fun getUserSummary(
+        @RequestParam userId: Long
+    ): ResponseEntity<ApiResponse<UserSummaryResponse>> {
         val userSummary = homePageUseCase.getUserSummary(UserId(userId))
         val response = responseMapper.toUserSummaryResponse(userSummary)
 
@@ -49,7 +59,9 @@ class HomeController(
      * GET /api/v1/home/todays-missions?userId={userId}
      */
     @GetMapping("/todays-missions")
-    fun getTodaysMissions(@RequestParam userId: String): ResponseEntity<ApiResponse<List<MissionResponse>>> {
+    fun getTodaysMissions(
+        @RequestParam userId: Long
+    ): ResponseEntity<ApiResponse<List<MissionResponse>>> {
         val missions = homePageUseCase.getTodaysRecommendedMissions(UserId(userId))
         val response = missions.map { responseMapper.toMissionResponse(it) }
 
@@ -63,11 +75,12 @@ class HomeController(
     @GetMapping("/recent-stories")
     fun getRecentStories(
         @RequestParam(defaultValue = "10") limit: Int,
-        @RequestParam(required = false) userId: String?
+        @RequestParam(required = false) userId: Long?
     ): ResponseEntity<ApiResponse<List<StoryResponse>>> {
         val stories = homePageUseCase.getRecentStoriesForHome(limit)
-        val response = stories.map { responseMapper.toStoryResponse(it, userId) }
+        val response = stories.map { responseMapper.toStoryResponse(it, userId?.toString()) }
 
         return ResponseEntity.ok(ApiResponse.success(response))
     }
+
 }

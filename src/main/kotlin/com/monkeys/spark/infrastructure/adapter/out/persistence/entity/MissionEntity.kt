@@ -7,10 +7,11 @@ import java.time.LocalDateTime
 @Table(name = "missions")
 class MissionEntity : BaseEntity() {
     @Id
-    var id: String = ""
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long = 0L
     
     @Column(name = "user_id", nullable = false)
-    var userId: String = ""
+    var userId: Long = 0L
     
     @Column(nullable = false, length = 100)
     var title: String = ""

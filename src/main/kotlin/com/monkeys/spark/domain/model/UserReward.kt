@@ -3,6 +3,7 @@ package com.monkeys.spark.domain.model
 import com.monkeys.spark.domain.vo.common.Points
 import com.monkeys.spark.domain.vo.common.RewardId
 import com.monkeys.spark.domain.vo.common.UserId
+import com.monkeys.spark.domain.vo.common.UserRewardId
 import com.monkeys.spark.domain.vo.reward.BrandName
 import com.monkeys.spark.domain.vo.reward.RewardStatus
 import com.monkeys.spark.domain.vo.reward.RewardTitle
@@ -12,7 +13,7 @@ import java.time.LocalDateTime
  * User Reward - represents a reward that has been exchanged by a user
  */
 data class UserReward(
-    var id: String,
+    var id: UserRewardId,
     var userId: UserId,
     var rewardId: RewardId,
     var rewardTitle: RewardTitle,
@@ -34,7 +35,7 @@ data class UserReward(
             val expiresAt = reward.expirationDays.toExpirationDate()
 
             return UserReward(
-                id = java.util.UUID.randomUUID().toString(),
+                id = UserRewardId.generate(), // ID는 DB에서 자동 생성되므로 초기값은 0
                 userId = userId,
                 rewardId = reward.id,
                 rewardTitle = reward.title,

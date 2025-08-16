@@ -1,6 +1,9 @@
 package com.monkeys.spark.infrastructure.adapter.out.persistence.entity
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import java.time.LocalDateTime
 
 /**
@@ -10,8 +13,8 @@ import java.time.LocalDateTime
 @Table(name = "user_stats")
 data class UserStatsEntity(
     @Id
-    @Column(name = "user_id", length = 36)
-    val userId: String,
+    @Column(name = "user_id")
+    val userId: Long,
 
     // 힘 스탯
     @Column(name = "strength_current", nullable = false)
@@ -71,7 +74,7 @@ data class UserStatsEntity(
 ) {
     // JPA를 위한 기본 생성자
     constructor() : this(
-        userId = "",
+        userId = 0L,
         strengthCurrent = 10,
         strengthAllocated = 0,
         intelligenceCurrent = 10,
@@ -90,31 +93,4 @@ data class UserStatsEntity(
         createdAt = LocalDateTime.now()
     )
 
-    companion object {
-        /**
-         * 초기 사용자 스탯 엔티티 생성
-         */
-        fun createInitial(userId: String): UserStatsEntity {
-            val now = LocalDateTime.now()
-            return UserStatsEntity(
-                userId = userId,
-                strengthCurrent = 10,
-                strengthAllocated = 0,
-                intelligenceCurrent = 10,
-                intelligenceAllocated = 0,
-                creativityCurrent = 10,
-                creativityAllocated = 0,
-                sociabilityCurrent = 10,
-                sociabilityAllocated = 0,
-                adventurousCurrent = 10,
-                adventurousAllocated = 0,
-                disciplineCurrent = 10,
-                disciplineAllocated = 0,
-                availablePoints = 0,
-                totalEarnedPoints = 0,
-                lastUpdatedAt = now,
-                createdAt = now
-            )
-        }
-    }
 }

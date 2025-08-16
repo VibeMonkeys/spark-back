@@ -35,7 +35,7 @@ class MissionApplicationService(
     override fun generateDailyMissions(userId: UserId): List<Mission> {
         // 사용자 존재 확인
         val user = userRepository.findById(userId)
-            ?: throw UserNotFoundException(userId.value)
+            ?: throw UserNotFoundException(userId.value.toString())
 
         // 오늘 이미 생성된 미션이 있는지 확인
         val existingMissions = missionRepository.findTodaysMissionsByUserId(userId)
@@ -68,7 +68,7 @@ class MissionApplicationService(
     @Transactional(readOnly = true)
     override fun getMissionDetail(missionId: MissionId): Mission {
         return missionRepository.findById(missionId)
-            ?: throw MissionNotFoundException(missionId.value)
+            ?: throw MissionNotFoundException(missionId.value.toString())
     }
 
     override fun startMission(command: StartMissionCommand): Mission {
@@ -76,7 +76,7 @@ class MissionApplicationService(
         val userId = UserId(command.userId)
 
         val mission = missionRepository.findById(missionId)
-            ?: throw MissionNotFoundException(command.missionId)
+            ?: throw MissionNotFoundException(command.missionId.toString())
 
         // 미션이 해당 사용자의 것인지 확인
         if (mission.userId != userId) {
@@ -92,7 +92,7 @@ class MissionApplicationService(
         val userId = UserId(command.userId)
 
         val mission = missionRepository.findById(missionId)
-            ?: throw MissionNotFoundException(command.missionId)
+            ?: throw MissionNotFoundException(command.missionId.toString())
 
         // 미션 소유권 확인
         if (mission.userId != userId) {
@@ -108,10 +108,10 @@ class MissionApplicationService(
         val userId = UserId(command.userId)
 
         val mission = missionRepository.findById(missionId)
-            ?: throw MissionNotFoundException(command.missionId)
+            ?: throw MissionNotFoundException(command.missionId.toString())
 
         val user = userRepository.findById(userId)
-            ?: throw UserNotFoundException(command.userId)
+            ?: throw UserNotFoundException(command.userId.toString())
 
         // 도메인 서비스를 통한 비즈니스 규칙 검증
         if (!userMissionDomainService.canCompleteMission(user, mission)) {
@@ -142,7 +142,7 @@ class MissionApplicationService(
         val missionId = MissionId(command.missionId)
 
         val mission = missionRepository.findById(missionId)
-            ?: throw MissionNotFoundException(command.missionId)
+            ?: throw MissionNotFoundException(command.missionId.toString())
 
         // 미션 소유권 확인
         if (mission.userId != userId) {
@@ -172,7 +172,7 @@ class MissionApplicationService(
     @Transactional(readOnly = true)
     override fun getSimilarMissions(missionId: MissionId, limit: Int): List<Mission> {
         val mission = missionRepository.findById(missionId)
-            ?: throw MissionNotFoundException(missionId.value)
+            ?: throw MissionNotFoundException(missionId.value.toString())
 
         return missionRepository.findSimilarMissions(
             mission.category,
@@ -191,7 +191,7 @@ class MissionApplicationService(
     override fun rerollMissions(userId: UserId): List<Mission> {
         // 사용자 존재 확인
         val user = userRepository.findById(userId)
-            ?: throw UserNotFoundException(userId.value)
+            ?: throw UserNotFoundException(userId.value.toString())
 
         // 기존 ASSIGNED, IN_PROGRESS 상태의 미션들 삭제
         val assignedMissions = missionRepository.findByUserIdAndStatus(userId, MissionStatus.ASSIGNED)
@@ -239,7 +239,7 @@ class MissionApplicationService(
      */
     fun rateMission(missionId: MissionId, rating: Rating): Mission {
         val mission = missionRepository.findById(missionId)
-            ?: throw MissionNotFoundException(missionId.value)
+            ?: throw MissionNotFoundException(missionId.value.toString())
 
         mission.statistics.addRating(rating)
         return missionRepository.save(mission)
@@ -250,7 +250,7 @@ class MissionApplicationService(
      */
     fun recordCompletionTime(missionId: MissionId, completionMinutes: Int): Mission {
         val mission = missionRepository.findById(missionId)
-            ?: throw MissionNotFoundException(missionId.value)
+            ?: throw MissionNotFoundException(missionId.value.toString())
 
         mission.statistics.updateCompletionTime(completionMinutes)
         return missionRepository.save(mission)

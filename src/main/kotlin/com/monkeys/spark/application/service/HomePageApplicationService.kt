@@ -20,11 +20,10 @@ import org.springframework.transaction.annotation.Transactional
 class HomePageApplicationService(
     private val userRepository: UserRepository,
     private val missionRepository: MissionRepository,
-    private val storyRepository: StoryRepository
+    private val storyRepository: StoryRepository,
+    private val userLevelDomainService: UserLevelDomainService,
+    private val missionFactory: MissionFactory
 ) : HomePageUseCase {
-    
-    private val userLevelDomainService = UserLevelDomainService()
-    private val missionFactory = MissionFactory()
 
     override fun getHomePageData(userId: UserId): HomePageData {
         val userSummary = getUserSummary(userId)
@@ -41,7 +40,7 @@ class HomePageApplicationService(
     @Transactional(readOnly = true)
     override fun getUserSummary(userId: UserId): UserSummary {
         val user = userRepository.findById(userId)
-            ?: throw UserNotFoundException(userId.value)
+            ?: throw UserNotFoundException(userId.value.toString())
         
         // 도메인 서비스를 통한 레벨 진행도 계산
         val progressToNextLevel = userLevelDomainService.calculateProgressToNextLevel(
@@ -75,7 +74,7 @@ class HomePageApplicationService(
     private fun generateDailyMissionsUsingFactory(userId: UserId): List<Mission> {
         // 사용자 조회
         val user = userRepository.findById(userId)
-            ?: throw UserNotFoundException(userId.value)
+            ?: throw UserNotFoundException(userId.value.toString())
         
         // 템플릿 미션들 조회
         val templateMissions = missionRepository.findTemplateMissions()

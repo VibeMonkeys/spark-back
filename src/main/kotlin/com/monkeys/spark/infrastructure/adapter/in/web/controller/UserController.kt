@@ -2,16 +2,14 @@ package com.monkeys.spark.infrastructure.adapter.`in`.web.controller
 
 import com.monkeys.spark.application.mapper.ResponseMapper
 import com.monkeys.spark.application.port.`in`.UserUseCase
-import com.monkeys.spark.application.port.`in`.command.CreateUserCommand
+import com.monkeys.spark.application.port.`in`.command.ChangePasswordCommand
 import com.monkeys.spark.application.port.`in`.command.UpdatePreferencesCommand
 import com.monkeys.spark.application.port.`in`.command.UpdateProfileCommand
-import com.monkeys.spark.application.port.`in`.command.ChangePasswordCommand
 import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.ApiResponse
-import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.CreateUserRequest
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.ChangePasswordRequest
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.UpdatePreferencesRequest
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.UpdateProfileRequest
-import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.ChangePasswordRequest
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -23,13 +21,12 @@ class UserController(
     private val responseMapper: ResponseMapper
 ) {
 
-
     /**
      * 사용자 조회
      * GET /api/v1/users/{userId}
      */
     @GetMapping("/{userId}")
-    fun getUser(@PathVariable userId: String): ResponseEntity<ApiResponse<UserResponse>> {
+    fun getUser(@PathVariable userId: Long): ResponseEntity<ApiResponse<UserResponse>> {
         val user = userUseCase.getUser(UserId(userId))
         val response = responseMapper.toUserResponse(user)
         return ResponseEntity.ok(ApiResponse.success(response))
@@ -40,23 +37,23 @@ class UserController(
      * GET /api/v1/users/{userId}/profile
      */
     @GetMapping("/{userId}/profile")
-    fun getProfilePage(@PathVariable userId: String): ResponseEntity<ApiResponse<ProfilePageResponse>> {
+    fun getProfilePage(@PathVariable userId: Long): ResponseEntity<ApiResponse<ProfilePageResponse>> {
         val user = userUseCase.getUser(UserId(userId))
         val userStatistics = userUseCase.getUserStatistics(UserId(userId))
 
         // TODO: 실제 업적 및 최근 미션 데이터 조회
         val achievements = listOf(
-            ProfileAchievementResponse("1", "첫 걸음", "첫 미션 완료", "🎯", true),
-            ProfileAchievementResponse("2", "불타는 열정", "7일 연속 미션 완료", "🔥", true),
-            ProfileAchievementResponse("3", "소셜 버터플라이", "사교적 미션 10개 완료", "🦋", true),
-            ProfileAchievementResponse("4", "모험왕", "모험적 미션 15개 완료", "🗺️", true),
-            ProfileAchievementResponse("5", "마라토너", "30일 연속 미션 완료", "🏃", false),
-            ProfileAchievementResponse("6", "마스터", "레벨 10 달성", "👑", false)
+            ProfileAchievementResponse(1L, "첫 걸음", "첫 미션 완료", "🎯", true),
+            ProfileAchievementResponse(2L, "불타는 열정", "7일 연속 미션 완료", "🔥", true),
+            ProfileAchievementResponse(3L, "소셜 버터플라이", "사교적 미션 10개 완료", "🦋", true),
+            ProfileAchievementResponse(4L, "모험왕", "모험적 미션 15개 완료", "🗺️", true),
+            ProfileAchievementResponse(5L, "마라토너", "30일 연속 미션 완료", "🏃", false),
+            ProfileAchievementResponse(6L, "마스터", "레벨 10 달성", "👑", false)
         )
 
         val recentMissions = listOf(
-            RecentMissionResponse("1", "새로운 카페 발견하기", "사교적", "오늘", 20, "cafe-image-url"),
-            RecentMissionResponse("2", "가보지 않은 길로 퇴근하기", "모험적", "어제", 20, "adventure-image-url")
+            RecentMissionResponse(1L, "새로운 카페 발견하기", "사교적", "오늘", 20, "cafe-image-url"),
+            RecentMissionResponse(2L, "가보지 않은 길로 퇴근하기", "모험적", "어제", 20, "adventure-image-url")
         )
 
         val response = ProfilePageResponse(
@@ -75,7 +72,7 @@ class UserController(
      */
     @PutMapping("/{userId}/profile")
     fun updateUserProfile(
-        @PathVariable userId: String,
+        @PathVariable userId: Long,
         @RequestBody request: UpdateProfileRequest
     ): ResponseEntity<ApiResponse<UserResponse>> {
         val command = UpdateProfileCommand(
@@ -92,11 +89,11 @@ class UserController(
 
     /**
      * 비밀번호 변경
-     * POST /api/v1/users/{userId}/change-password  
+     * POST /api/v1/users/{userId}/change-password
      */
     @PostMapping("/{userId}/change-password")
     fun changePassword(
-        @PathVariable userId: String,
+        @PathVariable userId: Long,
         @RequestBody request: ChangePasswordRequest
     ): ResponseEntity<ApiResponse<String>> {
         val command = ChangePasswordCommand(
@@ -114,7 +111,7 @@ class UserController(
      */
     @PutMapping("/{userId}/preferences")
     fun updatePreferences(
-        @PathVariable userId: String,
+        @PathVariable userId: Long,
         @RequestBody request: UpdatePreferencesRequest
     ): ResponseEntity<ApiResponse<UserResponse>> {
         val command = UpdatePreferencesCommand(
@@ -132,7 +129,7 @@ class UserController(
      * GET /api/v1/users/{userId}/statistics
      */
     @GetMapping("/{userId}/statistics")
-    fun getUserStatistics(@PathVariable userId: String): ResponseEntity<ApiResponse<UserStatisticsResponse>> {
+    fun getUserStatistics(@PathVariable userId: Long): ResponseEntity<ApiResponse<UserStatisticsResponse>> {
         val statistics = userUseCase.getUserStatistics(UserId(userId))
         val response = responseMapper.toUserStatisticsResponse(statistics)
 
@@ -188,5 +185,6 @@ class UserController(
 
         return ResponseEntity.ok(ApiResponse.success(response))
     }
+
 }
 

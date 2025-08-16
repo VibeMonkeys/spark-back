@@ -32,6 +32,11 @@ interface StoryRepository {
     fun findPublicStories(page: Int, size: Int): List<Story>
     
     /**
+     * 커서 기반 공개 스토리 조회 (최신순)
+     */
+    fun findPublicStoriesWithCursor(cursor: Long?, size: Int, isNext: Boolean = true): List<Story>
+    
+    /**
      * 인기 스토리 조회 (좋아요 수 기준)
      */
     fun findPopularStories(limit: Int): List<Story>
@@ -71,6 +76,16 @@ interface StoryRepository {
      * 현재는 전체 공개 스토리로 대체
      */
     fun findFeedStories(userId: UserId, page: Int, size: Int): List<Story>
+    
+    /**
+     * 커서 기반 피드 스토리 조회
+     */
+    fun findFeedStoriesWithCursor(userId: UserId?, cursor: Long?, size: Int, isNext: Boolean = true): List<Story>
+    
+    /**
+     * 사용자별 커서 기반 스토리 조회
+     */
+    fun findUserStoriesWithCursor(userId: UserId, cursor: Long?, size: Int, isNext: Boolean = true): List<Story>
     
     /**
      * 특정 기간 동안의 스토리 조회

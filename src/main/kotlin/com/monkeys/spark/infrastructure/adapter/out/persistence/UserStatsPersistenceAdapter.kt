@@ -18,7 +18,8 @@ class UserStatsPersistenceAdapter(
 ) : UserStatsRepository {
 
     override fun findByUserId(userId: UserId): UserStats? {
-        return jpaRepository.findByUserId(userId.value)?.let { mapper.toDomain(it) }
+        return jpaRepository.findByUserId(userId.value)
+            ?.let { mapper.toDomain(it) }
     }
 
     override fun save(userStats: UserStats): UserStats {
@@ -41,7 +42,10 @@ class UserStatsPersistenceAdapter(
             .map { mapper.toDomain(it) }
     }
 
-    override fun findRankingByStat(statType: StatType, limit: Int): List<UserStats> {
+    override fun findRankingByStat(
+        statType: StatType,
+        limit: Int
+    ): List<UserStats> {
         val entities = when (statType) {
             StatType.STRENGTH -> jpaRepository.findTopByStrength()
             StatType.INTELLIGENCE -> jpaRepository.findTopByIntelligence()
@@ -60,7 +64,10 @@ class UserStatsPersistenceAdapter(
         }
     }
 
-    override fun getUserRankByStat(userId: UserId, statType: StatType): Int? {
+    override fun getUserRankByStat(
+        userId: UserId,
+        statType: StatType
+    ): Int? {
         val allStats = when (statType) {
             StatType.STRENGTH -> jpaRepository.findTopByStrength()
             StatType.INTELLIGENCE -> jpaRepository.findTopByIntelligence()
@@ -73,4 +80,5 @@ class UserStatsPersistenceAdapter(
             if (index >= 0) index + 1 else null
         }
     }
+
 }

@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class UserResponse(
-    val id: String,
+    val id: Long,
     val name: String,
     val email: String,
     @JsonProperty("avatar_url")
@@ -67,7 +67,7 @@ data class CategoryStatResponse(
  */
 data class LeaderboardUserResponse(
     val rank: Int,
-    val userId: String,
+    val userId: Long,
     val name: String,
     val avatarUrl: String,
     val level: Int,
@@ -113,7 +113,7 @@ data class ProfilePageResponse(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class ProfileAchievementResponse(
-    val id: String,
+    val id: Long,
     val name: String,
     val description: String,
     val icon: String,
@@ -125,7 +125,7 @@ data class ProfileAchievementResponse(
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class RecentMissionResponse(
-    val id: String,
+    val id: Long,
     val title: String,
     val category: String,
     @JsonProperty("completed_at")

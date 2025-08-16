@@ -10,12 +10,12 @@ import org.springframework.stereotype.Repository
  * 사용자 스탯 JPA 리포지토리
  */
 @Repository
-interface UserStatsJpaRepository : JpaRepository<UserStatsEntity, String> {
+interface UserStatsJpaRepository : JpaRepository<UserStatsEntity, Long> {
 
     /**
      * 사용자 ID로 스탯 조회
      */
-    fun findByUserId(userId: String): UserStatsEntity?
+    fun findByUserId(userId: Long): UserStatsEntity?
 
     /**
      * 특정 스탯 값 이상인 사용자들 조회 (랭킹 시스템용)
@@ -67,10 +67,11 @@ interface UserStatsJpaRepository : JpaRepository<UserStatsEntity, String> {
     /**
      * 사용자 존재 여부 확인
      */
-    fun existsByUserId(userId: String): Boolean
+    fun existsByUserId(userId: Long): Boolean
 
     /**
      * 전체 사용자 수 조회
      */
     override fun count(): Long
+    
 }

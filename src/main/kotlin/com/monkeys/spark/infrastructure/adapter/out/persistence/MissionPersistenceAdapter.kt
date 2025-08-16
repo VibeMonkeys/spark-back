@@ -2,11 +2,15 @@ package com.monkeys.spark.infrastructure.adapter.out.persistence
 
 import com.monkeys.spark.application.port.out.MissionRepository
 import com.monkeys.spark.domain.model.Mission
+import com.monkeys.spark.domain.vo.common.Location
+import com.monkeys.spark.domain.vo.common.MissionId
+import com.monkeys.spark.domain.vo.common.UserId
+import com.monkeys.spark.domain.vo.mission.MissionCategory
+import com.monkeys.spark.domain.vo.mission.MissionDifficulty
+import com.monkeys.spark.domain.vo.mission.MissionStatus
 import com.monkeys.spark.domain.vo.mission.StartMissionValidation
-import com.monkeys.spark.domain.vo.common.*
-import com.monkeys.spark.domain.vo.mission.*
-import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.MissionJpaRepository
 import com.monkeys.spark.infrastructure.adapter.out.persistence.mapper.MissionPersistenceMapper
+import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.MissionJpaRepository
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
@@ -33,7 +37,10 @@ class MissionPersistenceAdapter(
             .map { missionMapper.toDomain(it) }
     }
 
-    override fun findByUserIdAndStatus(userId: UserId, status: MissionStatus): List<Mission> {
+    override fun findByUserIdAndStatus(
+        userId: UserId,
+        status: MissionStatus
+    ): List<Mission> {
         return missionJpaRepository.findByUserIdAndStatus(userId.value, status.name)
             .map { missionMapper.toDomain(it) }
     }
@@ -55,7 +62,10 @@ class MissionPersistenceAdapter(
             .map { missionMapper.toDomain(it) }
     }
 
-    override fun findCompletedMissionsByUserId(userId: UserId, page: Int, size: Int): List<Mission> {
+    override fun findCompletedMissionsByUserId(
+        userId: UserId,
+        page: Int, size: Int
+    ): List<Mission> {
         // 임시 구현 - 실제로는 Pageable을 사용해야 함
         return missionJpaRepository.findByUserIdAndStatus(userId.value, MissionStatus.COMPLETED.name)
             .drop(page * size)
@@ -154,14 +164,21 @@ class MissionPersistenceAdapter(
         return missions.map { missionMapper.toDomain(it) }
     }
 
-    override fun updateStatistics(missionId: MissionId, completedBy: Int, averageRating: Double): Mission? {
+    override fun updateStatistics(
+        missionId: MissionId,
+        completedBy: Int,
+        averageRating: Double
+    ): Mission? {
         return findById(missionId)?.let { mission ->
             // 통계 업데이트 로직 - 실제로는 별도 테이블로 관리
             save(mission)
         }
     }
 
-    override fun countByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): Long {
+    override fun countByCreatedAtBetween(
+        startDate: LocalDateTime,
+        endDate: LocalDateTime
+    ): Long {
         return missionJpaRepository.countByCreatedAtBetween(startDate, endDate)
     }
 
@@ -202,7 +219,10 @@ class MissionPersistenceAdapter(
             .map { missionMapper.toDomain(it) }
     }
 
-    override fun findRandomAvailableTemplatesForUser(userId: UserId, limit: Int): List<Mission> {
+    override fun findRandomAvailableTemplatesForUser(
+        userId: UserId,
+        limit: Int
+    ): List<Mission> {
         return missionJpaRepository.findRandomAvailableTemplatesForUser(userId.value, limit)
             .map { missionMapper.toDomain(it) }
     }
@@ -244,4 +264,5 @@ class MissionPersistenceAdapter(
 
         return StartMissionValidation.allowedToStart(todayStartedCount)
     }
+
 }

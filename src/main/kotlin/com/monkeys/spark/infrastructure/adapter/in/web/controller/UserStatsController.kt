@@ -24,11 +24,13 @@ class UserStatsController(
      * GET /api/v1/stats
      */
     @GetMapping
-    fun getUserStats(authentication: Authentication): ResponseEntity<ApiResponse<UserStatsResponse>> {
-        val userId = UserId(authentication.name)
+    fun getUserStats(
+        authentication: Authentication
+    ): ResponseEntity<ApiResponse<UserStatsResponse>> {
+        val userId = UserId(authentication.name.toLong())
         val userStats = userStatsUseCase.getUserStats(userId)
         val response = UserStatsResponse.from(userStats)
-        
+
         return ResponseEntity.ok(ApiResponse.success(response))
     }
 
@@ -41,19 +43,13 @@ class UserStatsController(
         @RequestBody request: AllocateStatPointsRequest,
         authentication: Authentication
     ): ResponseEntity<ApiResponse<UserStatsResponse>> {
-        val userId = UserId(authentication.name)
-        
-        val statType = try {
-            StatType.valueOf(request.statType.uppercase())
-        } catch (e: IllegalArgumentException) {
-            return ResponseEntity.badRequest().body(
-                ApiResponse.error("유효하지 않은 스탯 타입입니다", "INVALID_STAT_TYPE")
-            )
-        }
-        
+        val userId = UserId(authentication.name.toLong())
+
+        val statType = StatType.valueOf(request.statType.uppercase())
+
         val updatedStats = userStatsUseCase.allocateStatPoints(userId, statType, request.points)
         val response = UserStatsResponse.from(updatedStats)
-        
+
         return ResponseEntity.ok(ApiResponse.success(response, "스탯 포인트가 할당되었습니다"))
     }
 
@@ -67,7 +63,7 @@ class UserStatsController(
     ): ResponseEntity<ApiResponse<List<UserStatsRankingResponse>>> {
         val ranking = userStatsUseCase.getTotalStatsRanking(limit)
         val response = ranking.map { UserStatsRankingResponse.from(it) }
-        
+
         return ResponseEntity.ok(ApiResponse.success(response))
     }
 
@@ -80,17 +76,11 @@ class UserStatsController(
         @PathVariable statType: String,
         @RequestParam(defaultValue = "100") limit: Int
     ): ResponseEntity<ApiResponse<List<UserStatsRankingResponse>>> {
-        val statTypeEnum = try {
-            StatType.valueOf(statType.uppercase())
-        } catch (e: IllegalArgumentException) {
-            return ResponseEntity.badRequest().body(
-                ApiResponse.error("유효하지 않은 스탯 타입입니다", "INVALID_STAT_TYPE")
-            )
-        }
-        
+        val statTypeEnum = StatType.valueOf(statType.uppercase())
+
         val ranking = userStatsUseCase.getStatRanking(statTypeEnum, limit)
         val response = ranking.map { UserStatsRankingResponse.from(it) }
-        
+
         return ResponseEntity.ok(ApiResponse.success(response))
     }
 
@@ -100,10 +90,10 @@ class UserStatsController(
      */
     @GetMapping("/ranking/my")
     fun getMyRankingInfo(authentication: Authentication): ResponseEntity<ApiResponse<UserRankingInfoResponse>> {
-        val userId = UserId(authentication.name)
+        val userId = UserId(authentication.name.toLong())
         val rankingInfo = userStatsUseCase.getUserRankingInfo(userId)
         val response = UserRankingInfoResponse.from(rankingInfo)
-        
+
         return ResponseEntity.ok(ApiResponse.success(response))
     }
 
@@ -113,10 +103,11 @@ class UserStatsController(
      */
     @PostMapping("/initialize")
     fun initializeStats(authentication: Authentication): ResponseEntity<ApiResponse<UserStatsResponse>> {
-        val userId = UserId(authentication.name)
+        val userId = UserId(authentication.name.toLong())
         val userStats = userStatsUseCase.initializeUserStats(userId)
         val response = UserStatsResponse.from(userStats)
-        
+
         return ResponseEntity.ok(ApiResponse.success(response, "스탯이 초기화되었습니다"))
     }
+
 }

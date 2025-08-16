@@ -8,11 +8,12 @@ import java.time.LocalDateTime
 @Table(name = "inquiries")
 data class InquiryEntity(
     @Id
-    @Column(name = "id", length = 50)
-    var id: String = "",
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    var id: Long = 0L,
 
-    @Column(name = "user_id", length = 50, nullable = true)
-    var userId: String? = null,
+    @Column(name = "user_id", nullable = true)
+    var userId: Long? = null,
 
     @Column(name = "email", length = 255, nullable = false)
     var email: String = "",

@@ -7,7 +7,8 @@ import java.time.LocalDateTime
 @Table(name = "rewards")
 class RewardEntity : BaseEntity() {
     @Id
-    var id: String = ""
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long = 0L
     
     @Column(nullable = false, length = 100)
     var title: String = ""

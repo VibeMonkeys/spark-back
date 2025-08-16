@@ -18,7 +18,7 @@ class InquiryApplicationService(
 ) : InquiryUseCase {
     
     override fun createInquiry(command: CreateInquiryCommand): Inquiry {
-        val userId = command.userId?.let { UserId(it) }
+        val userId = command.userId?.let { UserId(it.toLong()) }
         
         val inquiry = Inquiry.create(
             userId = userId,

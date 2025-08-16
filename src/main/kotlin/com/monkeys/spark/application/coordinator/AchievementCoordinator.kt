@@ -6,7 +6,6 @@ import com.monkeys.spark.domain.model.UserAchievement
 import com.monkeys.spark.domain.vo.achievement.AchievementType
 import com.monkeys.spark.domain.vo.common.UserId
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Transactional
 
 /**
  * 업적 시스템 코디네이터
@@ -22,10 +21,13 @@ class AchievementCoordinator(
     /**
      * 미션 완료 시 업적 확인 및 발급
      */
-    fun checkAndGrantMissionAchievements(userId: String, missionCategory: String?) {
+    fun checkAndGrantMissionAchievements(
+        userId: UserId,
+        missionCategory: String?
+    ) {
         val userAchievements = userAchievementRepository.findByUserId(userId)
         val unlockedAchievementTypes = userAchievements.filter { it.isUnlocked() }.map { it.achievementType }
-        val stats = userStatsRepository.findByUserId(UserId(userId)) ?: return
+        val stats = userStatsRepository.findByUserId(userId) ?: return
 
         // 첫 번째 미션 완료 업적 - 실제로 1개 이상 미션을 완료했는지 확인
         if (stats.completedMissions >= 1 && AchievementType.FIRST_MISSION !in unlockedAchievementTypes) {
@@ -48,7 +50,10 @@ class AchievementCoordinator(
     /**
      * 포인트 획득 시 업적 확인
      */
-    fun checkAndGrantPointsAchievements(userId: String, totalPoints: Int) {
+    fun checkAndGrantPointsAchievements(
+        userId: UserId,
+        totalPoints: Int
+    ) {
         val userAchievements = userAchievementRepository.findByUserId(userId)
         val unlockedAchievementTypes = userAchievements.filter { it.isUnlocked() }.map { it.achievementType }
 
@@ -69,8 +74,7 @@ class AchievementCoordinator(
      * 사용자의 모든 업적 조회 (달성된 것과 진행 중인 것 포함)
      * 100% 달성한 업적은 자동으로 잠금 해제함
      */
-    @Transactional
-    fun getUserAchievements(userId: String): List<UserAchievement> {
+    fun getUserAchievements(userId: UserId): List<UserAchievement> {
         val userAchievements = userAchievementRepository.findByUserId(userId)
         val achievedTypes = userAchievements.map { it.achievementType }.toSet()
 
@@ -107,8 +111,11 @@ class AchievementCoordinator(
     /**
      * 미션 개수 기반 업적 확인
      */
-    private fun checkMissionCountAchievements(userId: String, unlockedAchievementTypes: List<AchievementType>) {
-        val stats = userStatsRepository.findByUserId(UserId(userId)) ?: return
+    private fun checkMissionCountAchievements(
+        userId: UserId,
+        unlockedAchievementTypes: List<AchievementType>
+    ) {
+        val stats = userStatsRepository.findByUserId(userId) ?: return
         val completedMissions = stats.completedMissions
 
         // 10개 미션 완료
@@ -133,8 +140,11 @@ class AchievementCoordinator(
     /**
      * 연속 달성 업적 확인
      */
-    private fun checkStreakAchievements(userId: String, unlockedAchievementTypes: List<AchievementType>) {
-        val stats = userStatsRepository.findByUserId(UserId(userId)) ?: return
+    private fun checkStreakAchievements(
+        userId: UserId,
+        unlockedAchievementTypes: List<AchievementType>
+    ) {
+        val stats = userStatsRepository.findByUserId(userId) ?: return
         val currentStreak = stats.currentStreak
 
         // 3일 연속
@@ -160,7 +170,7 @@ class AchievementCoordinator(
      * 카테고리별 전문가 업적 확인
      */
     private fun checkSpecialistAchievements(
-        userId: String,
+        userId: UserId,
         missionCategory: String,
         unlockedAchievementTypes: List<AchievementType>
     ) {
@@ -195,8 +205,11 @@ class AchievementCoordinator(
     /**
      * 특정 업적의 진행도 계산
      */
-    private fun calculateAchievementProgress(userId: String, achievementType: AchievementType): Int {
-        val stats = userStatsRepository.findByUserId(UserId(userId)) ?: return 0
+    private fun calculateAchievementProgress(
+        userId: UserId,
+        achievementType: AchievementType
+    ): Int {
+        val stats = userStatsRepository.findByUserId(userId) ?: return 0
 
         return when (achievementType) {
             AchievementType.FIRST_MISSION -> if (stats.completedMissions >= 1) 100 else 0
@@ -211,4 +224,5 @@ class AchievementCoordinator(
             else -> 0
         }
     }
+
 }

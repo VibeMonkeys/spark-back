@@ -7,13 +7,14 @@ import java.time.LocalDateTime
 @Table(name = "stories")
 class StoryEntity : BaseEntity() {
     @Id
-    var id: String = ""
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long = 0L
     
     @Column(name = "user_id", nullable = false)
-    var userId: String = ""
+    var userId: Long = 0L
     
     @Column(name = "mission_id", nullable = false)
-    var missionId: String = ""
+    var missionId: Long = 0L
     
     @Column(name = "mission_title", nullable = false, length = 100)
     var missionTitle: String = ""

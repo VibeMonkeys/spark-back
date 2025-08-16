@@ -2,13 +2,16 @@ package com.monkeys.spark.infrastructure.adapter.out.persistence
 
 import com.monkeys.spark.application.port.out.StoryRepository
 import com.monkeys.spark.domain.model.Story
-import com.monkeys.spark.domain.vo.common.*
+import com.monkeys.spark.domain.vo.common.Location
+import com.monkeys.spark.domain.vo.common.MissionId
+import com.monkeys.spark.domain.vo.common.StoryId
+import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.mission.MissionCategory
 import com.monkeys.spark.domain.vo.story.HashTag
-import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.StoryJpaRepository
-import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.StoryLikeJpaRepository
 import com.monkeys.spark.infrastructure.adapter.out.persistence.entity.StoryLikeEntity
 import com.monkeys.spark.infrastructure.adapter.out.persistence.mapper.StoryPersistenceMapper
+import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.StoryJpaRepository
+import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.StoryLikeJpaRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
@@ -104,7 +107,7 @@ class StoryPersistenceAdapter(
                 storyLikeJpaRepository.save(likeEntity)
 
                 // 좋아요 수 증가
-                entity.likeCount = entity.likeCount + 1
+                entity.likeCount += 1
                 storyJpaRepository.save(entity)
             }
             storyMapper.toDomain(entity)
@@ -140,4 +143,52 @@ class StoryPersistenceAdapter(
     override fun deleteByMissionId(missionId: MissionId) {
         storyJpaRepository.deleteByMissionId(missionId.value)
     }
+
+    override fun findPublicStoriesWithCursor(cursor: Long?, size: Int, isNext: Boolean): List<Story> {
+        val pageable = PageRequest.of(0, size)
+        
+        val entities = when {
+            cursor == null -> {
+                // 커서가 없으면 처음부터 조회
+                storyJpaRepository.findPublicStoriesWithoutCursor(pageable)
+            }
+            isNext -> {
+                // 다음 페이지 (ID가 더 작은 스토리들)
+                storyJpaRepository.findPublicStoriesBeforeCursor(cursor, pageable)
+            }
+            else -> {
+                // 이전 페이지 (ID가 더 큰 스토리들) - 결과를 역순으로 정렬
+                storyJpaRepository.findPublicStoriesAfterCursor(cursor, pageable).reversed()
+            }
+        }
+        
+        return entities.map { storyMapper.toDomain(it) }
+    }
+
+    override fun findFeedStoriesWithCursor(userId: UserId?, cursor: Long?, size: Int, isNext: Boolean): List<Story> {
+        // 현재는 전체 공개 스토리로 대체 (추후 팔로우 기능 구현 시 변경)
+        return findPublicStoriesWithCursor(cursor, size, isNext)
+    }
+
+    override fun findUserStoriesWithCursor(userId: UserId, cursor: Long?, size: Int, isNext: Boolean): List<Story> {
+        val pageable = PageRequest.of(0, size)
+        
+        val entities = when {
+            cursor == null -> {
+                // 커서가 없으면 처음부터 조회
+                storyJpaRepository.findUserStoriesWithoutCursor(userId.value, pageable)
+            }
+            isNext -> {
+                // 다음 페이지 (ID가 더 작은 스토리들)
+                storyJpaRepository.findUserStoriesBeforeCursor(userId.value, cursor, pageable)
+            }
+            else -> {
+                // 이전 페이지 (ID가 더 큰 스토리들) - 결과를 역순으로 정렬
+                storyJpaRepository.findUserStoriesAfterCursor(userId.value, cursor, pageable).reversed()
+            }
+        }
+        
+        return entities.map { storyMapper.toDomain(it) }
+    }
+
 }

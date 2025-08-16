@@ -1,6 +1,7 @@
 package com.monkeys.spark.domain.model
 
 import com.monkeys.spark.domain.vo.achievement.AchievementType
+import com.monkeys.spark.domain.vo.common.UserId
 import java.time.LocalDateTime
 
 /**
@@ -8,7 +9,7 @@ import java.time.LocalDateTime
  * DDD 원칙에 따른 도메인 객체로 업적 획득과 관련된 비즈니스 로직을 포함
  */
 data class UserAchievement(
-    val userId: String,
+    val userId: UserId,
     val achievementType: AchievementType,
     val unlockedAt: LocalDateTime,
     val progress: Int = 100, // 0-100, 업적 달성 진행도
@@ -19,7 +20,10 @@ data class UserAchievement(
         /**
          * 새로운 업적 획득 생성
          */
-        fun unlock(userId: String, achievementType: AchievementType): UserAchievement {
+        fun unlock(
+            userId: UserId,
+            achievementType: AchievementType
+        ): UserAchievement {
             return UserAchievement(
                 userId = userId,
                 achievementType = achievementType,
@@ -32,7 +36,11 @@ data class UserAchievement(
         /**
          * 진행 중인 업적 생성 (조건을 부분적으로 달성)
          */
-        fun inProgress(userId: String, achievementType: AchievementType, progress: Int): UserAchievement {
+        fun inProgress(
+            userId: UserId,
+            achievementType: AchievementType,
+            progress: Int
+        ): UserAchievement {
             require(progress in 0..99) { "진행 중인 업적의 progress는 0-99 사이여야 합니다" }
 
             return UserAchievement(
