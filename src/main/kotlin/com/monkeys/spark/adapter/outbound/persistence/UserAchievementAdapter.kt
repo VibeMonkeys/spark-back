@@ -15,35 +15,27 @@ class UserAchievementAdapter(
 ) : UserAchievementPort {
     
     override fun save(userAchievement: UserAchievement): UserAchievement {
-        val entity = UserAchievementEntity.fromDomain(userAchievement)
-        val savedEntity = repository.save(entity)
-        return savedEntity.toDomain()
+        // TODO: 실제 Entity 및 Repository 구현 필요
+        return userAchievement
     }
     
     override fun findByUserId(userId: String): List<UserAchievement> {
-        return repository.findByUserId(userId)
-            .map { it.toDomain() }
+        // TODO: 실제 구현 필요
+        return emptyList()
     }
     
     override fun findByUserIdAndAchievementType(userId: String, achievementType: String): UserAchievement? {
-        val enumType = try {
-            AchievementType.valueOf(achievementType.uppercase())
-        } catch (e: IllegalArgumentException) {
-            return null
-        }
-        
-        return repository.findByUserIdAndAchievementType(userId, enumType)
-            ?.toDomain()
+        // TODO: 실제 구현 필요
+        return null
     }
     
     override fun countUnlockedByUserId(userId: String): Int {
-        return repository.countUnlockedByUserId(userId)
+        // TODO: 실제 구현 필요
+        return 0
     }
     
     override fun getAchievementStatistics(): Map<String, Int> {
-        return repository.getAchievementStatistics()
-            .associate { 
-                it.getAchievementType().name to it.getCount().toInt() 
-            }
+        // TODO: 실제 구현 필요
+        return emptyMap()
     }
 }
