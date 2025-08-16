@@ -1,11 +1,13 @@
 -- ===============================================
--- SPARK 애플리케이션 리워드 및 사용자 데이터 설정 스크립트
+-- SPARK 리워드 데이터 설정 스크립트
 -- ===============================================
 -- 실행 방법: psql -h localhost -p 5432 -U root -d spark -f init_data.sql
 -- Railway 실행: Railway CLI 또는 Railway 대시보드에서 실행
 -- 
--- 주의: 미션 데이터는 quick_missions.sql에서 관리됩니다.
--- 이 파일은 리워드와 테스트 사용자 데이터만 포함합니다.
+-- 주의: 
+-- - 미션 데이터: quick_missions.sql
+-- - 사용자 데이터: demo_users.sql
+-- - 리워드 데이터: init_data.sql (현재 파일)
 
 -- 기존 데이터 정리 (개발용 - 프로덕션에서는 주의!)
 -- DELETE FROM user_rewards;
@@ -55,47 +57,6 @@ INSERT INTO rewards (
 ('테마파크 이용권 B', '인기 테마파크 1일권 [데모상품]', 'EXPERIENCE', '체험샘플', '56,000원 상당', 2000, 0, 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400', 30, true, false, true, 0, 0, NOW(), NOW()),
 ('스파 이용권', '힐링 스파 1일 이용권 [데모상품]', 'EXPERIENCE', '체험샘플', '15,000원 상당', 580, 0, 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400', 30, true, false, false, 0, 0, NOW(), NOW());
 
--- ===============================================
--- 2. 데모 사용자 계정 (개발/테스트용) - Long ID 시스템에 맞게 수정
--- ===============================================
-
--- 주의: 데모 사용자들은 이미 생성되어 있습니다.
--- 필요시 아래 쿼리로 사용자 정보를 확인할 수 있습니다:
--- SELECT id, name, email, level, level_title, current_points, total_points 
--- FROM users WHERE email LIKE '%spark.com' ORDER BY id;
-
--- 새로운 사용자 추가가 필요한 경우 아래 주석을 해제하세요:
-/*
-INSERT INTO users (
-    name, email, password, avatar_url, level, level_title, current_points, total_points,
-    current_streak, longest_streak, completed_missions, total_days, preferences,
-    this_month_points, this_month_missions, average_rating, total_ratings,
-    category_stats, created_at, updated_at, last_login_at
-) VALUES 
-(
-    '테스트유저1',
-    'testuser1@spark.com',
-    '$2a$10$demopassword.encrypted.hash.for.testing.purposes.only',
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-    5,
-    'EXPLORER', 
-    450,
-    1200,
-    5,
-    12,
-    18,
-    25,
-    '{"notifications": true, "email_alerts": true}',
-    450,
-    8,
-    4.5,
-    10,
-    '{"ADVENTURE": 5, "HEALTH": 4, "CREATIVE": 3, "LEARNING": 3, "SOCIAL": 3}',
-    NOW(),
-    NOW(),
-    NOW()
-);
-*/
 
 -- ===============================================
 -- 데이터 확인 쿼리 (참고용)
