@@ -18,7 +18,7 @@
 -- ===============================================
 
 -- 기존 리워드 삭제 (개발시에만 사용)
-DELETE FROM rewards WHERE 1=1;
+TRUNCATE TABLE rewards RESTART IDENTITY CASCADE;
 
 INSERT INTO rewards (
     title, description, category, brand, original_price, required_points, 

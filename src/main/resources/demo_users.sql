@@ -103,6 +103,123 @@ ON CONFLICT (email) DO UPDATE SET
     last_login_at = NOW();
 
 -- ===============================================
+-- 데모 사용자용 user_stats 생성
+-- ===============================================
+
+-- 먼저 데모 사용자들의 실제 ID를 가져와서 user_stats 생성
+INSERT INTO user_stats (
+    user_id, 
+    adventurous_allocated, adventurous_current,
+    available_points,
+    created_at,
+    creativity_allocated, creativity_current,
+    discipline_allocated, discipline_current,
+    intelligence_allocated, intelligence_current,
+    last_updated_at,
+    sociability_allocated, sociability_current,
+    strength_allocated, strength_current,
+    total_earned_points
+)
+SELECT 
+    u.id,
+    -- adventurous_allocated, adventurous_current
+    CASE u.level
+        WHEN 5 THEN 10
+        WHEN 8 THEN 18
+        WHEN 15 THEN 30
+    END,
+    CASE u.level
+        WHEN 5 THEN 14
+        WHEN 8 THEN 25
+        WHEN 15 THEN 40
+    END,
+    -- available_points
+    CASE u.level
+        WHEN 5 THEN 3
+        WHEN 8 THEN 8
+        WHEN 15 THEN 15
+    END,
+    -- created_at
+    NOW(),
+    -- creativity_allocated, creativity_current
+    CASE u.level
+        WHEN 5 THEN 6
+        WHEN 8 THEN 10
+        WHEN 15 THEN 18
+    END,
+    CASE u.level
+        WHEN 5 THEN 8
+        WHEN 8 THEN 15
+        WHEN 15 THEN 28
+    END,
+    -- discipline_allocated, discipline_current
+    CASE u.level
+        WHEN 5 THEN 12
+        WHEN 8 THEN 15
+        WHEN 15 THEN 22
+    END,
+    CASE u.level
+        WHEN 5 THEN 12
+        WHEN 8 THEN 16
+        WHEN 15 THEN 24
+    END,
+    -- intelligence_allocated, intelligence_current
+    CASE u.level
+        WHEN 5 THEN 8
+        WHEN 8 THEN 12
+        WHEN 15 THEN 20
+    END,
+    CASE u.level
+        WHEN 5 THEN 10
+        WHEN 8 THEN 18
+        WHEN 15 THEN 32
+    END,
+    -- last_updated_at
+    NOW(),
+    -- sociability_allocated, sociability_current
+    CASE u.level
+        WHEN 5 THEN 12
+        WHEN 8 THEN 16
+        WHEN 15 THEN 24
+    END,
+    CASE u.level
+        WHEN 5 THEN 15
+        WHEN 8 THEN 22
+        WHEN 15 THEN 38
+    END,
+    -- strength_allocated, strength_current
+    CASE u.level
+        WHEN 5 THEN 10
+        WHEN 8 THEN 15
+        WHEN 15 THEN 25
+    END,
+    CASE u.level
+        WHEN 5 THEN 12
+        WHEN 8 THEN 20
+        WHEN 15 THEN 35
+    END,
+    -- total_earned_points
+    u.total_points
+FROM users u 
+WHERE u.email IN ('testuser1@spark.com', 'testuser2@spark.com', 'premium@spark.com')
+ON CONFLICT (user_id) DO UPDATE SET
+    adventurous_allocated = EXCLUDED.adventurous_allocated,
+    adventurous_current = EXCLUDED.adventurous_current,
+    available_points = EXCLUDED.available_points,
+    creativity_allocated = EXCLUDED.creativity_allocated,
+    creativity_current = EXCLUDED.creativity_current,
+    discipline_allocated = EXCLUDED.discipline_allocated,
+    discipline_current = EXCLUDED.discipline_current,
+    intelligence_allocated = EXCLUDED.intelligence_allocated,
+    intelligence_current = EXCLUDED.intelligence_current,
+    sociability_allocated = EXCLUDED.sociability_allocated,
+    sociability_current = EXCLUDED.sociability_current,
+    strength_allocated = EXCLUDED.strength_allocated,
+    strength_current = EXCLUDED.strength_current,
+    total_earned_points = EXCLUDED.total_earned_points,
+    last_updated_at = NOW();
+
+-- ===============================================
 -- 데이터 확인 쿼리 (참고용)
 -- ===============================================
 
