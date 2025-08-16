@@ -44,10 +44,12 @@ value class Streak(val value: Int) {
 }
 
 enum class UserLevelTitle(val displayName: String) {
-    BEGINNER("초보자"),
-    EXPLORER("탐험가"),
-    ADVENTURER("모험가"), 
-    EXPERT("전문가"),
-    MASTER("마스터"),
-    LEGEND("전설")
+    BEGINNER("초보자"),           // 1-5
+    EXPLORER("탐험가"),           // 6-10
+    ADVENTURER("모험가"),         // 11-20
+    EXPERT("전문가"),             // 21-30
+    MASTER("마스터"),             // 31-40
+    GRANDMASTER("그랜드마스터"),   // 41-45
+    LEGEND("전설"),               // 46-50
+    MYTHIC("신화")                // 50+
 }
