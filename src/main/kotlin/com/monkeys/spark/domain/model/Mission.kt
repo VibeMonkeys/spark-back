@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 // Mission Domain Aggregate Root
 data class Mission(
     var id: MissionId,
-    var userId: UserId,
+    var userId: UserId?,
     var title: MissionTitle,
     var description: MissionDescription,
     var detailedDescription: MissionDescription,

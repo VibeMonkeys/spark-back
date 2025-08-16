@@ -10,8 +10,8 @@ class MissionEntity : BaseEntity() {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = 0L
     
-    @Column(name = "user_id", nullable = false)
-    var userId: Long = 0L
+    @Column(name = "user_id", nullable = true)
+    var userId: Long? = null
     
     @Column(nullable = false, length = 100)
     var title: String = ""

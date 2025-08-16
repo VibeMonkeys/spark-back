@@ -12,7 +12,7 @@ class MissionPersistenceMapper {
     fun toEntity(domain: Mission): MissionEntity {
         val entity = MissionEntity()
         entity.id = domain.id.value
-        entity.userId = domain.userId.value
+        entity.userId = domain.userId?.value
         entity.title = domain.title.value
         entity.description = domain.description.value
         entity.detailedDescription = domain.detailedDescription.value
@@ -44,7 +44,7 @@ class MissionPersistenceMapper {
         
         return Mission(
             id = MissionId(entity.id),
-            userId = UserId(entity.userId),
+            userId = entity.userId?.let { UserId(it) },
             title = MissionTitle(entity.title),
             description = MissionDescription(entity.description),
             detailedDescription = MissionDescription(entity.detailedDescription),
