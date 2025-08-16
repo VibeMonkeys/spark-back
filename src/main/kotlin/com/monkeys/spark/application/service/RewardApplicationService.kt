@@ -1,8 +1,12 @@
 package com.monkeys.spark.application.service
 
 import com.monkeys.spark.application.port.`in`.RewardUseCase
-import com.monkeys.spark.application.port.`in`.command.*
-import com.monkeys.spark.application.port.`in`.query.*
+import com.monkeys.spark.application.port.`in`.command.ExchangeRewardCommand
+import com.monkeys.spark.application.port.`in`.command.UseRewardCommand
+import com.monkeys.spark.application.port.`in`.query.AvailableRewardsQuery
+import com.monkeys.spark.application.port.`in`.query.UserRewardsQuery
+import com.monkeys.spark.application.port.`in`.query.UserPointsSummary
+import com.monkeys.spark.application.port.`in`.query.RewardStatistics
 import com.monkeys.spark.application.port.out.RewardRepository
 import com.monkeys.spark.application.port.out.UserRewardRepository
 import com.monkeys.spark.application.port.out.UserRepository
@@ -10,6 +14,8 @@ import com.monkeys.spark.domain.model.Reward
 import com.monkeys.spark.domain.model.UserReward
 import com.monkeys.spark.domain.vo.common.*
 import com.monkeys.spark.domain.vo.reward.RewardCategory
+import com.monkeys.spark.domain.service.RewardDomainService
+import com.monkeys.spark.domain.exception.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -20,6 +26,8 @@ class RewardApplicationService(
     private val userRewardRepository: UserRewardRepository,
     private val userRepository: UserRepository
 ) : RewardUseCase {
+    
+    private val rewardDomainService = RewardDomainService()
 
     override fun getAvailableRewards(query: AvailableRewardsQuery): List<Reward> {
         // TODO: 실제 구현 필요 - 사용자 포인트에 따른 필터링
@@ -36,34 +44,27 @@ class RewardApplicationService(
         
         // 리워드 조회
         val reward = rewardRepository.findById(rewardId)
-            ?: throw IllegalArgumentException("Reward not found: ${command.rewardId}")
+            ?: throw RewardNotFoundException(command.rewardId)
         
         // 사용자 조회
         val user = userRepository.findById(userId)
-            ?: throw IllegalArgumentException("User not found: ${command.userId}")
+            ?: throw UserNotFoundException(command.userId)
         
-        // 포인트 부족 확인
-        if (user.currentPoints.value < reward.requiredPoints.value) {
-            throw IllegalArgumentException("포인트가 부족합니다. 필요 포인트: ${reward.requiredPoints.value}, 보유 포인트: ${user.currentPoints.value}")
+        // 도메인 서비스를 통한 비즈니스 규칙 검증
+        if (!rewardDomainService.canExchangeReward(user, reward)) {
+            if (!reward.isActive) {
+                throw RewardNotActiveException(command.rewardId)
+            }
+            if (user.currentPoints.value < reward.requiredPoints.value) {
+                throw InsufficientPointsException(reward.requiredPoints.value, user.currentPoints.value)
+            }
         }
         
-        // 리워드가 활성화되어 있는지 확인
-        if (!reward.isActive) {
-            throw IllegalArgumentException("교환할 수 없는 리워드입니다.")
-        }
+        // 도메인 서비스를 통한 리워드 교환
+        val (updatedUser, userReward) = rewardDomainService.exchangeReward(user, reward)
         
-        // UserReward 생성
-        val userReward = UserReward.create(
-            userId = userId,
-            reward = reward,
-            pointsUsed = reward.requiredPoints
-        )
-        
-        // 사용자 포인트 차감
-        val updatedUser = user.spendPoints(reward.requiredPoints)
+        // 변경사항 저장
         userRepository.save(updatedUser)
-        
-        // UserReward 저장
         return userRewardRepository.save(userReward)
     }
     
@@ -73,11 +74,11 @@ class RewardApplicationService(
     
     override fun useReward(command: UseRewardCommand): UserReward {
         val userReward = userRewardRepository.findById(command.userRewardId)
-            ?: throw IllegalArgumentException("UserReward not found: ${command.userRewardId}")
+            ?: throw UserRewardNotFoundException(command.userRewardId)
         
-        // 사용자 권한 확인
-        if (userReward.userId.value != command.userId) {
-            throw IllegalArgumentException("권한이 없습니다.")
+        // 도메인 서비스를 통한 권한 확인
+        if (!rewardDomainService.canUseUserReward(userReward, command.userId)) {
+            throw UnauthorizedRewardAccessException(command.userId)
         }
         
         // 리워드 사용 처리
@@ -87,7 +88,7 @@ class RewardApplicationService(
     
     override fun getUserPoints(userId: UserId): UserPointsSummary {
         val user = userRepository.findById(userId)
-            ?: throw IllegalArgumentException("User not found: $userId")
+            ?: throw UserNotFoundException(userId.value)
         
         return UserPointsSummary(
             current = user.currentPoints.value,

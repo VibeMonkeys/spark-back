@@ -9,6 +9,9 @@ import com.monkeys.spark.application.port.out.UserRepository
 import com.monkeys.spark.domain.model.Mission
 import com.monkeys.spark.domain.model.Story
 import com.monkeys.spark.domain.vo.common.UserId
+import com.monkeys.spark.domain.service.UserLevelDomainService
+import com.monkeys.spark.domain.factory.MissionFactory
+import com.monkeys.spark.domain.exception.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -19,6 +22,9 @@ class HomePageApplicationService(
     private val missionRepository: MissionRepository,
     private val storyRepository: StoryRepository
 ) : HomePageUseCase {
+    
+    private val userLevelDomainService = UserLevelDomainService()
+    private val missionFactory = MissionFactory()
 
     override fun getHomePageData(userId: UserId): HomePageData {
         val userSummary = getUserSummary(userId)
@@ -35,11 +41,17 @@ class HomePageApplicationService(
     @Transactional(readOnly = true)
     override fun getUserSummary(userId: UserId): UserSummary {
         val user = userRepository.findById(userId)
-            ?: throw IllegalArgumentException("User not found: $userId")
+            ?: throw UserNotFoundException(userId.value)
         
-        // TODO: 실제 레벨 진행도 계산 로직 구현
-        val progressToNextLevel = calculateProgressToNextLevel(user.currentPoints.value, user.level.value)
-        val pointsToNextLevel = calculatePointsToNextLevel(user.currentPoints.value, user.level.value)
+        // 도메인 서비스를 통한 레벨 진행도 계산
+        val progressToNextLevel = userLevelDomainService.calculateProgressToNextLevel(
+            user.currentPoints.value, 
+            user.level.value
+        )
+        val pointsToNextLevel = userLevelDomainService.calculatePointsToNextLevel(
+            user.currentPoints.value, 
+            user.level.value
+        )
         
         return UserSummary(
             user = user,
@@ -53,44 +65,23 @@ class HomePageApplicationService(
         
         // 기존 미션이 없으면 사용자에게 새로운 미션들을 할당
         if (existingMissions.isEmpty()) {
-            return createAndAssignDailyMissions(userId)
+            return generateDailyMissionsUsingFactory(userId)
         }
         
         return existingMissions
     }
     
     @Transactional(readOnly = false)
-    private fun createAndAssignDailyMissions(userId: UserId): List<Mission> {
-        // 실제 DB에 저장할 미션들 생성
-        val missions = listOf(
-            Mission.createSample(
-                id = com.monkeys.spark.domain.vo.common.MissionId.generate(),
-                userId = userId,
-                title = "30분 산책하기",
-                description = "신선한 공기를 마시며 동네를 산책해보세요",
-                category = com.monkeys.spark.domain.vo.mission.MissionCategory.HEALTH,
-                difficulty = com.monkeys.spark.domain.vo.mission.MissionDifficulty.EASY,
-                rewardPoints = 20
-            ),
-            Mission.createSample(
-                id = com.monkeys.spark.domain.vo.common.MissionId.generate(),
-                userId = userId,
-                title = "새로운 요리 만들기",
-                description = "평소 만들어보지 않은 요리에 도전해보세요",
-                category = com.monkeys.spark.domain.vo.mission.MissionCategory.CREATIVE,
-                difficulty = com.monkeys.spark.domain.vo.mission.MissionDifficulty.MEDIUM,
-                rewardPoints = 30
-            ),
-            Mission.createSample(
-                id = com.monkeys.spark.domain.vo.common.MissionId.generate(),
-                userId = userId,
-                title = "친구에게 안부 인사하기",
-                description = "오랫동안 연락하지 않은 친구에게 메시지를 보내보세요",
-                category = com.monkeys.spark.domain.vo.mission.MissionCategory.SOCIAL,
-                difficulty = com.monkeys.spark.domain.vo.mission.MissionDifficulty.EASY,
-                rewardPoints = 15
-            )
-        )
+    private fun generateDailyMissionsUsingFactory(userId: UserId): List<Mission> {
+        // 사용자 조회
+        val user = userRepository.findById(userId)
+            ?: throw UserNotFoundException(userId.value)
+        
+        // 템플릿 미션들 조회
+        val templateMissions = missionRepository.findTemplateMissions()
+        
+        // 도메인 Factory를 통한 미션 생성
+        val missions = missionFactory.createDailyMissions(user, templateMissions)
         
         // DB에 미션들 저장
         return missions.map { mission ->
@@ -103,23 +94,5 @@ class HomePageApplicationService(
         return storyRepository.findRecentStories(limit)
     }
     
-    private fun calculateProgressToNextLevel(currentPoints: Int, currentLevel: Int): Int {
-        // TODO: 실제 레벨 시스템에 따른 계산 로직 구현
-        val pointsForCurrentLevel = currentLevel * 1000 // 임시 계산
-        val pointsForNextLevel = (currentLevel + 1) * 1000
-        val progressPoints = currentPoints - pointsForCurrentLevel
-        val requiredPoints = pointsForNextLevel - pointsForCurrentLevel
-        
-        return if (requiredPoints > 0) {
-            ((progressPoints.toDouble() / requiredPoints) * 100).toInt().coerceIn(0, 100)
-        } else {
-            0
-        }
-    }
-    
-    private fun calculatePointsToNextLevel(currentPoints: Int, currentLevel: Int): Int {
-        // TODO: 실제 레벨 시스템에 따른 계산 로직 구현
-        val pointsForNextLevel = (currentLevel + 1) * 1000
-        return (pointsForNextLevel - currentPoints).coerceAtLeast(0)
-    }
+    // 계산 로직이 UserLevelDomainService로 이동됨
 }

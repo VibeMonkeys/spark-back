@@ -30,3 +30,11 @@ data class CompleteMissionCommand(
     val userId: String
 )
 
+/**
+ * 미션 포기 커맨드
+ */
+data class AbandonMissionCommand(
+    val missionId: String,
+    val userId: String
+)
+

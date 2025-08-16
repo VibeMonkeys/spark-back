@@ -1,18 +1,23 @@
 package com.monkeys.spark.application.service
 
 import com.monkeys.spark.application.port.`in`.MissionUseCase
-import com.monkeys.spark.application.port.`in`.command.*
-import com.monkeys.spark.application.port.`in`.query.*
+import com.monkeys.spark.application.port.`in`.command.StartMissionCommand
+import com.monkeys.spark.application.port.`in`.command.UpdateProgressCommand
+import com.monkeys.spark.application.port.`in`.command.CompleteMissionCommand
+import com.monkeys.spark.application.port.`in`.command.AbandonMissionCommand
+import com.monkeys.spark.application.port.`in`.query.CompletedMissionsQuery
 import com.monkeys.spark.domain.model.CategoryStat
 import com.monkeys.spark.application.port.out.MissionRepository
 import com.monkeys.spark.application.port.out.UserRepository
 import com.monkeys.spark.domain.factory.MissionFactory
+import com.monkeys.spark.domain.service.UserMissionDomainService
 import com.monkeys.spark.domain.model.Mission
 import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.common.MissionId
 import com.monkeys.spark.domain.vo.common.Rating
 import com.monkeys.spark.domain.vo.mission.MissionStatus
 import com.monkeys.spark.domain.vo.mission.MissionCategory
+import com.monkeys.spark.domain.exception.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -22,14 +27,16 @@ import java.time.LocalDateTime
 class MissionApplicationService(
     private val missionRepository: MissionRepository,
     private val userRepository: UserRepository,
-    private val missionFactory: MissionFactory,
     private val userApplicationService: UserApplicationService
 ) : MissionUseCase {
+    
+    private val userMissionDomainService = UserMissionDomainService()
+    private val missionFactoryDomain = MissionFactory()
 
     override fun generateDailyMissions(userId: UserId): List<Mission> {
         // 사용자 존재 확인
         val user = userRepository.findById(userId) 
-            ?: throw IllegalArgumentException("User not found: $userId")
+            ?: throw UserNotFoundException(userId.value)
 
         // 오늘 이미 생성된 미션이 있는지 확인
         val existingMissions = missionRepository.findTodaysMissionsByUserId(userId)
@@ -37,8 +44,11 @@ class MissionApplicationService(
             return existingMissions
         }
 
-        // 사용자 선호도 기반으로 3개의 미션 생성
-        val missions = missionFactory.createDailyMissions(user)
+        // 템플릿 미션들 조회
+        val templateMissions = missionRepository.findTemplateMissions()
+        
+        // 도메인 Factory를 통한 사용자 선호도 기반 미션 생성
+        val missions = missionFactoryDomain.createDailyMissions(user, templateMissions)
         
         return missions.map { missionRepository.save(it) }
     }
@@ -57,8 +67,9 @@ class MissionApplicationService(
     }
 
     @Transactional(readOnly = true)
-    override fun getMissionDetail(missionId: MissionId): Mission? {
+    override fun getMissionDetail(missionId: MissionId): Mission {
         return missionRepository.findById(missionId)
+            ?: throw MissionNotFoundException(missionId.value)
     }
 
     override fun startMission(command: StartMissionCommand): Mission {
@@ -66,11 +77,11 @@ class MissionApplicationService(
         val userId = UserId(command.userId)
         
         val mission = missionRepository.findById(missionId) 
-            ?: throw IllegalArgumentException("Mission not found: ${command.missionId}")
+            ?: throw MissionNotFoundException(command.missionId)
 
         // 미션이 해당 사용자의 것인지 확인
         if (mission.userId != userId) {
-            throw IllegalArgumentException("Mission does not belong to user: ${command.userId}")
+            throw BusinessRuleViolationException("Mission does not belong to user: ${command.userId}")
         }
 
         mission.start()
@@ -82,11 +93,11 @@ class MissionApplicationService(
         val userId = UserId(command.userId)
         
         val mission = missionRepository.findById(missionId) 
-            ?: throw IllegalArgumentException("Mission not found: ${command.missionId}")
+            ?: throw MissionNotFoundException(command.missionId)
 
         // 미션 소유권 확인
         if (mission.userId != userId) {
-            throw IllegalArgumentException("Mission does not belong to user: ${command.userId}")
+            throw BusinessRuleViolationException("Mission does not belong to user: ${command.userId}")
         }
 
         mission.updateProgress(command.progress)
@@ -98,22 +109,54 @@ class MissionApplicationService(
         val userId = UserId(command.userId)
         
         val mission = missionRepository.findById(missionId) 
-            ?: throw IllegalArgumentException("Mission not found: ${command.missionId}")
+            ?: throw MissionNotFoundException(command.missionId)
+
+        val user = userRepository.findById(userId)
+            ?: throw UserNotFoundException(command.userId)
+
+        // 도메인 서비스를 통한 비즈니스 규칙 검증
+        if (!userMissionDomainService.canCompleteMission(user, mission)) {
+            throw BusinessRuleViolationException("Mission cannot be completed by user: ${command.userId}")
+        }
+
+        // 보너스 포인트 계산
+        val bonusPoints = userMissionDomainService.calculateBonusPoints(user, mission)
+        
+        // 도메인 모델에서 미션 완료 처리
+        mission.complete()
+        user.completeMission(mission)
+        
+        // 보너스 포인트 추가
+        if (bonusPoints > 0) {
+            user.earnPoints(com.monkeys.spark.domain.vo.common.Points(bonusPoints))
+        }
+        
+        // 저장
+        missionRepository.save(mission)
+        userRepository.save(user)
+
+        return mission
+    }
+
+    override fun abandonMission(command: AbandonMissionCommand): Mission {
+        val userId = UserId(command.userId)
+        val missionId = MissionId(command.missionId)
+        
+        val mission = missionRepository.findById(missionId) 
+            ?: throw MissionNotFoundException(command.missionId)
 
         // 미션 소유권 확인
         if (mission.userId != userId) {
-            throw IllegalArgumentException("Mission does not belong to user: ${command.userId}")
+            throw BusinessRuleViolationException("Mission does not belong to user: ${command.userId}")
         }
 
-        mission.complete()
-        val completedMission = missionRepository.save(mission)
+        // 진행 중인 미션만 포기 가능
+        if (mission.status != MissionStatus.IN_PROGRESS) {
+            throw BusinessRuleViolationException("Only in-progress missions can be abandoned")
+        }
 
-        // 사용자 업데이트 (일반 포인트 + 통계)
-        userApplicationService.addPoints(userId, mission.rewardPoints) // 미션 기본 포인트만
-        userApplicationService.incrementStreak(userId)
-        userApplicationService.incrementCompletedMissions(userId)
-
-        return completedMission
+        mission.expire()
+        return missionRepository.save(mission)
     }
 
     @Transactional(readOnly = true)
@@ -130,7 +173,7 @@ class MissionApplicationService(
     @Transactional(readOnly = true)
     override fun getSimilarMissions(missionId: MissionId, limit: Int): List<Mission> {
         val mission = missionRepository.findById(missionId) 
-            ?: throw IllegalArgumentException("Mission not found: $missionId")
+            ?: throw MissionNotFoundException(missionId.value)
 
         return missionRepository.findSimilarMissions(
             mission.category, 
@@ -149,7 +192,7 @@ class MissionApplicationService(
     override fun rerollMissions(userId: UserId): List<Mission> {
         // 사용자 존재 확인
         val user = userRepository.findById(userId) 
-            ?: throw IllegalArgumentException("User not found: $userId")
+            ?: throw UserNotFoundException(userId.value)
 
         // 기존 ASSIGNED, IN_PROGRESS 상태의 미션들 삭제
         val assignedMissions = missionRepository.findByUserIdAndStatus(userId, MissionStatus.ASSIGNED)
@@ -160,7 +203,8 @@ class MissionApplicationService(
         }
 
         // 팩토리를 직접 호출해서 새로운 미션 생성 (기존 미션 체크 건너뛰기)
-        val missions = missionFactory.createDailyMissions(user)
+        val templateMissions = missionRepository.findTemplateMissions()
+        val missions = missionFactoryDomain.createDailyMissions(user, templateMissions)
         return missions.map { missionRepository.save(it) }
     }
 
@@ -196,7 +240,7 @@ class MissionApplicationService(
      */
     fun rateMission(missionId: MissionId, rating: Rating): Mission {
         val mission = missionRepository.findById(missionId) 
-            ?: throw IllegalArgumentException("Mission not found: $missionId")
+            ?: throw MissionNotFoundException(missionId.value)
 
         mission.statistics.addRating(rating)
         return missionRepository.save(mission)
@@ -207,7 +251,7 @@ class MissionApplicationService(
      */
     fun recordCompletionTime(missionId: MissionId, completionMinutes: Int): Mission {
         val mission = missionRepository.findById(missionId) 
-            ?: throw IllegalArgumentException("Mission not found: $missionId")
+            ?: throw MissionNotFoundException(missionId.value)
 
         mission.statistics.updateCompletionTime(completionMinutes)
         return missionRepository.save(mission)

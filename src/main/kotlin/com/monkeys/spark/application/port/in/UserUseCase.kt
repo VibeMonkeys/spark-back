@@ -18,7 +18,7 @@ interface UserUseCase {
     /**
      * 사용자 조회
      */
-    fun getUser(userId: UserId): User?
+    fun getUser(userId: UserId): User
 
     /**
      * 이메일로 사용자 조회

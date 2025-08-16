@@ -40,11 +40,14 @@ class UserStatsApplicationService(
         val savedStats = userStatsRepository.save(updatedStats)
         
         // 업적 시스템 연동: 미션 완료 시 업적 확인 및 발급
+        // 업적 시스템 오류가 스탯 증가를 방해하지 않도록 처리하되, 로깅은 수행
         try {
             achievementService.checkAndGrantMissionAchievements(userId.value, missionCategory)
             achievementService.checkAndGrantPointsAchievements(userId.value, savedStats.totalPoints)
         } catch (e: Exception) {
-            // 업적 시스템 오류가 스탯 증가를 방해하지 않도록 로깅만 처리
+            // TODO: 적절한 로깅 프레임워크를 사용하여 에러 로깅
+            println("Achievement system error for user ${userId.value}: ${e.message}")
+            // 업적 시스템 실패가 스탯 업데이트를 방해하지 않도록 계속 진행
         }
         
         return savedStats
@@ -53,7 +56,7 @@ class UserStatsApplicationService(
     override fun initializeUserStats(userId: UserId): UserStats {
         // 사용자가 존재하는지 확인
         val user = userRepository.findById(userId)
-            ?: throw IllegalArgumentException("사용자를 찾을 수 없습니다: ${userId.value}")
+            ?: throw com.monkeys.spark.domain.exception.UserNotFoundException(userId.value)
 
         val initialStats = UserStats.createInitial(userId)
         return userStatsRepository.save(initialStats)

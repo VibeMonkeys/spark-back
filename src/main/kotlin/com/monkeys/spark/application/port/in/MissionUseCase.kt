@@ -25,7 +25,7 @@ interface MissionUseCase {
     /**
      * 미션 상세 조회
      */
-    fun getMissionDetail(missionId: MissionId): Mission?
+    fun getMissionDetail(missionId: MissionId): Mission
     
     /**
      * 미션 시작
@@ -41,6 +41,11 @@ interface MissionUseCase {
      * 미션 완료
      */
     fun completeMission(command: CompleteMissionCommand): Mission
+    
+    /**
+     * 미션 포기
+     */
+    fun abandonMission(command: AbandonMissionCommand): Mission
     
     /**
      * 진행 중인 미션 조회

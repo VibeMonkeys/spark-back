@@ -7,6 +7,7 @@ import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.infrastructure.adapter.out.persistence.entity.RefreshTokenEntity
 import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.RefreshTokenJpaRepository
 import com.monkeys.spark.infrastructure.config.JwtUtil
+import com.monkeys.spark.domain.exception.*
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -28,7 +29,7 @@ class AuthService(
         // 이메일 중복 체크
         val existingUser = userUseCase.getUserByEmail(email)
         if (existingUser != null) {
-            throw IllegalArgumentException("이미 사용 중인 이메일입니다.")
+            throw UserAlreadyExistsException(email)
         }
 
         // 사용자 생성 (UserApplicationService에서 비밀번호 해시 처리)
@@ -54,32 +55,32 @@ class AuthService(
             // 인증된 사용자 정보 조회 (username은 실제로는 userId)
             val userId = authentication.name
             val user = userUseCase.getUser(UserId(userId))
-                ?: throw IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                ?: throw UserNotFoundException("unknown")
 
             // JWT 토큰 생성
             return generateTokens(user)
         } catch (e: Exception) {
-            throw IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다.")
+            throw InvalidCredentialsException()
         }
     }
 
     fun refreshToken(refreshToken: String): AuthResult {
         // Refresh token 유효성 검증
         if (!jwtUtil.validateRefreshToken(refreshToken)) {
-            throw IllegalArgumentException("유효하지 않은 refresh token입니다.")
+            throw ValidationException("유효하지 않은 refresh token입니다.")
         }
 
         // 데이터베이스에서 refresh token 조회
         val tokenEntity = refreshTokenRepository.findByTokenAndIsActive(refreshToken, true)
-            ?: throw IllegalArgumentException("refresh token을 찾을 수 없습니다.")
+            ?: throw ValidationException("refresh token을 찾을 수 없습니다.")
 
         if (tokenEntity.isExpired()) {
-            throw IllegalArgumentException("만료된 refresh token입니다.")
+            throw ValidationException("만료된 refresh token입니다.")
         }
 
         // 사용자 조회
         val user = userUseCase.getUser(UserId(tokenEntity.userId))
-            ?: throw IllegalArgumentException("사용자를 찾을 수 없습니다.")
+            ?: throw UserNotFoundException("unknown")
 
         // 새 토큰 생성
         return generateTokens(user)

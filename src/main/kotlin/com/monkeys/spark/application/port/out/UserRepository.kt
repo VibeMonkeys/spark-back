@@ -16,6 +16,11 @@ interface UserRepository {
     fun save(user: User): User
     
     /**
+     * 비밀번호와 함께 사용자 저장 (생성 시 사용)
+     */
+    fun saveWithPassword(user: User, password: String): User
+    
+    /**
      * 사용자 ID로 조회
      */
     fun findById(userId: UserId): User?

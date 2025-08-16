@@ -1,15 +1,24 @@
 package com.monkeys.spark.application.service
 
 import com.monkeys.spark.application.port.`in`.StoryUseCase
-import com.monkeys.spark.application.port.`in`.command.*
-import com.monkeys.spark.application.port.`in`.query.*
+import com.monkeys.spark.application.port.`in`.command.CreateStoryCommand
+import com.monkeys.spark.application.port.`in`.command.LikeStoryCommand
+import com.monkeys.spark.application.port.`in`.command.UnlikeStoryCommand
+import com.monkeys.spark.application.port.`in`.command.AddCommentCommand
+import com.monkeys.spark.application.port.`in`.command.UpdateStoryCommand
+import com.monkeys.spark.application.port.`in`.command.DeleteStoryCommand
+import com.monkeys.spark.application.port.`in`.query.StoryFeedQuery
+import com.monkeys.spark.application.port.`in`.query.SearchStoriesQuery
 import com.monkeys.spark.application.port.out.StoryRepository
 import com.monkeys.spark.application.port.out.StoryCommentRepository
 import com.monkeys.spark.application.port.out.UserRepository
 import com.monkeys.spark.application.port.out.MissionRepository
 import com.monkeys.spark.domain.model.*
+import com.monkeys.spark.application.dto.*
 import com.monkeys.spark.domain.vo.common.*
 import com.monkeys.spark.domain.vo.story.*
+import com.monkeys.spark.domain.service.StoryMissionDomainService
+import com.monkeys.spark.domain.exception.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -21,6 +30,8 @@ class StoryApplicationService(
     private val userRepository: UserRepository,
     private val missionRepository: MissionRepository
 ) : StoryUseCase {
+    
+    private val storyMissionDomainService = StoryMissionDomainService()
 
     override fun createStory(command: CreateStoryCommand): Story {
         val userId = UserId(command.userId)
@@ -28,15 +39,15 @@ class StoryApplicationService(
         
         // 사용자 조회
         val user = userRepository.findById(userId)
-            ?: throw IllegalArgumentException("User not found: ${command.userId}")
+            ?: throw UserNotFoundException(command.userId)
         
         // 미션 조회 및 검증
         val mission = missionRepository.findById(missionId)
-            ?: throw IllegalArgumentException("Mission not found: ${command.missionId}")
+            ?: throw MissionNotFoundException(command.missionId)
         
         // 미션이 해당 사용자의 것인지 확인
         if (mission.userId != userId) {
-            throw IllegalArgumentException("권한이 없는 미션입니다.")
+            throw BusinessRuleViolationException("Mission does not belong to user: ${command.userId}")
         }
         
         // 스토리 생성
@@ -54,18 +65,12 @@ class StoryApplicationService(
         // 스토리 저장
         val savedStory = storyRepository.save(story)
         
-        // 미션 완료 처리 (이미 완료되지 않은 경우)
-        if (mission.status.name != "COMPLETED") {
-            // 미션이 ASSIGNED 상태인 경우 시작 처리
-            if (mission.status.name == "ASSIGNED") {
-                mission.start()
-            }
+        // 도메인 서비스를 통한 미션 완료 처리
+        if (storyMissionDomainService.canCompleteMissionFromStory(user, mission)) {
+            val (updatedUser, completedMission) = storyMissionDomainService.completeMissionFromStory(user, mission)
             
-            val completedMission = mission.complete()
+            // 변경사항 저장
             missionRepository.save(completedMission)
-            
-            // 사용자에게 포인트 추가
-            val updatedUser = user.earnPoints(mission.rewardPoints)
             userRepository.save(updatedUser)
         }
         
@@ -143,7 +148,7 @@ class StoryApplicationService(
         val userId = UserId(command.userId)
         
         return storyRepository.likeStory(storyId, userId)
-            ?: throw IllegalArgumentException("Story not found: ${command.storyId}")
+            ?: throw StoryNotFoundException(command.storyId)
     }
     
     override fun unlikeStory(command: UnlikeStoryCommand): Story {
@@ -151,7 +156,7 @@ class StoryApplicationService(
         val userId = UserId(command.userId)
         
         return storyRepository.unlikeStory(storyId, userId)
-            ?: throw IllegalArgumentException("Story not found: ${command.storyId}")
+            ?: throw StoryNotFoundException(command.storyId)
     }
     
     override fun addComment(command: AddCommentCommand): StoryComment {
@@ -160,11 +165,11 @@ class StoryApplicationService(
         
         // 스토리 존재 확인
         val story = storyRepository.findById(storyId)
-            ?: throw IllegalArgumentException("Story not found: ${command.storyId}")
+            ?: throw StoryNotFoundException(command.storyId)
         
         // 사용자 조회
         val user = userRepository.findById(userId)
-            ?: throw IllegalArgumentException("User not found: ${command.userId}")
+            ?: throw UserNotFoundException(command.userId)
         
         // 댓글 생성
         val comment = StoryComment.create(
@@ -188,11 +193,11 @@ class StoryApplicationService(
         
         // 스토리 조회
         val story = storyRepository.findById(storyId)
-            ?: throw IllegalArgumentException("Story not found: ${command.storyId}")
+            ?: throw StoryNotFoundException(command.storyId)
         
         // 작성자 권한 확인
         if (story.userId != userId) {
-            throw IllegalArgumentException("권한이 없습니다.")
+            throw BusinessRuleViolationException("Only story author can update the story")
         }
         
         // 스토리 수정 (새로운 인스턴스 생성)

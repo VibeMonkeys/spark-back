@@ -2,7 +2,7 @@ package com.monkeys.spark.application.port.`in`
 
 import com.monkeys.spark.domain.model.Story
 import com.monkeys.spark.domain.model.StoryComment
-import com.monkeys.spark.domain.model.StoryFeedItem
+import com.monkeys.spark.application.dto.StoryFeedItem
 import com.monkeys.spark.application.port.`in`.command.*
 import com.monkeys.spark.application.port.`in`.query.*
 import com.monkeys.spark.domain.vo.common.*
