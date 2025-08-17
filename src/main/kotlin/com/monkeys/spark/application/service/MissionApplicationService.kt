@@ -238,10 +238,15 @@ class MissionApplicationService(
         var count = 0
 
         expiredMissions.forEach { mission ->
-            if (mission.status != MissionStatus.EXPIRED) {
+            // 이미 만료된 상태가 아니고, 실제로 만료 시간이 지났는지 확인
+            if (mission.status != MissionStatus.EXPIRED && mission.isExpired()) {
+                val originalStatus = mission.status
                 mission.expire()
                 missionRepository.save(mission)
                 count++
+                
+                // 로그 출력 (개발 시 확인용)
+                println("⏰ Mission expired: ${mission.title.value} (${originalStatus} → EXPIRED)")
             }
         }
 

@@ -14,7 +14,7 @@ interface MissionJpaRepository : JpaRepository<MissionEntity, Long> {
 
     fun findByUserIdAndStatus(userId: Long, status: String): List<MissionEntity>
 
-    @Query("SELECT m FROM MissionEntity m WHERE m.expiresAt < :currentTime AND m.status = 'ASSIGNED'")
+    @Query("SELECT m FROM MissionEntity m WHERE m.expiresAt < :currentTime AND m.status IN ('ASSIGNED', 'IN_PROGRESS')")
     fun findExpiredMissions(@Param("currentTime") currentTime: LocalDateTime): List<MissionEntity>
 
     fun findByUserIdAndCreatedAtBetween(
