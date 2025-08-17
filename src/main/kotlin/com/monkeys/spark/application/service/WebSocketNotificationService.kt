@@ -15,7 +15,7 @@ class WebSocketNotificationService(
     fun sendToUser(userId: Long, notification: Notification) {
         try {
             val notificationDto = mapOf(
-                "id" to notification.id.value,
+                "id" to notification.id?.value,
                 "type" to notification.type.name,
                 "priority" to notification.priority.name,
                 "title" to notification.content.title,
