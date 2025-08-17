@@ -48,7 +48,10 @@ data class Story(
                 storyText = StoryText(storyText),
                 images = images.map { ImageUrl(it) }.toMutableList(),
                 location = Location(location),
-                userTags = userTags.map { HashTag(it) }.toMutableList(),
+                userTags = userTags.map { tag -> 
+                    val normalizedTag = if (tag.startsWith("#")) tag else "#$tag"
+                    HashTag(normalizedTag)
+                }.toMutableList(),
                 isPublic = isPublic
             )
 
@@ -77,7 +80,10 @@ data class Story(
                 storyText = StoryText(storyText),
                 images = images.map { ImageUrl(it) }.toMutableList(),
                 location = Location(location),
-                userTags = userTags.map { HashTag(it) }.toMutableList(),
+                userTags = userTags.map { tag -> 
+                    val normalizedTag = if (tag.startsWith("#")) tag else "#$tag"
+                    HashTag(normalizedTag)
+                }.toMutableList(),
                 isPublic = isPublic
             )
 
