@@ -7,6 +7,7 @@ import com.monkeys.spark.domain.vo.common.Rating
  */
 data class MissionStatistics(
     var completedBy: Int = 0,
+    var attemptedBy: Int = 0, // 시도한 사람 수 (시작한 사람 수)
     var averageRating: Rating = Rating(0.0),
     var totalRatings: Int = 0,
     var averageCompletionTime: Int = 0, // in minutes
@@ -15,6 +16,23 @@ data class MissionStatistics(
     fun incrementCompletedCount(): MissionStatistics {
         completedBy++
         return this
+    }
+    
+    fun incrementAttemptedCount(): MissionStatistics {
+        attemptedBy++
+        return this
+    }
+    
+    /**
+     * 성공률 계산 (백분율, 반올림)
+     * 시도한 사람 중에서 완료한 사람의 비율
+     */
+    fun getSuccessRate(): Int {
+        return if (attemptedBy > 0) {
+            kotlin.math.round((completedBy.toDouble() / attemptedBy.toDouble()) * 100).toInt()
+        } else {
+            0
+        }
     }
     
     fun addRating(newRating: Rating): MissionStatistics {

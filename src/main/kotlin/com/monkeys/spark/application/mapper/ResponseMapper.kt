@@ -127,8 +127,9 @@ class ResponseMapper(
             duration = "${mission.estimatedMinutes}분",
             image = mission.imageUrl.value,
             tips = mission.tips,
-            completedBy = generateMockCompletedBy(mission.difficulty, mission.category),
-            averageRating = generateMockAverageRating(mission.difficulty, mission.category),
+            completedBy = mission.statistics.completedBy,
+            averageRating = mission.statistics.averageRating.value,
+            successRate = mission.statistics.getSuccessRate(),
             similarMissions = generateMockSimilarMissions(mission.category)
         )
     }

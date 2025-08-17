@@ -93,6 +93,7 @@ data class Mission(
         status = MissionStatus.IN_PROGRESS
         startedAt = LocalDateTime.now()
         updatedAt = LocalDateTime.now()
+        statistics.incrementAttemptedCount() // 시도 횟수 증가
         return this
     }
 

@@ -62,6 +62,8 @@ data class MissionDetailResponse(
     val completedBy: Int,
     @JsonProperty("average_rating")
     val averageRating: Double,
+    @JsonProperty("success_rate")
+    val successRate: Int, // 성공률 (백분율)
     @JsonProperty("similar_missions")
     val similarMissions: List<SimilarMissionResponse>
 )
