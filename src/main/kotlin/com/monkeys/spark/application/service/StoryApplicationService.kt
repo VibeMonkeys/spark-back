@@ -22,6 +22,7 @@ import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.story.HashTag
 import com.monkeys.spark.domain.vo.story.StoryText
 import com.monkeys.spark.domain.vo.story.StoryType
+import com.monkeys.spark.application.coordinator.StoryHashtagCoordinator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -32,7 +33,8 @@ class StoryApplicationService(
     private val storyCommentRepository: StoryCommentRepository,
     private val userRepository: UserRepository,
     private val missionRepository: MissionRepository,
-    private val storyMissionDomainService: StoryMissionDomainService
+    private val storyMissionDomainService: StoryMissionDomainService,
+    private val storyHashtagCoordinator: StoryHashtagCoordinator
 ) : StoryUseCase {
 
     override fun createStory(command: CreateStoryCommand): Story {
@@ -67,6 +69,10 @@ class StoryApplicationService(
 
         // 스토리 저장
         val savedStory = storyRepository.save(story)
+
+        // 해시태그 통계 업데이트
+        val allTags = (savedStory.userTags + savedStory.autoTags).distinct()
+        storyHashtagCoordinator.updateHashtagStatsForStory(allTags)
 
         // 도메인 서비스를 통한 미션 완료 처리
         if (storyMissionDomainService.canCompleteMissionFromStory(user, mission)) {
@@ -231,7 +237,15 @@ class StoryApplicationService(
             isPublic = command.isPublic ?: story.isPublic
         )
 
-        return storyRepository.save(updatedStory)
+        val savedStory = storyRepository.save(updatedStory)
+
+        // 해시태그가 변경된 경우 통계 업데이트
+        if (command.userTags != null) {
+            val allTags = (savedStory.userTags + savedStory.autoTags).distinct()
+            storyHashtagCoordinator.updateHashtagStatsForStory(allTags)
+        }
+
+        return savedStory
     }
 
     override fun deleteStory(command: DeleteStoryCommand): Boolean {
@@ -274,7 +288,13 @@ class StoryApplicationService(
         )
 
         // 스토리 저장
-        return storyRepository.save(story)
+        val savedStory = storyRepository.save(story)
+
+        // 해시태그 통계 업데이트
+        val allTags = (savedStory.userTags + savedStory.autoTags).distinct()
+        storyHashtagCoordinator.updateHashtagStatsForStory(allTags)
+
+        return savedStory
     }
 
     override fun getStoryFeedByTypeWithCursor(
@@ -336,6 +356,17 @@ class StoryApplicationService(
                 null
             }
         }
+    }
+
+    override fun searchStoriesByTypeAndText(storyType: StoryType, query: String, limit: Int): List<StoryFeedItem> {
+        val stories = storyRepository.searchStoriesByTypeAndText(storyType, query, limit)
+        return buildStoryFeedItemsForType(stories, storyType, null)
+    }
+
+    override fun searchStoriesByTypeAndHashtag(storyType: StoryType, hashtag: String, limit: Int): List<StoryFeedItem> {
+        val normalizedHashtag = if (hashtag.startsWith("#")) hashtag else "#$hashtag"
+        val stories = storyRepository.searchStoriesByTypeAndHashtag(storyType, normalizedHashtag, limit)
+        return buildStoryFeedItemsForType(stories, storyType, null)
     }
 
 }

@@ -93,4 +93,14 @@ interface StoryUseCase {
      * StoryType별 스토리 피드 조회 (커서 기반)
      */
     fun getStoryFeedByTypeWithCursor(storyType: StoryType, cursor: Long?, size: Int, isNext: Boolean, userId: UserId?): List<StoryFeedItem>
+    
+    /**
+     * 스토리 타입별 텍스트 검색
+     */
+    fun searchStoriesByTypeAndText(storyType: StoryType, query: String, limit: Int): List<StoryFeedItem>
+    
+    /**
+     * 스토리 타입별 해시태그 검색
+     */
+    fun searchStoriesByTypeAndHashtag(storyType: StoryType, hashtag: String, limit: Int): List<StoryFeedItem>
 }

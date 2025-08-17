@@ -132,4 +132,14 @@ interface StoryRepository {
      * 특정 미션의 스토리 전체 삭제
      */
     fun deleteByMissionId(missionId: MissionId)
+    
+    /**
+     * 스토리 타입별 텍스트 검색
+     */
+    fun searchStoriesByTypeAndText(storyType: StoryType, query: String, limit: Int): List<Story>
+    
+    /**
+     * 스토리 타입별 해시태그 검색
+     */
+    fun searchStoriesByTypeAndHashtag(storyType: StoryType, hashtag: String, limit: Int): List<Story>
 }
