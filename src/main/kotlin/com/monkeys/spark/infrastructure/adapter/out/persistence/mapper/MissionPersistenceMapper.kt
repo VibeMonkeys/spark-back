@@ -1,6 +1,7 @@
 package com.monkeys.spark.infrastructure.adapter.out.persistence.mapper
 
 import com.monkeys.spark.domain.model.Mission
+import com.monkeys.spark.domain.model.MissionStatistics
 import com.monkeys.spark.domain.vo.common.*
 import com.monkeys.spark.domain.vo.mission.*
 import com.monkeys.spark.infrastructure.adapter.out.persistence.entity.MissionEntity
@@ -32,6 +33,14 @@ class MissionPersistenceMapper {
         entity.createdAt = domain.createdAt
         entity.updatedAt = domain.updatedAt
         
+        // Map statistics
+        entity.completedBy = domain.statistics.completedBy
+        entity.attemptedBy = domain.statistics.attemptedBy
+        entity.averageRating = domain.statistics.averageRating.value
+        entity.totalRatings = domain.statistics.totalRatings
+        entity.averageCompletionTime = domain.statistics.averageCompletionTime
+        entity.popularityScore = domain.statistics.popularityScore
+        
         return entity
     }
     
@@ -41,6 +50,15 @@ class MissionPersistenceMapper {
         } else {
             entity.tips.split(",").toMutableList()
         }
+        
+        val statistics = MissionStatistics(
+            completedBy = entity.completedBy,
+            attemptedBy = entity.attemptedBy,
+            averageRating = Rating(entity.averageRating),
+            totalRatings = entity.totalRatings,
+            averageCompletionTime = entity.averageCompletionTime,
+            popularityScore = entity.popularityScore
+        )
         
         return Mission(
             id = MissionId(entity.id),
@@ -55,6 +73,7 @@ class MissionPersistenceMapper {
             estimatedMinutes = entity.estimatedMinutes,
             imageUrl = ImageUrl(entity.imageUrl?.takeIf { it.isNotBlank() } ?: "https://example.com/default.jpg"),
             tips = tips,
+            statistics = statistics,
             progress = entity.progress,
             isTemplate = entity.isTemplate,
             assignedAt = entity.assignedAt,

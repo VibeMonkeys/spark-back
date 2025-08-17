@@ -71,6 +71,9 @@ class MissionEntity : BaseEntity() {
     @Column(name = "completed_by", nullable = false)
     var completedBy: Int = 0
     
+    @Column(name = "attempted_by", nullable = false)
+    var attemptedBy: Int = 0
+    
     @Column(name = "average_rating", nullable = false)
     var averageRating: Double = 0.0
     
