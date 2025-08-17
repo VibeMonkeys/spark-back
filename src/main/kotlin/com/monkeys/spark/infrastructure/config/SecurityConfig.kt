@@ -72,6 +72,21 @@ class SecurityConfig(
                         HttpMethod.GET, "/api/v1/levels/**"
                     ).permitAll()
                     
+                    // Temporarily allow notification endpoints for testing
+                    .requestMatchers(
+                        "/api/v1/notifications/**"
+                    ).permitAll()
+                    
+                    // Temporarily allow mission operations for testing
+                    .requestMatchers(
+                        "/api/v1/missions/**"
+                    ).permitAll()
+                    
+                    // Allow WebSocket connections
+                    .requestMatchers(
+                        "/ws/**"
+                    ).permitAll()
+                    
                     // Temporarily allow profile updates for testing
                     .requestMatchers(
                         HttpMethod.PUT, "/api/v1/users/*/profile"

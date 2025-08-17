@@ -1,6 +1,7 @@
 package com.monkeys.spark.application.service
 
 import com.monkeys.spark.application.port.`in`.MissionUseCase
+import com.monkeys.spark.application.port.`in`.NotificationUseCase
 import com.monkeys.spark.application.port.`in`.command.AbandonMissionCommand
 import com.monkeys.spark.application.port.`in`.command.CompleteMissionCommand
 import com.monkeys.spark.application.port.`in`.command.StartMissionCommand
@@ -20,6 +21,7 @@ import com.monkeys.spark.domain.vo.common.Rating
 import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.mission.MissionCategory
 import com.monkeys.spark.domain.vo.mission.MissionStatus
+import com.monkeys.spark.domain.model.Notification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -29,7 +31,8 @@ class MissionApplicationService(
     private val missionRepository: MissionRepository,
     private val userRepository: UserRepository,
     private val userMissionDomainService: UserMissionDomainService,
-    private val missionFactory: MissionFactory
+    private val missionFactory: MissionFactory,
+    private val notificationUseCase: NotificationUseCase
 ) : MissionUseCase {
 
     override fun generateDailyMissions(userId: UserId): List<Mission> {
@@ -84,7 +87,13 @@ class MissionApplicationService(
         }
 
         mission.start()
-        return missionRepository.save(mission)
+        val savedMission = missionRepository.save(mission)
+        
+        // 미션 시작 알림 전송
+        val notification = Notification.missionStarted(userId, mission.title.value)
+        notificationUseCase.sendNotification(notification)
+        
+        return savedMission
     }
 
     override fun updateMissionProgress(command: UpdateProgressCommand): Mission {
@@ -133,6 +142,11 @@ class MissionApplicationService(
         // 저장
         missionRepository.save(mission)
         userRepository.save(user)
+
+        // 미션 완료 알림 전송
+        val totalPoints = mission.rewardPoints.value + bonusPoints
+        val notification = Notification.missionCompleted(userId, mission.title.value, totalPoints)
+        notificationUseCase.sendNotification(notification)
 
         return mission
     }

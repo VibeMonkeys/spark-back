@@ -75,6 +75,14 @@ class JwtUtil {
         return (tokenUserId == userId && !isTokenExpired(token))
     }
     
+    fun validateToken(token: String): Boolean {
+        return try {
+            !isTokenExpired(token) && getUserIdFromToken(token) != null
+        } catch (e: Exception) {
+            false
+        }
+    }
+    
     fun validateAccessToken(token: String): Boolean {
         return try {
             val tokenType = getTokenType(token)
