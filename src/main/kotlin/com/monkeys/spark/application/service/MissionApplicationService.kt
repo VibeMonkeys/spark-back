@@ -24,6 +24,7 @@ import com.monkeys.spark.domain.vo.mission.MissionStatus
 import com.monkeys.spark.domain.model.Notification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
 @Transactional
@@ -207,13 +208,17 @@ class MissionApplicationService(
         val user = userRepository.findById(userId)
             ?: throw UserNotFoundException(userId.value.toString())
 
-        // 기존 ASSIGNED, IN_PROGRESS 상태의 미션들 삭제
+        // 기존 ASSIGNED 상태의 미션들만 EXPIRED로 변경 (started_at 유지하여 일일 제한 보존)
         val assignedMissions = missionRepository.findByUserIdAndStatus(userId, MissionStatus.ASSIGNED)
-        val inProgressMissions = missionRepository.findByUserIdAndStatus(userId, MissionStatus.IN_PROGRESS)
-
-        (assignedMissions + inProgressMissions).forEach { mission ->
-            missionRepository.deleteById(mission.id)
+        assignedMissions.forEach { mission ->
+            val expiredMission = mission.copy(
+                status = MissionStatus.EXPIRED,
+                updatedAt = LocalDateTime.now()
+            )
+            missionRepository.save(expiredMission)
         }
+
+        // IN_PROGRESS 미션은 그대로 유지 (사용자가 이미 시작한 미션은 건드리지 않음)
 
         // 팩토리를 직접 호출해서 새로운 미션 생성 (기존 미션 체크 건너뛰기)
         val templateMissions = missionRepository.findTemplateMissions()
