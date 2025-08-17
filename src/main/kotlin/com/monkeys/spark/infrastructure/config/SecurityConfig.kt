@@ -62,9 +62,15 @@ class SecurityConfig(
                         HttpMethod.GET, "/api/v1/users/**"
                     ).permitAll()
                     
-                    // Public story endpoints (read-only)
+                    // Public story endpoints (read-only) - for feed viewing
                     .requestMatchers(
-                        HttpMethod.GET, "/api/v1/stories/feed"
+                        HttpMethod.GET, "/api/v1/stories/feed/**", 
+                        HttpMethod.GET, "/api/v1/stories/search/**"
+                    ).permitAll()
+                    
+                    // Public hashtag endpoints (read-only) - for search functionality
+                    .requestMatchers(
+                        HttpMethod.GET, "/api/v1/hashtags/**"
                     ).permitAll()
                     
                     // Public level endpoints (read-only) - for level system display
@@ -72,41 +78,22 @@ class SecurityConfig(
                         HttpMethod.GET, "/api/v1/levels/**"
                     ).permitAll()
                     
-                    // Temporarily allow notification endpoints for testing
-                    .requestMatchers(
-                        "/api/v1/notifications/**"
-                    ).permitAll()
-                    
-                    // Temporarily allow mission operations for testing
-                    .requestMatchers(
-                        "/api/v1/missions/**"
-                    ).permitAll()
-                    
                     // Allow WebSocket connections
                     .requestMatchers(
                         "/ws/**"
                     ).permitAll()
-                    
-                    // Allow hashtag endpoints (read-only)
-                    .requestMatchers(
-                        HttpMethod.GET, "/api/v1/hashtags/**"
-                    ).permitAll()
-                    
-                    // Temporarily allow profile updates for testing
-                    .requestMatchers(
-                        HttpMethod.PUT, "/api/v1/users/*/profile"
-                    ).permitAll()
-                    .requestMatchers(
-                        HttpMethod.POST, "/api/v1/users/*/change-password"
-                    ).permitAll()
 
                     // Protected endpoints - authentication required
-                    .requestMatchers("/api/v1/missions/**").authenticated()  // POST, PUT, DELETE missions
-                    .requestMatchers("/api/v1/users/**").authenticated()     // POST, PUT, DELETE users
-                    .requestMatchers("/api/v1/stories/**").authenticated()   // All story operations
-                    .requestMatchers("/api/v1/stats/**").authenticated()     // All stats operations
-                    .requestMatchers("/api/v1/levels/**").authenticated()    // All level operations
-                    .requestMatchers("/api/inquiries/**").authenticated()    // All inquiry operations
+                    .requestMatchers("/api/v1/missions/**").authenticated()   // All mission operations
+                    .requestMatchers("/api/v1/users/**").authenticated()      // All user operations (except GET)
+                    .requestMatchers("/api/v1/stories/**").authenticated()    // All story operations
+                    .requestMatchers("/api/v1/stats/**").authenticated()      // All stats operations
+                    .requestMatchers("/api/v1/levels/**").authenticated()     // All level operations
+                    .requestMatchers("/api/v1/notifications/**").authenticated() // All notification operations
+                    .requestMatchers("/api/v1/hashtags/**").authenticated()   // All hashtag operations
+                    .requestMatchers("/api/v1/rewards/**").authenticated()    // All reward operations
+                    .requestMatchers("/api/v1/achievements/**").authenticated() // All achievement operations
+                    .requestMatchers("/api/inquiries/**").authenticated()     // All inquiry operations
                     
                     // All other endpoints require authentication
                     .anyRequest().authenticated()
