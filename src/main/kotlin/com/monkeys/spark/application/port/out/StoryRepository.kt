@@ -7,6 +7,7 @@ import com.monkeys.spark.domain.vo.common.MissionId
 import com.monkeys.spark.domain.vo.common.Location
 import com.monkeys.spark.domain.vo.mission.MissionCategory
 import com.monkeys.spark.domain.vo.story.HashTag
+import com.monkeys.spark.domain.vo.story.StoryType
 import java.time.LocalDateTime
 
 interface StoryRepository {
@@ -35,6 +36,16 @@ interface StoryRepository {
      * 커서 기반 공개 스토리 조회 (최신순)
      */
     fun findPublicStoriesWithCursor(cursor: Long?, size: Int, isNext: Boolean = true): List<Story>
+    
+    /**
+     * StoryType별 공개 스토리 조회 (커서 기반)
+     */
+    fun findPublicStoriesByTypeWithCursor(storyType: StoryType, cursor: Long?, size: Int, isNext: Boolean = true): List<Story>
+    
+    /**
+     * StoryType별 공개 스토리 조회 (페이징)
+     */
+    fun findPublicStoriesByType(storyType: StoryType, page: Int, size: Int): List<Story>
     
     /**
      * 인기 스토리 조회 (좋아요 수 기준)

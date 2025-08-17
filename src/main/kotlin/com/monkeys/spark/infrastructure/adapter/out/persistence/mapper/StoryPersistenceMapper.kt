@@ -15,9 +15,10 @@ class StoryPersistenceMapper {
         val entity = StoryEntity()
         entity.id = domain.id.value
         entity.userId = domain.userId.value
-        entity.missionId = domain.missionId.value
-        entity.missionTitle = domain.missionTitle.value
-        entity.missionCategory = domain.missionCategory.name
+        entity.storyType = domain.storyType.name
+        entity.missionId = domain.missionId?.value
+        entity.missionTitle = domain.missionTitle?.value
+        entity.missionCategory = domain.missionCategory?.name
         entity.storyText = domain.storyText.value
         entity.images = domain.images.map { it.value }.joinToString(",")
         entity.location = domain.location.value
@@ -61,9 +62,10 @@ class StoryPersistenceMapper {
         return Story(
             id = StoryId(entity.id),
             userId = UserId(entity.userId),
-            missionId = MissionId(entity.missionId),
-            missionTitle = MissionTitle(entity.missionTitle),
-            missionCategory = MissionCategory.valueOf(entity.missionCategory),
+            storyType = StoryType.fromString(entity.storyType),
+            missionId = entity.missionId?.let { MissionId(it) },
+            missionTitle = entity.missionTitle?.let { MissionTitle(it) },
+            missionCategory = entity.missionCategory?.let { MissionCategory.valueOf(it) },
             storyText = StoryText(entity.storyText),
             images = images,
             location = Location(entity.location),

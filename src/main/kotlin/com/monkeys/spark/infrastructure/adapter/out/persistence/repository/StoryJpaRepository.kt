@@ -68,4 +68,14 @@ interface StoryJpaRepository : JpaRepository<StoryEntity, Long> {
 
     @Query("SELECT s FROM StoryEntity s WHERE s.userId = :userId ORDER BY s.id DESC")
     fun findUserStoriesWithoutCursor(@Param("userId") userId: Long, pageable: Pageable): List<StoryEntity>
+    
+    // StoryType별 조회 메서드들
+    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.storyType = :storyType ORDER BY s.id DESC")
+    fun findPublicStoriesByTypeWithoutCursor(@Param("storyType") storyType: String, pageable: Pageable): List<StoryEntity>
+    
+    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.storyType = :storyType AND s.id < :cursor ORDER BY s.id DESC")
+    fun findPublicStoriesByTypeBeforeCursor(@Param("storyType") storyType: String, @Param("cursor") cursor: Long, pageable: Pageable): List<StoryEntity>
+    
+    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.storyType = :storyType AND s.id > :cursor ORDER BY s.id ASC")
+    fun findPublicStoriesByTypeAfterCursor(@Param("storyType") storyType: String, @Param("cursor") cursor: Long, pageable: Pageable): List<StoryEntity>
 }

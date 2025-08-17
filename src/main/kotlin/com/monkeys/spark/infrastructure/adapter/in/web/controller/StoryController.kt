@@ -18,6 +18,7 @@ import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.*
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.*
 import com.monkeys.spark.domain.vo.common.StoryId
 import com.monkeys.spark.domain.vo.common.UserId
+import com.monkeys.spark.domain.vo.story.StoryType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
@@ -254,6 +255,77 @@ class StoryController(
         } else {
             ResponseEntity.ok(ApiResponse.error("스토리 삭제에 실패했습니다.", "DELETE_FAILED"))
         }
+    }
+
+    /**
+     * StoryType별 스토리 피드 조회 (커서 기반 페이지네이션)
+     * GET /api/v1/stories/feed/{storyType}?cursor={cursor}&size={size}&direction={direction}
+     */
+    @GetMapping("/feed/{storyType}")
+    fun getStoryFeedByType(
+        @PathVariable storyType: String,
+        @RequestParam(required = false) cursor: Long?,
+        @RequestParam(defaultValue = "20") size: Int,
+        @RequestParam(defaultValue = "NEXT") direction: String,
+        @RequestParam(required = false) userId: Long?
+    ): ResponseEntity<ApiResponse<CursorPagedResponse<StoryResponse>>> {
+        val storyTypeEnum = try {
+            StoryType.valueOf(storyType.uppercase())
+        } catch (e: IllegalArgumentException) {
+            return ResponseEntity.badRequest().body(
+                ApiResponse.error("Invalid story type: $storyType", "INVALID_STORY_TYPE")
+            )
+        }
+
+        val isNext = direction.uppercase() == "NEXT"
+        val feedItems = storyUseCase.getStoryFeedByTypeWithCursor(storyTypeEnum, cursor, size, isNext, userId?.let { UserId(it) })
+        val storyResponses = feedItems.map { responseMapper.toStoryResponse(it, userId?.toString()) }
+
+        // 커서 페이징 정보 생성
+        val nextCursor = if (storyResponses.isNotEmpty() && storyResponses.size >= size) {
+            storyResponses.last().id.toString()
+        } else null
+        
+        val previousCursor = if (storyResponses.isNotEmpty()) {
+            storyResponses.first().id.toString()
+        } else null
+
+        val pageInfo = CursorPageInfo(
+            hasNext = storyResponses.size >= size,
+            hasPrevious = cursor != null,
+            nextCursor = nextCursor,
+            previousCursor = if (cursor != null) previousCursor else null,
+            pageSize = size
+        )
+
+        val pagedResponse = CursorPagedResponse(storyResponses, pageInfo)
+        return ResponseEntity.ok(ApiResponse.success(pagedResponse))
+    }
+
+    /**
+     * 자유 스토리 생성
+     * POST /api/v1/stories/free
+     */
+    @PostMapping("/free")
+    fun createFreeStory(
+        @RequestBody request: CreateFreeStoryRequest,
+        authentication: Authentication
+    ): ResponseEntity<ApiResponse<StoryResponse>> {
+        val authenticatedUserId = authentication.name // JWT에서 추출된 실제 사용자 ID
+        val command = CreateStoryCommand(
+            userId = authenticatedUserId.toLong(),
+            missionId = 0L, // 자유 스토리는 미션 ID가 0 (사용되지 않음)
+            storyText = request.storyText,
+            images = request.images,
+            location = request.location,
+            isPublic = request.isPublic,
+            userTags = request.userTags
+        )
+
+        val story = storyUseCase.createFreeStory(command)
+        val response = responseMapper.toStoryResponse(story, authenticatedUserId)
+
+        return ResponseEntity.ok(ApiResponse.success(response, "자유 스토리가 생성되었습니다."))
     }
 
     /**

@@ -171,11 +171,13 @@ class ResponseMapper(
                 avatarUrl = "사용자 아바타", // TODO: 실제 사용자 정보 조회 필요
                 level = "레벨 8 탐험가" // TODO: 실제 사용자 정보 조회 필요
             ),
-            mission = StoryMissionResponse(
-                title = story.missionTitle.value,
-                category = story.missionCategory.displayName,
-                categoryColor = story.missionCategory.colorClass
-            ),
+            mission = if (story.missionTitle != null && story.missionCategory != null) {
+                StoryMissionResponse(
+                    title = story.missionTitle!!.value,
+                    category = story.missionCategory!!.displayName,
+                    categoryColor = story.missionCategory!!.colorClass
+                )
+            } else null,
             story = story.storyText.value,
             images = story.images.map { it.value },
             location = story.location.value,
@@ -198,11 +200,13 @@ class ResponseMapper(
                 avatarUrl = feedItem.user.avatarUrl.value,
                 level = "레벨 ${feedItem.user.level.value} ${feedItem.user.levelTitle.displayName}"
             ),
-            mission = StoryMissionResponse(
-                title = feedItem.mission.title.value,
-                category = feedItem.mission.category.displayName,
-                categoryColor = feedItem.mission.category.colorClass
-            ),
+            mission = feedItem.mission?.let { mission ->
+                StoryMissionResponse(
+                    title = mission.title?.value ?: "",
+                    category = mission.category?.displayName ?: "",
+                    categoryColor = mission.category?.colorClass ?: ""
+                )
+            },
             story = feedItem.content.storyText.value,
             images = feedItem.content.images.map { it.value },
             location = feedItem.location.value,

@@ -21,6 +21,7 @@ import com.monkeys.spark.domain.vo.common.StoryId
 import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.story.HashTag
 import com.monkeys.spark.domain.vo.story.StoryText
+import com.monkeys.spark.domain.vo.story.StoryType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -52,7 +53,7 @@ class StoryApplicationService(
         }
 
         // 스토리 생성
-        val story = Story.create(
+        val story = Story.createMissionProof(
             userId = userId,
             missionId = missionId,
             missionTitle = mission.title,
@@ -60,6 +61,7 @@ class StoryApplicationService(
             storyText = command.storyText,
             images = command.images,
             location = command.location,
+            userTags = command.userTags,
             isPublic = command.isPublic
         )
 
@@ -252,6 +254,88 @@ class StoryApplicationService(
     override fun getTrendingHashTags(limit: Int): List<HashTag> {
         // TODO: 실제 구현 필요 - 트렌딩 해시태그 조회
         return emptyList()
+    }
+
+    override fun createFreeStory(command: CreateStoryCommand): Story {
+        val userId = UserId(command.userId)
+
+        // 사용자 조회
+        val user = userRepository.findById(userId)
+            ?: throw UserNotFoundException(command.userId.toString())
+
+        // 자유 스토리 생성 (미션 없이)
+        val story = Story.createFreeStory(
+            userId = userId,
+            storyText = command.storyText,
+            images = command.images,
+            location = command.location,
+            userTags = command.userTags,
+            isPublic = command.isPublic
+        )
+
+        // 스토리 저장
+        return storyRepository.save(story)
+    }
+
+    override fun getStoryFeedByTypeWithCursor(
+        storyType: StoryType,
+        cursor: Long?,
+        size: Int,
+        isNext: Boolean,
+        userId: UserId?
+    ): List<StoryFeedItem> {
+        val stories = storyRepository.findPublicStoriesByTypeWithCursor(storyType, cursor, size, isNext)
+        return buildStoryFeedItemsForType(stories, storyType, userId)
+    }
+
+    private fun buildStoryFeedItemsForType(
+        stories: List<Story>,
+        storyType: StoryType,
+        userId: UserId?
+    ): List<StoryFeedItem> {
+        return stories.mapNotNull { story ->
+            try {
+                val user = userRepository.findById(story.userId) ?: return@mapNotNull null
+
+                val isLiked = userId?.let {
+                    storyRepository.isLikedByUser(story.id, it)
+                } ?: false
+
+                StoryFeedItem(
+                    storyId = story.id,
+                    user = StoryUser(
+                        userId = user.id,
+                        name = user.name,
+                        avatarUrl = user.avatarUrl,
+                        level = user.level,
+                        levelTitle = user.levelTitle
+                    ),
+                    mission = if (storyType == StoryType.MISSION_PROOF) {
+                        StoryMission(
+                            missionId = story.missionId,
+                            title = story.missionTitle,
+                            category = story.missionCategory
+                        )
+                    } else {
+                        null
+                    },
+                    content = StoryContent(
+                        storyText = story.storyText,
+                        images = story.images,
+                        tags = story.userTags
+                    ),
+                    interactions = StoryInteractions(
+                        likes = story.likes,
+                        comments = story.comments,
+                        isLikedByCurrentUser = isLiked
+                    ),
+                    timeAgo = story.getTimeAgo(),
+                    location = story.location
+                )
+            } catch (e: Exception) {
+                null
+            }
+        }
     }
 
 }

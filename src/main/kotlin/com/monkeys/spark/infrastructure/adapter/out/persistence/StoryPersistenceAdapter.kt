@@ -8,6 +8,7 @@ import com.monkeys.spark.domain.vo.common.StoryId
 import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.mission.MissionCategory
 import com.monkeys.spark.domain.vo.story.HashTag
+import com.monkeys.spark.domain.vo.story.StoryType
 import com.monkeys.spark.infrastructure.adapter.out.persistence.entity.StoryLikeEntity
 import com.monkeys.spark.infrastructure.adapter.out.persistence.mapper.StoryPersistenceMapper
 import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.StoryJpaRepository
@@ -189,6 +190,33 @@ class StoryPersistenceAdapter(
         }
         
         return entities.map { storyMapper.toDomain(it) }
+    }
+
+    override fun findPublicStoriesByTypeWithCursor(storyType: StoryType, cursor: Long?, size: Int, isNext: Boolean): List<Story> {
+        val pageable = PageRequest.of(0, size)
+        
+        val entities = when {
+            cursor == null -> {
+                // 커서가 없으면 처음부터 조회
+                storyJpaRepository.findPublicStoriesByTypeWithoutCursor(storyType.name, pageable)
+            }
+            isNext -> {
+                // 다음 페이지 (ID가 더 작은 스토리들)
+                storyJpaRepository.findPublicStoriesByTypeBeforeCursor(storyType.name, cursor, pageable)
+            }
+            else -> {
+                // 이전 페이지 (ID가 더 큰 스토리들) - 결과를 역순으로 정렬
+                storyJpaRepository.findPublicStoriesByTypeAfterCursor(storyType.name, cursor, pageable).reversed()
+            }
+        }
+        
+        return entities.map { storyMapper.toDomain(it) }
+    }
+
+    override fun findPublicStoriesByType(storyType: StoryType, page: Int, size: Int): List<Story> {
+        val pageable = PageRequest.of(page, size)
+        return storyJpaRepository.findPublicStoriesByTypeWithoutCursor(storyType.name, pageable)
+            .map { storyMapper.toDomain(it) }
     }
 
 }

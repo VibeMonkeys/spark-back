@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class StoryResponse(
     val id: Long,
     val user: StoryUserResponse,
-    val mission: StoryMissionResponse,
+    val mission: StoryMissionResponse?,
     val story: String,
     val images: List<String>,
     val location: String,

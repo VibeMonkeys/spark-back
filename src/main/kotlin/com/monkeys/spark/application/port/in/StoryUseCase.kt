@@ -7,6 +7,7 @@ import com.monkeys.spark.application.port.`in`.command.*
 import com.monkeys.spark.application.port.`in`.query.*
 import com.monkeys.spark.domain.vo.common.*
 import com.monkeys.spark.domain.vo.story.HashTag
+import com.monkeys.spark.domain.vo.story.StoryType
 
 /**
  * 스토리 관련 UseCase 인터페이스
@@ -82,4 +83,14 @@ interface StoryUseCase {
      * 트렌딩 해시태그 조회
      */
     fun getTrendingHashTags(limit: Int): List<HashTag>
+    
+    /**
+     * 자유 스토리 생성
+     */
+    fun createFreeStory(command: CreateStoryCommand): Story
+    
+    /**
+     * StoryType별 스토리 피드 조회 (커서 기반)
+     */
+    fun getStoryFeedByTypeWithCursor(storyType: StoryType, cursor: Long?, size: Int, isNext: Boolean, userId: UserId?): List<StoryFeedItem>
 }

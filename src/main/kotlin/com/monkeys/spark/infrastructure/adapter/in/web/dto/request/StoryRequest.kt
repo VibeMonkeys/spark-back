@@ -20,6 +20,21 @@ data class UpdateStoryRequest(
 )
 
 /**
+ * 자유 스토리 생성 요청 DTO
+ */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class CreateFreeStoryRequest(
+    @JsonProperty("story_text")
+    val storyText: String,
+    val images: List<String> = emptyList(),
+    val location: String,
+    @JsonProperty("is_public")
+    val isPublic: Boolean = true,
+    @JsonProperty("user_tags")
+    val userTags: List<String> = emptyList()
+)
+
+/**
  * 미션 인증 요청 DTO
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

@@ -13,14 +13,17 @@ class StoryEntity : BaseEntity() {
     @Column(name = "user_id", nullable = false)
     var userId: Long = 0L
     
-    @Column(name = "mission_id", nullable = false)
-    var missionId: Long = 0L
+    @Column(name = "story_type", nullable = false, length = 20)
+    var storyType: String = "MISSION_PROOF"
     
-    @Column(name = "mission_title", nullable = false, length = 100)
-    var missionTitle: String = ""
+    @Column(name = "mission_id", nullable = true)
+    var missionId: Long? = null
     
-    @Column(name = "mission_category", nullable = false, length = 20)
-    var missionCategory: String = ""
+    @Column(name = "mission_title", nullable = true, length = 100)
+    var missionTitle: String? = null
+    
+    @Column(name = "mission_category", nullable = true, length = 20)
+    var missionCategory: String? = null
     
     @Column(name = "story_text", columnDefinition = "TEXT", nullable = false)
     var storyText: String = ""

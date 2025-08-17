@@ -12,7 +12,7 @@ import com.monkeys.spark.domain.vo.story.*
 data class StoryFeedItem(
     val storyId: StoryId,
     val user: StoryUser,
-    val mission: StoryMission,
+    val mission: StoryMission?,
     val content: StoryContent,
     val interactions: StoryInteractions,
     val timeAgo: String,
@@ -28,9 +28,9 @@ data class StoryUser(
 )
 
 data class StoryMission(
-    val missionId: MissionId,
-    val title: MissionTitle,
-    val category: MissionCategory
+    val missionId: MissionId?,
+    val title: MissionTitle?,
+    val category: MissionCategory?
 )
 
 data class StoryContent(
