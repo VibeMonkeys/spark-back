@@ -64,7 +64,9 @@ class SecurityConfig(
                     
                     // Public story endpoints (read-only) - for feed viewing
                     .requestMatchers(
-                        HttpMethod.GET, "/api/v1/stories/feed/**", 
+                        HttpMethod.GET, "/api/v1/stories/feed/**"
+                    ).permitAll()
+                    .requestMatchers(
                         HttpMethod.GET, "/api/v1/stories/search/**"
                     ).permitAll()
                     
