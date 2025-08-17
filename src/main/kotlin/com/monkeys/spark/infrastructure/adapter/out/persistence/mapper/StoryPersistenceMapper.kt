@@ -7,9 +7,14 @@ import com.monkeys.spark.domain.vo.mission.MissionTitle
 import com.monkeys.spark.domain.vo.story.*
 import com.monkeys.spark.infrastructure.adapter.out.persistence.entity.StoryEntity
 import org.springframework.stereotype.Component
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 
 @Component
 class StoryPersistenceMapper {
+    
+    private val objectMapper: ObjectMapper = jacksonObjectMapper()
     
     fun toEntity(domain: Story): StoryEntity {
         val entity = StoryEntity()
@@ -20,7 +25,7 @@ class StoryPersistenceMapper {
         entity.missionTitle = domain.missionTitle?.value
         entity.missionCategory = domain.missionCategory?.name
         entity.storyText = domain.storyText.value
-        entity.images = domain.images.map { it.value }.joinToString(",")
+        entity.images = objectMapper.writeValueAsString(domain.images.map { it.value })
         entity.location = domain.location.value
         entity.autoTags = domain.autoTags.map { it.value }.joinToString(",")
         entity.userTags = domain.userTags.map { it.value }.joinToString(",")
@@ -38,7 +43,13 @@ class StoryPersistenceMapper {
         val images = if (entity.images.isBlank()) {
             mutableListOf()
         } else {
-            entity.images.split(",").map { ImageUrl(it) }.toMutableList()
+            try {
+                val imageList: List<String> = objectMapper.readValue(entity.images)
+                imageList.map { ImageUrl(it) }.toMutableList()
+            } catch (e: Exception) {
+                // Fallback to comma-separated parsing for backward compatibility
+                entity.images.split(",").map { ImageUrl(it.trim()) }.toMutableList()
+            }
         }
         
         val autoTags = if (entity.autoTags.isBlank()) {
