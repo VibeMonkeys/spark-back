@@ -54,6 +54,19 @@ class NotificationPersistenceAdapter(
         return jpaRepository.markAllAsRead(userId.value, LocalDateTime.now())
     }
 
+    override fun deleteById(id: NotificationId): Boolean {
+        return if (jpaRepository.existsById(id.value)) {
+            jpaRepository.deleteById(id.value)
+            true
+        } else {
+            false
+        }
+    }
+
+    override fun deleteAllByUserId(userId: UserId): Int {
+        return jpaRepository.deleteByUserId(userId.value)
+    }
+
     override fun deleteExpired(): Int {
         val cutoffDate = LocalDateTime.now().minusHours(72) // 3일 후 자동 삭제
         return jpaRepository.deleteExpiredNotifications(cutoffDate)

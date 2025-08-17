@@ -13,6 +13,8 @@ interface NotificationRepository {
     fun findByUserIdAndType(userId: UserId, type: NotificationType): List<Notification>
     fun markAsRead(id: NotificationId): Boolean
     fun markAllAsRead(userId: UserId): Int
+    fun deleteById(id: NotificationId): Boolean
+    fun deleteAllByUserId(userId: UserId): Int
     fun deleteExpired(): Int
     fun deleteByUserId(userId: UserId): Int
 }

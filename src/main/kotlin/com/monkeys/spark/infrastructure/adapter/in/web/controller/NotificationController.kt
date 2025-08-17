@@ -98,4 +98,29 @@ class NotificationController(
         
         return ResponseEntity.ok(ApiResponse.success(count, "모든 알림을 읽음으로 표시했습니다."))
     }
+
+    @DeleteMapping("/{notificationId}")
+    fun deleteNotification(
+        @PathVariable notificationId: Long,
+        @RequestParam userId: Long
+    ): ResponseEntity<ApiResponse<Boolean>> {
+        val userIdValue = UserId(userId)
+        val success = notificationUseCase.deleteNotification(userIdValue, NotificationId(notificationId))
+        
+        return if (success) {
+            ResponseEntity.ok(ApiResponse.success(true, "알림을 삭제했습니다."))
+        } else {
+            ResponseEntity.badRequest().body(ApiResponse.error("알림을 찾을 수 없거나 권한이 없습니다.", "NOTIFICATION_NOT_FOUND"))
+        }
+    }
+
+    @DeleteMapping("/all")
+    fun deleteAllNotifications(
+        @RequestParam userId: Long
+    ): ResponseEntity<ApiResponse<Int>> {
+        val userIdValue = UserId(userId)
+        val count = notificationUseCase.deleteAllNotifications(userIdValue)
+        
+        return ResponseEntity.ok(ApiResponse.success(count, "모든 알림을 삭제했습니다."))
+    }
 }

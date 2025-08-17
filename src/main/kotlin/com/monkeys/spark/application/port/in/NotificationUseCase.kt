@@ -11,6 +11,8 @@ interface NotificationUseCase {
     fun markAsRead(userId: UserId, notificationId: NotificationId): Boolean
     fun markAllAsRead(userId: UserId): Int
     fun getUnreadCount(userId: UserId): Int
+    fun deleteNotification(userId: UserId, notificationId: NotificationId): Boolean
+    fun deleteAllNotifications(userId: UserId): Int
 }
 
 data class SendNotificationCommand(

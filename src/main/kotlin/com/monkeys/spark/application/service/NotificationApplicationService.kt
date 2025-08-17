@@ -55,4 +55,18 @@ class NotificationApplicationService(
     override fun getUnreadCount(userId: UserId): Int {
         return notificationRepository.findUnreadByUserId(userId).size
     }
+
+    override fun deleteNotification(userId: UserId, notificationId: NotificationId): Boolean {
+        val notification = notificationRepository.findById(notificationId)
+        
+        return if (notification != null && notification.userId == userId) {
+            notificationRepository.deleteById(notificationId)
+        } else {
+            false
+        }
+    }
+
+    override fun deleteAllNotifications(userId: UserId): Int {
+        return notificationRepository.deleteAllByUserId(userId)
+    }
 }
