@@ -87,6 +87,11 @@ class SecurityConfig(
                         "/ws/**"
                     ).permitAll()
                     
+                    // Allow hashtag endpoints (read-only)
+                    .requestMatchers(
+                        HttpMethod.GET, "/api/v1/hashtags/**"
+                    ).permitAll()
+                    
                     // Temporarily allow profile updates for testing
                     .requestMatchers(
                         HttpMethod.PUT, "/api/v1/users/*/profile"

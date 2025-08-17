@@ -14,6 +14,6 @@ class WebSocketConfig(
 
     override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
         registry.addHandler(notificationWebSocketHandler, "/ws/notifications")
-            .setAllowedOrigins("http://localhost:3000", "http://localhost:5173", "https://spark-front.vercel.app") // 프론트엔드 도메인들
+            .setAllowedOrigins("http://localhost:3000", "http://localhost:3002", "http://localhost:5173", "https://spark-front.vercel.app") // 프론트엔드 도메인들
     }
 }

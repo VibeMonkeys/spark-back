@@ -46,4 +46,14 @@ class DomainServiceConfig {
     fun missionFactory(): MissionFactory {
         return MissionFactory()
     }
+
+    @Bean
+    fun hashtagSearchDomainService(): HashtagSearchDomainService {
+        return HashtagSearchDomainService()
+    }
+
+    @Bean
+    fun hashtagStatsDomainService(): HashtagStatsDomainService {
+        return HashtagStatsDomainService()
+    }
 }
