@@ -8,12 +8,15 @@ ON stories USING GIN (
     to_tsvector('simple', COALESCE(user_tags, '') || ' ' || COALESCE(auto_tags, ''))
 );
 
--- 개별 해시태그 배열 검색을 위한 GIN 인덱스
+-- 개별 해시태그 텍스트 검색을 위한 GIN 인덱스 (trigram 기반)
+-- 먼저 pg_trgm 확장이 필요합니다
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_stories_user_tags_gin 
-ON stories USING GIN (user_tags);
+ON stories USING GIN (user_tags gin_trgm_ops);
 
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_stories_auto_tags_gin 
-ON stories USING GIN (auto_tags);
+ON stories USING GIN (auto_tags gin_trgm_ops);
 
 -- 2. 해시태그 통계 테이블의 성능 최적화 인덱스들
 -- 해시태그별 검색 최적화 (이미 entity에 정의되어 있지만 명시적으로 추가)
@@ -71,9 +74,7 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_hashtag_stats_monthly
 ON hashtag_stats (date, monthly_count DESC) 
 WHERE monthly_count > 0;
 
--- 6. pg_trgm 확장 활성화 (자동완성 기능을 위해)
--- 이 확장은 슈퍼유저 권한이 필요할 수 있습니다
--- CREATE EXTENSION IF NOT EXISTS pg_trgm;
+-- 6. pg_trgm 확장은 위에서 이미 활성화됨
 
 -- 7. 성능 모니터링을 위한 통계 정보 수집
 -- PostgreSQL 통계 수집기 활성화
