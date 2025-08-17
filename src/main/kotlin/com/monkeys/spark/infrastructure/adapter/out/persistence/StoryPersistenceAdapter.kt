@@ -219,4 +219,14 @@ class StoryPersistenceAdapter(
             .map { storyMapper.toDomain(it) }
     }
 
+    override fun searchStoriesByTypeAndText(storyType: StoryType, query: String, limit: Int): List<Story> {
+        return storyJpaRepository.searchStoriesByTypeAndText(storyType.name, query, limit)
+            .map { storyMapper.toDomain(it) }
+    }
+
+    override fun searchStoriesByTypeAndHashtag(storyType: StoryType, hashtag: String, limit: Int): List<Story> {
+        return storyJpaRepository.searchStoriesByTypeAndHashtag(storyType.name, hashtag, limit)
+            .map { storyMapper.toDomain(it) }
+    }
+
 }

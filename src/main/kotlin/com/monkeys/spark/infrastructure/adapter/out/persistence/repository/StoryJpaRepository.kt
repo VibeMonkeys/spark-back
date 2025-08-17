@@ -78,4 +78,12 @@ interface StoryJpaRepository : JpaRepository<StoryEntity, Long> {
     
     @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.storyType = :storyType AND s.id > :cursor ORDER BY s.id ASC")
     fun findPublicStoriesByTypeAfterCursor(@Param("storyType") storyType: String, @Param("cursor") cursor: Long, pageable: Pageable): List<StoryEntity>
+    
+    // 스토리 타입별 텍스트 검색
+    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.storyType = :storyType AND (s.storyText LIKE %:query% OR s.userTags LIKE %:query% OR s.autoTags LIKE %:query%) ORDER BY s.createdAt DESC LIMIT :limit")
+    fun searchStoriesByTypeAndText(@Param("storyType") storyType: String, @Param("query") query: String, @Param("limit") limit: Int): List<StoryEntity>
+    
+    // 스토리 타입별 해시태그 검색
+    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.storyType = :storyType AND (s.userTags LIKE %:hashtag% OR s.autoTags LIKE %:hashtag%) ORDER BY s.createdAt DESC LIMIT :limit")
+    fun searchStoriesByTypeAndHashtag(@Param("storyType") storyType: String, @Param("hashtag") hashtag: String, @Param("limit") limit: Int): List<StoryEntity>
 }

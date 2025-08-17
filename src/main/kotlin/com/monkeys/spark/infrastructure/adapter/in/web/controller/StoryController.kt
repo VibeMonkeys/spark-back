@@ -359,6 +359,74 @@ class StoryController(
         val pagedResponse = PagedResponse(storyResponses, pageInfo)
         return ResponseEntity.ok(ApiResponse.success(pagedResponse))
     }
+
+    /**
+     * 스토리 타입별 텍스트 검색
+     * GET /api/v1/stories/search/{storyType}?query={query}&limit={limit}
+     */
+    @GetMapping("/search/{storyType}")
+    fun searchStoriesByType(
+        @PathVariable storyType: String,
+        @RequestParam query: String,
+        @RequestParam(defaultValue = "20") limit: Int
+    ): ResponseEntity<ApiResponse<CursorPagedResponse<StoryResponse>>> {
+        val storyTypeEnum = try {
+            StoryType.valueOf(storyType.uppercase())
+        } catch (e: IllegalArgumentException) {
+            return ResponseEntity.badRequest().body(
+                ApiResponse.error("Invalid story type: $storyType", "INVALID_STORY_TYPE")
+            )
+        }
+
+        val feedItems = storyUseCase.searchStoriesByTypeAndText(storyTypeEnum, query, limit)
+        val storyResponses = feedItems.map { responseMapper.toStoryResponse(it, null) }
+
+        // 검색 결과는 커서 페이징 정보를 기본값으로 설정
+        val pageInfo = CursorPageInfo(
+            hasNext = false,
+            hasPrevious = false,
+            nextCursor = null,
+            previousCursor = null,
+            pageSize = limit
+        )
+
+        val pagedResponse = CursorPagedResponse(storyResponses, pageInfo)
+        return ResponseEntity.ok(ApiResponse.success(pagedResponse))
+    }
+
+    /**
+     * 스토리 타입별 해시태그 검색
+     * GET /api/v1/stories/search/{storyType}/hashtag?hashtag={hashtag}&limit={limit}
+     */
+    @GetMapping("/search/{storyType}/hashtag")
+    fun searchStoriesByHashtag(
+        @PathVariable storyType: String,
+        @RequestParam hashtag: String,
+        @RequestParam(defaultValue = "20") limit: Int
+    ): ResponseEntity<ApiResponse<CursorPagedResponse<StoryResponse>>> {
+        val storyTypeEnum = try {
+            StoryType.valueOf(storyType.uppercase())
+        } catch (e: IllegalArgumentException) {
+            return ResponseEntity.badRequest().body(
+                ApiResponse.error("Invalid story type: $storyType", "INVALID_STORY_TYPE")
+            )
+        }
+
+        val feedItems = storyUseCase.searchStoriesByTypeAndHashtag(storyTypeEnum, hashtag, limit)
+        val storyResponses = feedItems.map { responseMapper.toStoryResponse(it, null) }
+
+        // 검색 결과는 커서 페이징 정보를 기본값으로 설정
+        val pageInfo = CursorPageInfo(
+            hasNext = false,
+            hasPrevious = false,
+            nextCursor = null,
+            previousCursor = null,
+            pageSize = limit
+        )
+
+        val pagedResponse = CursorPagedResponse(storyResponses, pageInfo)
+        return ResponseEntity.ok(ApiResponse.success(pagedResponse))
+    }
 }
 
 
