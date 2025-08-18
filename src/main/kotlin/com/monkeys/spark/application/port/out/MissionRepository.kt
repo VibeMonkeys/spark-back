@@ -75,8 +75,6 @@ interface MissionRepository {
     /**
      * 미션 템플릿 조회 (시스템에서 제공하는 기본 미션들)
      */
-    fun findMissionTemplates(): List<Mission>
-    
     /**
      * 템플릿 미션들 조회 (is_template = true)
      */
@@ -102,29 +100,11 @@ interface MissionRepository {
      */
     fun findRecommendedMissions(userId: UserId, preferences: Map<MissionCategory, Boolean>, limit: Int): List<Mission>
     
-    /**
-     * 날씨/시간 조건에 맞는 미션 조회
-     */
-    fun findMissionsByConditions(
-        timeOfDay: String? = null,
-        weatherCondition: String? = null,
-        location: Location? = null
-    ): List<Mission>
-    
-    /**
-     * 미션 통계 업데이트
-     */
-    fun updateStatistics(missionId: MissionId, completedBy: Int, averageRating: Double): Mission?
     
     /**
      * 특정 기간 동안 생성된 미션 수
      */
     fun countByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): Long
-    
-    /**
-     * 사용자별 미션 완료율 조회
-     */
-    fun calculateCompletionRateByUserId(userId: UserId): Double
     
     /**
      * 카테고리별 미션 완료 통계 조회

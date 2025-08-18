@@ -7,7 +7,6 @@ import com.monkeys.spark.application.port.`in`.command.UnlikeStoryCommand
 import com.monkeys.spark.application.port.`in`.command.AddCommentCommand
 import com.monkeys.spark.application.port.`in`.command.UpdateStoryCommand
 import com.monkeys.spark.application.port.`in`.command.DeleteStoryCommand
-import com.monkeys.spark.application.port.`in`.query.StoryFeedQuery
 import com.monkeys.spark.application.port.`in`.query.SearchStoriesQuery
 import com.monkeys.spark.application.mapper.ResponseMapper
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.*
@@ -329,8 +328,8 @@ class StoryController(
     }
 
     /**
-     * 스토리 검색
-     * GET /api/v1/stories/search?keyword={keyword}&category={category}
+     * 스토리 검색 (커서 기반 페이지네이션으로 변경)
+     * GET /api/v1/stories/search?keyword={keyword}&category={category}&cursor={cursor}&size={size}
      */
     @GetMapping("/search")
     fun searchStories(
@@ -338,25 +337,34 @@ class StoryController(
         @RequestParam(required = false) hashTag: String?,
         @RequestParam(required = false) category: String?,
         @RequestParam(required = false) location: String?,
-        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(required = false) cursor: Long?,
         @RequestParam(defaultValue = "20") size: Int,
+        @RequestParam(defaultValue = "NEXT") direction: String,
         @RequestParam(required = false) userId: Long?
-    ): ResponseEntity<ApiResponse<PagedResponse<StoryResponse>>> {
-        val query = SearchStoriesQuery(keyword, hashTag, category, location, page, size)
-        val stories = storyUseCase.searchStories(query)
+    ): ResponseEntity<ApiResponse<CursorPagedResponse<StoryResponse>>> {
+        val isNext = direction.uppercase() == "NEXT"
+        val query = SearchStoriesQuery(keyword, hashTag, category, location, cursor, size, isNext)
+        val stories = storyUseCase.searchStoriesWithCursor(query)
         val storyResponses = stories.map { responseMapper.toStoryResponse(it, userId?.toString()) }
 
-        // 임시 페이징 정보
-        val pageInfo = PageInfo(
-            currentPage = page,
-            pageSize = size,
-            totalElements = stories.size.toLong(),
-            totalPages = (stories.size / size) + 1,
-            hasNext = stories.size >= size,
-            hasPrevious = page > 0
+        // 커서 페이징 정보 생성
+        val nextCursor = if (storyResponses.isNotEmpty() && storyResponses.size >= size) {
+            storyResponses.last().id.toString()
+        } else null
+        
+        val previousCursor = if (storyResponses.isNotEmpty()) {
+            storyResponses.first().id.toString()
+        } else null
+
+        val pageInfo = CursorPageInfo(
+            hasNext = storyResponses.size >= size,
+            hasPrevious = cursor != null,
+            nextCursor = nextCursor,
+            previousCursor = if (cursor != null) previousCursor else null,
+            pageSize = size
         )
 
-        val pagedResponse = PagedResponse(storyResponses, pageInfo)
+        val pagedResponse = CursorPagedResponse(storyResponses, pageInfo)
         return ResponseEntity.ok(ApiResponse.success(pagedResponse))
     }
 

@@ -18,20 +18,6 @@ interface StoryJpaRepository : JpaRepository<StoryEntity, Long> {
     @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true ORDER BY s.createdAt DESC")
     fun findPublicStoriesOrderByCreatedDesc(pageable: Pageable): List<StoryEntity>
 
-    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.missionCategory = :category ORDER BY s.likeCount DESC")
-    fun findPublicStoriesByCategory(@Param("category") category: String, pageable: Pageable): List<StoryEntity>
-
-    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.createdAt >= :startDate ORDER BY s.likeCount DESC")
-    fun findTrendingStories(@Param("startDate") startDate: LocalDateTime, pageable: Pageable): List<StoryEntity>
-
-    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND (s.storyText LIKE %:keyword% OR s.userTags LIKE %:keyword%)")
-    fun searchPublicStories(@Param("keyword") keyword: String, pageable: Pageable): List<StoryEntity>
-
-    @Query("SELECT COUNT(s) FROM StoryEntity s WHERE s.userId = :userId")
-    fun countStoriesByUser(@Param("userId") userId: String): Long
-
-    @Query("SELECT s FROM StoryEntity s WHERE s.userId IN :userIds AND s.isPublic = true ORDER BY s.createdAt DESC")
-    fun findStoriesFromUsers(@Param("userIds") userIds: List<String>, pageable: Pageable): List<StoryEntity>
 
     // StoryPersistenceAdapter에서 필요한 추가 메서드들
     fun findAllByOrderByCreatedAtDesc(pageable: Pageable): List<StoryEntity>
@@ -42,7 +28,6 @@ interface StoryJpaRepository : JpaRepository<StoryEntity, Long> {
 
     fun findByHashTagsContaining(hashTag: String): List<StoryEntity>
 
-    fun findByStoryTextContainingIgnoreCase(keyword: String): List<StoryEntity>
 
     fun findByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<StoryEntity>
 
@@ -86,4 +71,18 @@ interface StoryJpaRepository : JpaRepository<StoryEntity, Long> {
     // 스토리 타입별 해시태그 검색
     @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND s.storyType = :storyType AND (s.userTags LIKE %:hashtag% OR s.autoTags LIKE %:hashtag%) ORDER BY s.createdAt DESC LIMIT :limit")
     fun searchStoriesByTypeAndHashtag(@Param("storyType") storyType: String, @Param("hashtag") hashtag: String, @Param("limit") limit: Int): List<StoryEntity>
+    
+    // 인기 스토리 조회 최적화 (좋아요 수 기준, N+1 문제 해결)
+    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true ORDER BY s.likeCount DESC, s.createdAt DESC")
+    fun findPopularStoriesOptimized(pageable: Pageable): List<StoryEntity>
+    
+    // 커서 기반 검색 쿼리들
+    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND (s.storyText LIKE %:keyword% OR s.userTags LIKE %:keyword% OR s.autoTags LIKE %:keyword%) AND s.id < :cursor ORDER BY s.id DESC")
+    fun searchStoriesWithCursorBefore(@Param("keyword") keyword: String, @Param("cursor") cursor: Long, pageable: Pageable): List<StoryEntity>
+    
+    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND (s.storyText LIKE %:keyword% OR s.userTags LIKE %:keyword% OR s.autoTags LIKE %:keyword%) AND s.id > :cursor ORDER BY s.id ASC")
+    fun searchStoriesWithCursorAfter(@Param("keyword") keyword: String, @Param("cursor") cursor: Long, pageable: Pageable): List<StoryEntity>
+    
+    @Query("SELECT s FROM StoryEntity s WHERE s.isPublic = true AND (s.storyText LIKE %:keyword% OR s.userTags LIKE %:keyword% OR s.autoTags LIKE %:keyword%) ORDER BY s.id DESC")
+    fun searchStoriesWithoutCursor(@Param("keyword") keyword: String, pageable: Pageable): List<StoryEntity>
 }

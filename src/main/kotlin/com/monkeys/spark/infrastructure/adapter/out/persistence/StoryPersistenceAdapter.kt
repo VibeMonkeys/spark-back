@@ -54,9 +54,7 @@ class StoryPersistenceAdapter(
 
     override fun findPopularStories(limit: Int): List<Story> {
         val pageable = PageRequest.of(0, limit)
-        return storyJpaRepository.findAll()
-            .sortedByDescending { it.likeCount ?: 0 }
-            .take(limit)
+        return storyJpaRepository.findPopularStoriesOptimized(pageable)
             .map { storyMapper.toDomain(it) }
     }
 
@@ -81,15 +79,28 @@ class StoryPersistenceAdapter(
             .map { storyMapper.toDomain(it) }
     }
 
-    override fun searchByContent(keyword: String): List<Story> {
-        return storyJpaRepository.findByStoryTextContainingIgnoreCase(keyword)
-            .map { storyMapper.toDomain(it) }
+
+    override fun searchByContentWithCursor(keyword: String, cursor: Long?, size: Int, isNext: Boolean): List<Story> {
+        val pageable = PageRequest.of(0, size)
+        
+        val entities = when {
+            cursor == null -> {
+                // 첫 페이지
+                storyJpaRepository.searchStoriesWithoutCursor(keyword, pageable)
+            }
+            isNext -> {
+                // 다음 페이지 (cursor보다 작은 ID들)
+                storyJpaRepository.searchStoriesWithCursorBefore(keyword, cursor, pageable)
+            }
+            else -> {
+                // 이전 페이지 (cursor보다 큰 ID들) - 결과를 뒤집어야 함
+                storyJpaRepository.searchStoriesWithCursorAfter(keyword, cursor, pageable).reversed()
+            }
+        }
+        
+        return entities.map { storyMapper.toDomain(it) }
     }
 
-    override fun findFeedStories(userId: UserId, page: Int, size: Int): List<Story> {
-        // 임시 구현 - 전체 공개 스토리로 대체
-        return findPublicStories(page, size)
-    }
 
     override fun findByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<Story> {
         return storyJpaRepository.findByCreatedAtBetween(startDate, endDate)
@@ -213,11 +224,6 @@ class StoryPersistenceAdapter(
         return entities.map { storyMapper.toDomain(it) }
     }
 
-    override fun findPublicStoriesByType(storyType: StoryType, page: Int, size: Int): List<Story> {
-        val pageable = PageRequest.of(page, size)
-        return storyJpaRepository.findPublicStoriesByTypeWithoutCursor(storyType.name, pageable)
-            .map { storyMapper.toDomain(it) }
-    }
 
     override fun searchStoriesByTypeAndText(storyType: StoryType, query: String, limit: Int): List<Story> {
         return storyJpaRepository.searchStoriesByTypeAndText(storyType.name, query, limit)

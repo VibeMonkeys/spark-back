@@ -42,10 +42,6 @@ interface StoryRepository {
      */
     fun findPublicStoriesByTypeWithCursor(storyType: StoryType, cursor: Long?, size: Int, isNext: Boolean = true): List<Story>
     
-    /**
-     * StoryType별 공개 스토리 조회 (페이징)
-     */
-    fun findPublicStoriesByType(storyType: StoryType, page: Int, size: Int): List<Story>
     
     /**
      * 인기 스토리 조회 (좋아요 수 기준)
@@ -77,16 +73,12 @@ interface StoryRepository {
      */
     fun findByHashTag(hashTag: HashTag): List<Story>
     
-    /**
-     * 텍스트 검색으로 스토리 찾기
-     */
-    fun searchByContent(keyword: String): List<Story>
     
     /**
-     * 사용자 피드용 스토리 조회 (팔로우하는 사용자들의 스토리)
-     * 현재는 전체 공개 스토리로 대체
+     * 커서 기반 텍스트 검색
      */
-    fun findFeedStories(userId: UserId, page: Int, size: Int): List<Story>
+    fun searchByContentWithCursor(keyword: String, cursor: Long?, size: Int, isNext: Boolean = true): List<Story>
+    
     
     /**
      * 커서 기반 피드 스토리 조회

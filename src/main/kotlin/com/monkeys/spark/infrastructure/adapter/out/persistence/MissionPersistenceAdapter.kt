@@ -11,6 +11,7 @@ import com.monkeys.spark.domain.vo.mission.MissionStatus
 import com.monkeys.spark.domain.vo.mission.StartMissionValidation
 import com.monkeys.spark.infrastructure.adapter.out.persistence.mapper.MissionPersistenceMapper
 import com.monkeys.spark.infrastructure.adapter.out.persistence.repository.MissionJpaRepository
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
@@ -102,16 +103,11 @@ class MissionPersistenceAdapter(
     }
 
     override fun findPopularMissions(limit: Int): List<Mission> {
-        return missionJpaRepository.findAll()
-            .sortedByDescending { it.completedCount ?: 0 }
-            .take(limit)
+        val pageable = PageRequest.of(0, limit)
+        return missionJpaRepository.findPopularMissionsOptimized(pageable)
             .map { missionMapper.toDomain(it) }
     }
 
-    override fun findMissionTemplates(): List<Mission> {
-        // 임시 구현 - 실제로는 템플릿 미션들을 따로 관리해야 함
-        return emptyList()
-    }
 
     override fun findTemplateMissions(): List<Mission> {
         return missionJpaRepository.findByIsTemplate(true)
@@ -136,64 +132,12 @@ class MissionPersistenceAdapter(
         }
     }
 
-    override fun findMissionsByConditions(
-        timeOfDay: String?,
-        weatherCondition: String?,
-        location: Location?
-    ): List<Mission> {
-        var missions = missionJpaRepository.findAll()
-
-        timeOfDay?.let { time ->
-            missions = missions.filter { mission ->
-                mission.availableTimeSlots?.contains(time) == true
-            }
-        }
-
-        weatherCondition?.let { weather ->
-            missions = missions.filter { mission ->
-                mission.weatherConditions?.contains(weather) == true
-            }
-        }
-
-        location?.let { loc ->
-            missions = missions.filter { mission ->
-                mission.location?.contains(loc.value) == true
-            }
-        }
-
-        return missions.map { missionMapper.toDomain(it) }
-    }
-
-    override fun updateStatistics(
-        missionId: MissionId,
-        completedBy: Int,
-        averageRating: Double
-    ): Mission? {
-        return findById(missionId)?.let { mission ->
-            // 통계 업데이트 로직 - 실제로는 별도 테이블로 관리
-            save(mission)
-        }
-    }
 
     override fun countByCreatedAtBetween(
         startDate: LocalDateTime,
         endDate: LocalDateTime
     ): Long {
         return missionJpaRepository.countByCreatedAtBetween(startDate, endDate)
-    }
-
-    override fun calculateCompletionRateByUserId(userId: UserId): Double {
-        val totalMissions = missionJpaRepository.countByUserId(userId.value)
-        val completedMissions = missionJpaRepository.countByUserIdAndStatus(
-            userId.value,
-            MissionStatus.COMPLETED.name
-        )
-
-        return if (totalMissions > 0) {
-            (completedMissions.toDouble() / totalMissions) * 100
-        } else {
-            0.0
-        }
     }
 
     override fun getCategoryCompletionStats(userId: UserId): Map<MissionCategory, Int> {

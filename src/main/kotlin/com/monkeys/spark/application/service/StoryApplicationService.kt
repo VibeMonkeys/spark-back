@@ -1,10 +1,10 @@
 package com.monkeys.spark.application.service
 
+import com.monkeys.spark.application.coordinator.StoryHashtagCoordinator
 import com.monkeys.spark.application.dto.*
 import com.monkeys.spark.application.port.`in`.StoryUseCase
 import com.monkeys.spark.application.port.`in`.command.*
 import com.monkeys.spark.application.port.`in`.query.SearchStoriesQuery
-import com.monkeys.spark.application.port.`in`.query.StoryFeedQuery
 import com.monkeys.spark.application.port.out.MissionRepository
 import com.monkeys.spark.application.port.out.StoryCommentRepository
 import com.monkeys.spark.application.port.out.StoryRepository
@@ -22,7 +22,6 @@ import com.monkeys.spark.domain.vo.common.UserId
 import com.monkeys.spark.domain.vo.story.HashTag
 import com.monkeys.spark.domain.vo.story.StoryText
 import com.monkeys.spark.domain.vo.story.StoryType
-import com.monkeys.spark.application.coordinator.StoryHashtagCoordinator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -90,15 +89,6 @@ class StoryApplicationService(
         return storyRepository.findById(storyId)
     }
 
-    override fun getStoryFeed(query: StoryFeedQuery): List<StoryFeedItem> {
-        val stories = when (query.sortBy) {
-            "latest" -> storyRepository.findPublicStories(query.page, query.size)
-            "popular" -> storyRepository.findPopularStories(query.size)
-            else -> storyRepository.findPublicStories(query.page, query.size)
-        }
-
-        return buildStoryFeedItems(stories, query.userId?.let { UserId(it) })
-    }
 
     override fun getStoryFeedWithCursor(
         userId: String?,
@@ -255,9 +245,15 @@ class StoryApplicationService(
         return true
     }
 
-    override fun searchStories(query: SearchStoriesQuery): List<Story> {
+
+    override fun searchStoriesWithCursor(query: SearchStoriesQuery): List<Story> {
         return if (query.keyword?.isNotBlank() == true) {
-            storyRepository.searchByContent(query.keyword)
+            storyRepository.searchByContentWithCursor(
+                keyword = query.keyword,
+                cursor = query.cursor,
+                size = query.size,
+                isNext = query.isNext
+            )
         } else {
             emptyList()
         }

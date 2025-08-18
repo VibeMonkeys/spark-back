@@ -98,4 +98,8 @@ interface MissionJpaRepository : JpaRepository<MissionEntity, Long> {
     // 오늘 시작한 미션 개수 조회
     fun countByUserIdAndStartedAtBetween(userId: Long, startDate: LocalDateTime, endDate: LocalDateTime): Long
 
+    // 인기 미션 조회 최적화 (완료 수 기준, N+1 문제 해결)
+    @Query("SELECT m FROM MissionEntity m WHERE m.isTemplate = true ORDER BY m.completedCount DESC, m.createdAt DESC")
+    fun findPopularMissionsOptimized(pageable: org.springframework.data.domain.Pageable): List<MissionEntity>
+
 }

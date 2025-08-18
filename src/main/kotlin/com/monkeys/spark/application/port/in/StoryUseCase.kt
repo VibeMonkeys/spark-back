@@ -25,11 +25,6 @@ interface StoryUseCase {
     fun getStory(storyId: StoryId): Story?
     
     /**
-     * 스토리 피드 조회 (최신순/인기순)
-     */
-    fun getStoryFeed(query: StoryFeedQuery): List<StoryFeedItem>
-    
-    /**
      * 커서 기반 스토리 피드 조회
      */
     fun getStoryFeedWithCursor(userId: String?, cursor: Long?, size: Int, isNext: Boolean): List<StoryFeedItem>
@@ -75,9 +70,9 @@ interface StoryUseCase {
     fun deleteStory(command: DeleteStoryCommand): Boolean
     
     /**
-     * 스토리 검색 (해시태그, 텍스트 검색)
+     * 커서 기반 스토리 검색
      */
-    fun searchStories(query: SearchStoriesQuery): List<Story>
+    fun searchStoriesWithCursor(query: SearchStoriesQuery): List<Story>
     
     /**
      * 트렌딩 해시태그 조회
