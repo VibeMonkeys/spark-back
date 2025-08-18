@@ -145,8 +145,8 @@ class AuthController(
      */
     @PostMapping("/demo-login/{userId}")
     fun demoLogin(@PathVariable userId: Long): ResponseEntity<ApiResponse<AuthResponse>> {
-        // 데모 계정인지 확인 (5, 6, 7번 사용자만 허용)
-        if (userId !in listOf(5L, 6L, 7L)) {
+        // 데모 계정인지 확인 (1, 2, 3번 사용자만 허용)
+        if (userId !in listOf(1L, 2L, 3L)) {
             return ResponseEntity.badRequest().body(
                 ApiResponse.error("유효하지 않은 데모 사용자입니다.", "INVALID_DEMO_USER")
             )
