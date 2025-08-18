@@ -268,13 +268,7 @@ class StoryController(
         @RequestParam(defaultValue = "NEXT") direction: String,
         @RequestParam(required = false) userId: Long?
     ): ResponseEntity<ApiResponse<CursorPagedResponse<StoryResponse>>> {
-        val storyTypeEnum = try {
-            StoryType.valueOf(storyType.uppercase())
-        } catch (e: IllegalArgumentException) {
-            return ResponseEntity.badRequest().body(
-                ApiResponse.error("Invalid story type: $storyType", "INVALID_STORY_TYPE")
-            )
-        }
+        val storyTypeEnum = StoryType.fromString(storyType)
 
         val isNext = direction.uppercase() == "NEXT"
         val feedItems = storyUseCase.getStoryFeedByTypeWithCursor(storyTypeEnum, cursor, size, isNext, userId?.let { UserId(it) })
@@ -378,13 +372,7 @@ class StoryController(
         @RequestParam query: String,
         @RequestParam(defaultValue = "20") limit: Int
     ): ResponseEntity<ApiResponse<CursorPagedResponse<StoryResponse>>> {
-        val storyTypeEnum = try {
-            StoryType.valueOf(storyType.uppercase())
-        } catch (e: IllegalArgumentException) {
-            return ResponseEntity.badRequest().body(
-                ApiResponse.error("Invalid story type: $storyType", "INVALID_STORY_TYPE")
-            )
-        }
+        val storyTypeEnum = StoryType.fromString(storyType)
 
         val feedItems = storyUseCase.searchStoriesByTypeAndText(storyTypeEnum, query, limit)
         val storyResponses = feedItems.map { responseMapper.toStoryResponse(it, null) }
@@ -412,13 +400,7 @@ class StoryController(
         @RequestParam hashtag: String,
         @RequestParam(defaultValue = "20") limit: Int
     ): ResponseEntity<ApiResponse<CursorPagedResponse<StoryResponse>>> {
-        val storyTypeEnum = try {
-            StoryType.valueOf(storyType.uppercase())
-        } catch (e: IllegalArgumentException) {
-            return ResponseEntity.badRequest().body(
-                ApiResponse.error("Invalid story type: $storyType", "INVALID_STORY_TYPE")
-            )
-        }
+        val storyTypeEnum = StoryType.fromString(storyType)
 
         val feedItems = storyUseCase.searchStoriesByTypeAndHashtag(storyTypeEnum, hashtag, limit)
         val storyResponses = feedItems.map { responseMapper.toStoryResponse(it, null) }

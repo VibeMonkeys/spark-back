@@ -8,6 +8,7 @@ import com.monkeys.spark.domain.exception.InvalidCredentialsException
 import com.monkeys.spark.domain.exception.UserAlreadyExistsException
 import com.monkeys.spark.domain.exception.UserNotFoundException
 import com.monkeys.spark.domain.exception.ValidationException
+import com.monkeys.spark.domain.exception.InvalidDemoUserException
 import com.monkeys.spark.domain.model.RefreshToken
 import com.monkeys.spark.domain.model.User
 import com.monkeys.spark.domain.vo.common.UserId
@@ -111,6 +112,35 @@ class AuthApplicationService(
             userId = user.id,
             token = refreshTokenStr,
             expiresAt = LocalDateTime.now().plusDays(7) // 7일
+        )
+        refreshTokenRepository.save(refreshToken)
+
+        return AuthResult(
+            user = user,
+            accessToken = accessToken,
+            refreshToken = refreshTokenStr
+        )
+    }
+
+    override fun demoLogin(userId: Long): AuthResult {
+        // 데모 계정인지 확인 (1, 2, 3번 사용자만 허용)
+        if (userId !in listOf(1L, 2L, 3L)) {
+            throw InvalidDemoUserException("유효하지 않은 데모 사용자입니다.")
+        }
+
+        // 사용자 정보 조회
+        val user = userRepository.findById(UserId(userId)) 
+            ?: throw UserNotFoundException("사용자를 찾을 수 없습니다.")
+        
+        // JWT 토큰 생성
+        val accessToken = jwtUtil.generateAccessToken(userId.toString())
+        val refreshTokenStr = jwtUtil.generateRefreshToken(userId.toString())
+
+        // 리프레시 토큰 저장
+        val refreshToken = RefreshToken.create(
+            userId = user.id,
+            token = refreshTokenStr,
+            expiresAt = LocalDateTime.now().plusDays(7)
         )
         refreshTokenRepository.save(refreshToken)
 

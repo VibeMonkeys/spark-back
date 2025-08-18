@@ -1,7 +1,7 @@
 package com.monkeys.spark.application.port.`in`.dto
 
-import com.monkeys.spark.domain.service.HashtagCategory
-import com.monkeys.spark.domain.service.HashtagLifecycle
+import com.monkeys.spark.domain.vo.hashtag.HashtagCategory
+import com.monkeys.spark.domain.vo.hashtag.HashtagLifecycle
 import java.time.LocalDate
 import java.time.LocalDateTime
 

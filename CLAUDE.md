@@ -313,10 +313,12 @@ class JwtUtil {
 - **Templates**: 10 predefined missions
 
 ### User Management
-- **Level System**: 21 levels with titles (BEGINNER → LEGEND)
+- **Level System**: 50 levels with titles (BEGINNER → LEGEND → MYTHIC)
+- **Level Calculation**: Complex point table with progressive difficulty curves
 - **RPG Stats**: Strength, Intelligence, Creativity, Sociability, Adventurous, Discipline
 - **Achievement System**: 12 achievement types with progress tracking
 - **Streak Tracking**: Daily mission completion streaks
+- **Level Architecture**: `UserLevelInfo` VO for calculations, `LevelSystem` for metadata
 
 ### Social Features
 - **Story Sharing**: User-generated content with auto-tagging
@@ -345,14 +347,16 @@ class JwtUtil {
 ### Naming Conventions
 - **Domain Models**: `User`, `Mission`, `Story` (Entities)
 - **Value Objects**: `UserId`, `MissionCategory` (@JvmInline value class / enum class)
+- **Complex VOs**: `UserLevelInfo`, `LevelInfo` (data class with business logic)
 - **Application Services**: `UserApplicationService`, `MissionApplicationService`
-- **Domain Services**: `UserMissionDomainService`, `AchievementDomainService`
+- **Domain Services**: `UserMissionDomainService`, `AchievementDomainService`, `LevelSystem`
 - **Persistence Adapters**: `UserPersistenceAdapter`, `MissionPersistenceAdapter`
 - **JPA Repositories**: `UserJpaRepository`, `MissionJpaRepository`
 - **Persistence Mappers**: `UserPersistenceMapper`, `MissionPersistenceMapper`
-- **Coordinators**: `AchievementCoordinator`
+- **Coordinators**: `AchievementCoordinator`, `StoryHashtagCoordinator`
+- **Factories**: `MissionFactory` (domain object creation with complex rules)
 
-### API Response Pattern
+### API Response Patterns
 ```kotlin
 // Common response wrapper
 data class ApiResponse<T>(
@@ -361,7 +365,36 @@ data class ApiResponse<T>(
     val message: String? = null,
     val error: String? = null
 )
+
+// Cursor-based pagination response
+data class CursorPagedResponse<T>(
+    val items: List<T>,
+    val pageInfo: CursorPageInfo
+)
+
+data class CursorPageInfo(
+    val hasNext: Boolean,
+    val hasPrevious: Boolean,
+    val nextCursor: String?,
+    val previousCursor: String?,
+    val pageSize: Int
+)
 ```
+
+### Performance Optimization Rules
+- **Cursor Pagination**: All feed APIs use cursor-based pagination instead of offset-based
+- **N+1 Prevention**: Use optimized queries with proper JOINs, avoid `findAll()` operations
+- **Query Optimization**: Custom `@Query` annotations for complex business queries
+- **Index Strategy**: GIN indexes for full-text search on story content and tags
+- **Database Queries**: 
+  ```kotlin
+  // ❌ Avoid: N+1 problem
+  fun findAll(): List<Entity>
+  
+  // ✅ Use: Optimized queries
+  @Query("SELECT e FROM Entity e WHERE e.condition = :param ORDER BY e.id DESC")
+  fun findOptimizedResults(@Param("param") param: String, pageable: Pageable): List<Entity>
+  ```
 
 ## Key Architectural Decisions
 
@@ -376,6 +409,48 @@ data class ApiResponse<T>(
 - **Coordinators**: Handle cross-cutting business logic requiring repository access, live in application layer
 - **Separation Pattern**: Repository-dependent logic moved from domain services to coordinators
 
+### DDD Architectural Rules and Best Practices
+
+#### Aggregate Purity Rules
+- **No External Dependencies**: Aggregates must not depend on domain services directly
+- **Self-Contained Logic**: All business rules within aggregate boundaries
+- **Value Object Delegation**: Complex calculations delegated to Value Objects with factory methods
+- **Example**: `User.checkLevelUp()` uses `UserLevelInfo.fromPoints()` instead of calling `LevelSystem`
+
+#### Value Object Design Patterns
+- **Factory Methods**: Use companion object factory methods for complex creation logic
+  ```kotlin
+  companion object {
+      fun fromPoints(totalPoints: Points): UserLevelInfo {
+          // Complex calculation logic encapsulated here
+      }
+  }
+  ```
+- **Business Logic Encapsulation**: Calculations and validations within VO, not in aggregates
+- **Immutability**: All VOs are immutable data classes
+- **Domain Expression**: Methods like `isLevelUp(previousLevel)` for domain-friendly operations
+
+#### Dependency Direction Rules
+1. **Domain → Pure**: Domain layer has zero external dependencies
+2. **Application → Domain**: Application services orchestrate domain objects
+3. **Infrastructure → Application + Domain**: Infrastructure implements ports and uses domain models
+4. **Never**: Aggregates depending on domain services, repositories, or infrastructure
+
+#### Level System Architecture (Example Implementation)
+- **LevelSystem**: Domain service for metadata and complex level information (icons, descriptions, benefits)
+- **UserLevelInfo**: Value Object for aggregate-internal level calculations
+- **UserLevelDomainService**: Application-layer service that bridges external APIs with domain VOs
+- **Separation**: Aggregate uses VO, external services use domain service, no cross-contamination
+
+#### Controller and Exception Handling Rules
+- **No Try-Catch in Controllers**: Controllers must never contain try-catch blocks for business logic
+- **Pure HTTP Handling**: Controllers only handle HTTP request/response mapping
+- **Custom Exception Strategy**: All business exceptions thrown from UseCases/Services
+- **Centralized Error Handling**: All exceptions handled by `@RestControllerAdvice` (GlobalExceptionHandler)
+- **Domain-Specific Exceptions**: Create specific exceptions for business rules (e.g., `InvalidDemoUserException`, `InvalidStoryTypeException`)
+- **Response DTO Separation**: All Response classes must be in separate files under `/dto/response/`
+- **Validation in Domain**: Parameter validation and business rule checks in Value Objects or Domain Services
+
 ### Persistence Layer Structure
 - **BaseEntity**: Common JPA fields (`createdAt`, `updatedAt`) with `@PrePersist`/`@PreUpdate`
 - **Persistence Adapters**: Implement outbound ports, follow naming pattern `*PersistenceAdapter`
@@ -389,6 +464,12 @@ data class ApiResponse<T>(
 4. **Custom JWT**: Non-standard but functional JWT implementation
 5. **Context-organized VOs**: Value objects grouped by business context rather than technical type
 6. **Social Gamification**: Achievement system integrated with mission completion and user stats
+7. **VO Factory Pattern**: Complex VOs with companion object factory methods (`UserLevelInfo.fromPoints()`)
+8. **Dual Service Architecture**: Domain services for metadata, VOs for aggregate calculations
+9. **Cursor-based Pagination**: All feed APIs use cursor-based infinite scroll for performance
+10. **Template Mission System**: Reusable mission templates with instance creation
+11. **Exception-Free Controllers**: Controllers contain zero try-catch blocks, all exceptions handled centrally
+12. **Value Object Validation**: Parameter parsing and validation delegated to Value Objects (`StoryType.fromString()`)
 
 ## Dependencies
 

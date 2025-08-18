@@ -157,6 +157,28 @@ class GlobalExceptionHandler {
         )
     }
 
+    @ExceptionHandler(InvalidDemoUserException::class)
+    fun handleInvalidDemoUserException(
+        ex: InvalidDemoUserException,
+        request: WebRequest
+    ): ResponseEntity<ApiResponse<Nothing>> {
+        logger.warn("Invalid demo user: ${ex.message}")
+        return ResponseEntity.badRequest().body(
+            ApiResponse.error<Nothing>(ex.message ?: "유효하지 않은 데모 사용자입니다.", "INVALID_DEMO_USER")
+        )
+    }
+
+    @ExceptionHandler(InvalidStoryTypeException::class)
+    fun handleInvalidStoryTypeException(
+        ex: InvalidStoryTypeException,
+        request: WebRequest
+    ): ResponseEntity<ApiResponse<Nothing>> {
+        logger.warn("Invalid story type: ${ex.message}")
+        return ResponseEntity.badRequest().body(
+            ApiResponse.error<Nothing>(ex.message ?: "유효하지 않은 스토리 타입입니다.", "INVALID_STORY_TYPE")
+        )
+    }
+
     @ExceptionHandler(DomainException::class)
     fun handleDomainException(
         ex: DomainException,

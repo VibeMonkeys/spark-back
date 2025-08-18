@@ -4,7 +4,7 @@ import com.monkeys.spark.application.port.out.HashtagStatsRepository
 import com.monkeys.spark.application.port.out.HashtagStatsUpdateRepository
 import com.monkeys.spark.application.port.out.HashtagStatsSummary
 import com.monkeys.spark.domain.model.HashtagStats
-import com.monkeys.spark.domain.service.HashtagCategory
+import com.monkeys.spark.domain.vo.hashtag.HashtagCategory
 import com.monkeys.spark.domain.vo.common.HashtagStatsId
 import com.monkeys.spark.domain.vo.story.HashTag
 import com.monkeys.spark.infrastructure.adapter.out.persistence.entity.HashtagStatsEntity

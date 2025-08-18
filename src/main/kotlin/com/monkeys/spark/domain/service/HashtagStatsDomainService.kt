@@ -3,6 +3,10 @@ package com.monkeys.spark.domain.service
 import com.monkeys.spark.domain.model.HashtagStats
 import com.monkeys.spark.domain.model.Story
 import com.monkeys.spark.domain.vo.story.HashTag
+import com.monkeys.spark.domain.vo.hashtag.PopularityThreshold
+import com.monkeys.spark.domain.vo.hashtag.HashtagLifecycle
+import com.monkeys.spark.domain.vo.hashtag.CategoryAggregation
+import com.monkeys.spark.domain.vo.hashtag.HashtagCategory
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -251,33 +255,3 @@ class HashtagStatsDomainService {
         }
     }
 }
-
-/**
- * 인기도 임계값
- */
-enum class PopularityThreshold {
-    LOW,      // 낮은 인기도 임계값
-    MODERATE, // 보통 인기도 임계값
-    HIGH      // 높은 인기도 임계값
-}
-
-/**
- * 해시태그 생명주기
- */
-enum class HashtagLifecycle(val displayName: String) {
-    EMERGING("새롭게 떠오르는"),
-    TRENDING("급상승 중"),
-    MATURE("안정적 인기"),
-    STABLE("일정한 사용량"),
-    DECLINING("사용량 감소")
-}
-
-/**
- * 카테고리별 집계 정보
- */
-data class CategoryAggregation(
-    val totalHashtags: Int,
-    val totalUsage: Int,
-    val averageTrendScore: Double,
-    val topHashtags: List<HashtagStats>
-)

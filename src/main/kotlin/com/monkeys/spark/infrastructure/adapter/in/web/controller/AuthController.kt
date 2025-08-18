@@ -11,19 +11,9 @@ import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.LoginReques
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.RefreshTokenRequest
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.request.SignupRequest
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.AuthResponse
+import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.response.DemoUserResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-
-data class DemoUserResponse(
-    val id: Long,
-    val name: String,
-    val email: String,
-    val level: Int,
-    val levelTitle: String,
-    val currentPoints: Int,
-    val totalPoints: Int,
-    val avatarUrl: String
-)
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -113,30 +103,24 @@ class AuthController(
      */
     @GetMapping("/demo-users")
     fun getDemoUsers(): ResponseEntity<ApiResponse<List<DemoUserResponse>>> {
-        try {
-            val demoEmails = listOf("testuser1@spark.com", "testuser2@spark.com", "premium@spark.com")
-            val demoUsers = demoEmails.mapNotNull { email ->
-                val user = userUseCase.getUserByEmail(email)
-                user?.let { 
-                    DemoUserResponse(
-                        id = it.id.value,
-                        name = it.name.value,
-                        email = it.email.value,
-                        level = it.level.value,
-                        levelTitle = it.levelTitle.displayName,
-                        currentPoints = it.currentPoints.value,
-                        totalPoints = it.totalPoints.value,
-                        avatarUrl = it.avatarUrl.value
-                    )
-                }
+        val demoEmails = listOf("testuser1@spark.com", "testuser2@spark.com", "premium@spark.com")
+        val demoUsers = demoEmails.mapNotNull { email ->
+            val user = userUseCase.getUserByEmail(email)
+            user?.let { 
+                DemoUserResponse(
+                    id = it.id.value,
+                    name = it.name.value,
+                    email = it.email.value,
+                    level = it.level.value,
+                    levelTitle = it.levelTitle.displayName,
+                    currentPoints = it.currentPoints.value,
+                    totalPoints = it.totalPoints.value,
+                    avatarUrl = it.avatarUrl.value
+                )
             }
-            
-            return ResponseEntity.ok(ApiResponse.success(demoUsers, "데모 사용자 목록을 조회했습니다."))
-        } catch (e: Exception) {
-            return ResponseEntity.badRequest().body(
-                ApiResponse.error("데모 사용자 조회에 실패했습니다: ${e.message}", "DEMO_USERS_FAILED")
-            )
         }
+        
+        return ResponseEntity.ok(ApiResponse.success(demoUsers, "데모 사용자 목록을 조회했습니다."))
     }
 
     /**
@@ -145,34 +129,16 @@ class AuthController(
      */
     @PostMapping("/demo-login/{userId}")
     fun demoLogin(@PathVariable userId: Long): ResponseEntity<ApiResponse<AuthResponse>> {
-        // 데모 계정인지 확인 (1, 2, 3번 사용자만 허용)
-        if (userId !in listOf(1L, 2L, 3L)) {
-            return ResponseEntity.badRequest().body(
-                ApiResponse.error("유효하지 않은 데모 사용자입니다.", "INVALID_DEMO_USER")
-            )
-        }
+        val authResult = authUseCase.demoLogin(userId)
 
-        try {
-            // 사용자 정보 조회
-            val user = userUseCase.getUser(UserId(userId))
-            
-            // JWT 토큰 생성
-            val accessToken = jwtUtil.generateAccessToken(userId.toString())
-            val refreshToken = jwtUtil.generateRefreshToken(userId.toString())
+        val userResponse = responseMapper.toUserResponse(authResult.user)
+        val authResponse = AuthResponse(
+            user = userResponse,
+            token = authResult.accessToken,
+            refreshToken = authResult.refreshToken
+        )
 
-            val userResponse = responseMapper.toUserResponse(user)
-            val authResponse = AuthResponse(
-                user = userResponse,
-                token = accessToken,
-                refreshToken = refreshToken
-            )
-
-            return ResponseEntity.ok(ApiResponse.success(authResponse, "데모 로그인이 완료되었습니다."))
-        } catch (e: Exception) {
-            return ResponseEntity.badRequest().body(
-                ApiResponse.error("데모 로그인에 실패했습니다: ${e.message}", "DEMO_LOGIN_FAILED")
-            )
-        }
+        return ResponseEntity.ok(ApiResponse.success(authResponse, "데모 로그인이 완료되었습니다."))
     }
 
 }

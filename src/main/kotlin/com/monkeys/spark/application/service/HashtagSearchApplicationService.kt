@@ -5,7 +5,7 @@ import com.monkeys.spark.application.port.`in`.command.HashtagSearchCommand
 import com.monkeys.spark.application.port.`in`.dto.*
 import com.monkeys.spark.application.port.out.HashtagStatsRepository
 import com.monkeys.spark.application.port.out.StoryRepository
-import com.monkeys.spark.domain.service.HashtagCategory
+import com.monkeys.spark.domain.vo.hashtag.HashtagCategory
 import com.monkeys.spark.domain.service.HashtagSearchDomainService
 import com.monkeys.spark.domain.service.HashtagStatsDomainService
 import com.monkeys.spark.domain.vo.story.HashTag

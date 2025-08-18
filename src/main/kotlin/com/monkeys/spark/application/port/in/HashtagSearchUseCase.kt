@@ -5,8 +5,8 @@ import com.monkeys.spark.application.port.`in`.dto.HashtagSearchResult
 import com.monkeys.spark.application.port.`in`.dto.HashtagStatsDto
 import com.monkeys.spark.application.port.`in`.dto.HashtagTrendDto
 import com.monkeys.spark.application.port.`in`.dto.HashtagStatsSummaryDto
-import com.monkeys.spark.domain.service.HashtagCategory
-import com.monkeys.spark.domain.service.HashtagSortCriteria
+import com.monkeys.spark.domain.vo.hashtag.HashtagCategory
+import com.monkeys.spark.domain.vo.hashtag.HashtagSortCriteria
 import java.time.LocalDate
 
 /**

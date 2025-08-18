@@ -32,4 +32,9 @@ interface AuthUseCase {
      * 사용자의 모든 토큰 무효화
      */
     fun revokeAllUserTokens(userId: String)
+
+    /**
+     * 데모 로그인 (개발용)
+     */
+    fun demoLogin(userId: Long): AuthResult
 }

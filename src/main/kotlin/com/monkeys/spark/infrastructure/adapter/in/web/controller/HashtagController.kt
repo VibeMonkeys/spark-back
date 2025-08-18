@@ -2,8 +2,8 @@ package com.monkeys.spark.infrastructure.adapter.`in`.web.controller
 
 import com.monkeys.spark.application.port.`in`.HashtagSearchUseCase
 import com.monkeys.spark.application.port.`in`.command.HashtagSearchCommand
-import com.monkeys.spark.domain.service.HashtagCategory
-import com.monkeys.spark.domain.service.HashtagSortCriteria
+import com.monkeys.spark.domain.vo.hashtag.HashtagCategory
+import com.monkeys.spark.domain.vo.hashtag.HashtagSortCriteria
 import com.monkeys.spark.infrastructure.adapter.`in`.web.dto.ApiResponse
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -112,14 +112,7 @@ class HashtagController(
         @RequestParam(defaultValue = "10") limit: Int,
         @AuthenticationPrincipal userDetails: UserDetails?
     ): ApiResponse<*> {
-        val preferences = categories?.split(",")
-            ?.mapNotNull { categoryName ->
-                try {
-                    HashtagCategory.valueOf(categoryName.trim().uppercase())
-                } catch (e: IllegalArgumentException) {
-                    null
-                }
-            }?.toSet() ?: emptySet()
+        val preferences = HashtagCategory.parseMultiple(categories)
         
         val result = hashtagSearchUseCase.getRecommendedHashtags(
             userDetails?.username,
