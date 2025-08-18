@@ -110,7 +110,7 @@ class RewardApplicationService(
     
     override fun getExpiringRewards(userId: UserId, withinDays: Int): List<UserReward> {
         return userRewardRepository.findExpiringWithinDays(withinDays)
-            .filter { userReward -> 
+            .filter { _ -> 
                 // TODO: 사용자 필터링 로직 추가
                 true
             }

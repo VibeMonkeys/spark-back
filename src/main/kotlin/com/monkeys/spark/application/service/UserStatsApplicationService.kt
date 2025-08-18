@@ -62,7 +62,7 @@ class UserStatsApplicationService(
 
     override fun initializeUserStats(userId: UserId): UserStats {
         // 사용자가 존재하는지 확인
-        val user = userRepository.findById(userId)
+        userRepository.findById(userId)
             ?: throw com.monkeys.spark.domain.exception.UserNotFoundException(userId.value.toString())
 
         val initialStats = UserStats.createInitial(userId)

@@ -38,8 +38,8 @@ class UserPersistenceAdapter(
         return userMapper.toDomain(savedEntity)
     }
 
-    override fun findById(id: UserId): User? {
-        return userJpaRepository.findById(id.value)
+    override fun findById(userId: UserId): User? {
+        return userJpaRepository.findById(userId.value)
             .map { userMapper.toDomain(it) }
             .orElse(null)
     }

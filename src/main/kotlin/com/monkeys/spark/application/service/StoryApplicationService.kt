@@ -194,7 +194,7 @@ class StoryApplicationService(
         val userId = UserId(command.userId)
 
         // 스토리 존재 확인
-        val story = storyRepository.findById(storyId)
+        storyRepository.findById(storyId)
             ?: throw StoryNotFoundException(command.storyId)
 
         // 사용자 조회
@@ -232,25 +232,23 @@ class StoryApplicationService(
 
         // 스토리 수정 (새로운 인스턴스 생성)
         val updatedStory = story.copy(
-            storyText = command.storyText?.let { StoryText(it) } ?: story.storyText,
-            userTags = command.userTags?.map { HashTag(it) }?.toMutableList() ?: story.userTags,
-            isPublic = command.isPublic ?: story.isPublic
+            storyText = StoryText(command.storyText),
+            userTags = command.userTags.map { HashTag(it) }.toMutableList(),
+            isPublic = command.isPublic
         )
 
         val savedStory = storyRepository.save(updatedStory)
 
         // 해시태그가 변경된 경우 통계 업데이트
-        if (command.userTags != null) {
-            val allTags = (savedStory.userTags + savedStory.autoTags).distinct()
-            storyHashtagCoordinator.updateHashtagStatsForStory(allTags)
-        }
+        val allTags = (savedStory.userTags + savedStory.autoTags).distinct()
+        storyHashtagCoordinator.updateHashtagStatsForStory(allTags)
 
         return savedStory
     }
 
     override fun deleteStory(command: DeleteStoryCommand): Boolean {
         val storyId = StoryId(command.storyId)
-        val story = storyRepository.findById(storyId)
+        storyRepository.findById(storyId)
             ?: return false
 
         storyRepository.deleteById(storyId)
@@ -274,7 +272,7 @@ class StoryApplicationService(
         val userId = UserId(command.userId)
 
         // 사용자 조회
-        val user = userRepository.findById(userId)
+        userRepository.findById(userId)
             ?: throw UserNotFoundException(command.userId.toString())
 
         // 자유 스토리 생성 (미션 없이)
