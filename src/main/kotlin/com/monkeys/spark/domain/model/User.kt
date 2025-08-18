@@ -108,6 +108,7 @@ data class User(
         earnPoints(mission.rewardPoints)
         incrementStreak()
         statistics.incrementCategoryCount(mission.category)
+        statistics.addThisMonthPoints(mission.rewardPoints)
         return this
     }
     

@@ -27,4 +27,10 @@ data class UserStatistics(
         categoryStats[category] = stat.copy(completed = stat.completed + 1)
         return this
     }
+    
+    fun addThisMonthPoints(points: Points): UserStatistics {
+        thisMonthPoints += points
+        thisMonthMissions += 1
+        return this
+    }
 }

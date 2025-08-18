@@ -89,4 +89,9 @@ interface UserRepository {
      * 비활성 사용자 조회 (특정 기간 동안 접속하지 않은 사용자)
      */
     fun findInactiveUsers(lastLoginBefore: LocalDateTime): List<User>
+    
+    /**
+     * 사용자의 이번 달 획득 포인트 계산
+     */
+    fun getThisMonthEarnedPoints(userId: UserId): Points
 }

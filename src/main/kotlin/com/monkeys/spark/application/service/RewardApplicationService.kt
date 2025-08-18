@@ -89,10 +89,12 @@ class RewardApplicationService(
         val user = userRepository.findById(userId)
             ?: throw UserNotFoundException(userId.value.toString())
         
+        val thisMonthEarned = userRepository.getThisMonthEarnedPoints(userId)
+        
         return UserPointsSummary(
             current = user.currentPoints.value,
             total = user.totalPoints.value,
-            thisMonth = 0, // TODO: 이번 달 획득 포인트 계산
+            thisMonth = thisMonthEarned.value,
             spent = userRewardRepository.getTotalPointsSpentByUserId(userId).value,
             thisMonthSpent = userRewardRepository.getThisMonthPointsSpentByUserId(userId).value
         )

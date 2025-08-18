@@ -134,4 +134,9 @@ class UserPersistenceAdapter(
             .map { userMapper.toDomain(it) }
     }
 
+    override fun getThisMonthEarnedPoints(userId: UserId): Points {
+        return userJpaRepository.getThisMonthEarnedPoints(userId.value)
+            ?.let { Points(it) } ?: Points(0)
+    }
+
 }
