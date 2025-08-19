@@ -83,10 +83,18 @@ class DailyQuestApplicationService(
         progress.complete()
         dailyQuestProgressRepository.save(progress)
         
-        // 요약 업데이트
-        val summary = getOrCreateSummary(command.userId, command.date)
-        summary.completeQuest(command.questType)
-        dailyQuestSummaryRepository.save(summary)
+        // 최신 진행 상황으로 요약 업데이트
+        val allProgresses = dailyQuestProgressRepository.findByUserIdAndDate(command.userId, command.date)
+        val completedCount = allProgresses.count { it.isCompleted }
+        val totalCount = allProgresses.size
+        val completionPercentage = if (totalCount > 0) (completedCount * 100) / totalCount else 0
+        
+        // 최신 Progress 리스트로 새로운 Summary 생성
+        val updatedSummary = DailyQuestSummary.fromProgresses(command.userId, command.date, allProgresses)
+        updatedSummary.updatedAt = java.time.LocalDateTime.now()
+        
+        // 업데이트된 Summary 저장 (UPSERT 로직 사용)
+        val summary = dailyQuestSummaryRepository.save(updatedSummary)
         
         // 사용자에게 보상 지급
         grantRewards(user, summary)
@@ -115,7 +123,7 @@ class DailyQuestApplicationService(
         // 요약 업데이트
         val summary = getOrCreateSummary(command.userId, command.date)
         summary.uncompleteQuest(command.questType)
-        dailyQuestSummaryRepository.save(summary)
+        val updatedSummary = dailyQuestSummaryRepository.save(summary)
         
         return convertToSummaryDto(summary)
     }
@@ -138,9 +146,8 @@ class DailyQuestApplicationService(
         val progresses = DailyQuestProgress.createForAllQuests(command.userId, dailyQuests, command.date)
         progresses.forEach { dailyQuestProgressRepository.save(it) }
         
-        // 요약 생성
-        val summary = DailyQuestSummary.create(command.userId, dailyQuests, command.date)
-        dailyQuestSummaryRepository.save(summary)
+        // 요약 생성 - getOrCreateSummary 사용하여 중복 방지
+        getOrCreateSummary(command.userId, command.date)
         
         return convertToProgressDto(command.userId, command.date, progresses)
     }
@@ -398,18 +405,77 @@ class DailyQuestApplicationService(
     }
 
     private fun getOrCreateSummary(userId: UserId, date: LocalDate): DailyQuestSummary {
-        return dailyQuestSummaryRepository.findByUserIdAndDate(userId, date)
-            ?: createEmptySummary(userId, date)
+        // Try to find existing summary first
+        val existingSummary = dailyQuestSummaryRepository.findByUserIdAndDate(userId, date)
+        if (existingSummary != null) {
+            return existingSummary
+        }
+        
+        // If not found, try to create new one with proper error handling
+        return try {
+            createEmptySummary(userId, date)
+        } catch (e: Exception) {
+            // In case of race condition or constraint violation, try one more time to fetch existing
+            if (e.message?.contains("duplicate key") == true || e.message?.contains("constraint") == true) {
+                val retryExistingSummary = dailyQuestSummaryRepository.findByUserIdAndDate(userId, date)
+                if (retryExistingSummary != null) {
+                    return retryExistingSummary
+                }
+                throw e // If still not found, rethrow original exception
+            } else {
+                throw e
+            }
+        }
+    }
+
+    private fun getOrCreateSummaryWithProgresses(userId: UserId, date: LocalDate, progresses: List<DailyQuestProgress>): DailyQuestSummary {
+        val existingSummary = dailyQuestSummaryRepository.findByUserIdAndDate(userId, date)
+        return if (existingSummary != null) {
+            // 기존 요약이 있으면 Progress 목록을 업데이트
+            existingSummary.progresses.clear()
+            existingSummary.progresses.addAll(progresses)
+            existingSummary.updatedAt = java.time.LocalDateTime.now()
+            existingSummary
+        } else {
+            // 새로운 요약 생성 후 바로 저장 (UPSERT 로직 적용)
+            val newSummary = DailyQuestSummary.fromProgresses(userId, date, progresses)
+            dailyQuestSummaryRepository.save(newSummary)
+        }
     }
 
     private fun createEmptySummary(userId: UserId, date: LocalDate): DailyQuestSummary {
-        val dailyQuests = dailyQuestRepository.findAllActiveQuests()
-        val progresses = dailyQuestProgressRepository.findByUserIdAndDate(userId, date)
+        // This method should only be called through getOrCreateSummary
+        // Always double-check to prevent constraint violations
+        val existingSummary = dailyQuestSummaryRepository.findByUserIdAndDate(userId, date)
+        if (existingSummary != null) {
+            return existingSummary
+        }
         
-        return if (progresses.isNotEmpty()) {
-            DailyQuestSummary.fromProgresses(userId, date, progresses)
-        } else {
-            DailyQuestSummary.create(userId, dailyQuests, date)
+        try {
+            val dailyQuests = dailyQuestRepository.findAllActiveQuests()
+            val progresses = dailyQuestProgressRepository.findByUserIdAndDate(userId, date)
+            
+            val summary = if (progresses.isNotEmpty()) {
+                DailyQuestSummary.fromProgresses(userId, date, progresses)
+            } else {
+                DailyQuestSummary.create(userId, dailyQuests, date)
+            }
+            
+            // Triple check before saving to avoid constraint violations
+            val finalExistingSummary = dailyQuestSummaryRepository.findByUserIdAndDate(userId, date)
+            if (finalExistingSummary != null) {
+                return finalExistingSummary
+            }
+            
+            // Save the new summary (UPSERT 로직 적용)
+            return dailyQuestSummaryRepository.save(summary)
+        } catch (e: Exception) {
+            // If constraint violation occurs, always try to fetch existing summary
+            val existingSummaryAfterError = dailyQuestSummaryRepository.findByUserIdAndDate(userId, date)
+            if (existingSummaryAfterError != null) {
+                return existingSummaryAfterError
+            }
+            throw e
         }
     }
 

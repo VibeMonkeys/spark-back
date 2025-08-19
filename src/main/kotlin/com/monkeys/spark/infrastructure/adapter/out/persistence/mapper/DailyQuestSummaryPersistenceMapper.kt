@@ -79,7 +79,7 @@ class DailyQuestSummaryPersistenceMapper {
     /**
      * 특수 보상 리스트를 JSON 문자열로 직렬화
      */
-    private fun serializeSpecialRewards(rewards: List<SpecialRewardTier>): String {
+    fun serializeSpecialRewards(rewards: List<SpecialRewardTier>): String {
         return try {
             objectMapper.writeValueAsString(rewards.map { it.name })
         } catch (e: Exception) {

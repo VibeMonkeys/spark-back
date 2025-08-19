@@ -24,9 +24,38 @@ class DailyQuestSummaryPersistenceAdapter(
     private val objectMapper = jacksonObjectMapper()
     
     override fun save(summary: DailyQuestSummary): DailyQuestSummary {
-        val entity = mapper.toEntity(summary)
-        val savedEntity = jpaRepository.save(entity)
-        return mapper.toDomain(savedEntity)
+        // 기존 엔티티 존재 여부 확인
+        val existingEntity = jpaRepository.findByUserIdAndSummaryDate(summary.userId.value, summary.date)
+        
+        return if (existingEntity != null) {
+            // 기존 엔티티가 있으면 네이티브 UPDATE 쿼리 사용
+            val entity = mapper.toEntity(summary)
+            jpaRepository.updateByUserIdAndDate(
+                userId = entity.userId,
+                summaryDate = entity.summaryDate,
+                completedCount = entity.completedCount,
+                totalCount = entity.totalCount,
+                completionPercentage = entity.completionPercentage,
+                baseRewardPoints = entity.baseRewardPoints,
+                specialRewardPoints = entity.specialRewardPoints,
+                totalRewardPoints = entity.totalRewardPoints,
+                specialRewardsEarned = entity.specialRewardsEarned,
+                totalStatReward = entity.totalStatReward,
+                statusMessage = entity.statusMessage,
+                updatedAt = entity.updatedAt
+            )
+            
+            // UPDATE 후 최신 데이터 조회하여 반환
+            val updatedEntity = jpaRepository.findByUserIdAndSummaryDate(summary.userId.value, summary.date)
+                ?: throw IllegalStateException("UPDATE 실행 후 엔티티를 찾을 수 없습니다: userId=${summary.userId.value}, date=${summary.date}")
+            
+            mapper.toDomain(updatedEntity)
+        } else {
+            // 새로운 엔티티인 경우에만 INSERT
+            val entity = mapper.toEntity(summary)
+            val savedEntity = jpaRepository.save(entity)
+            mapper.toDomain(savedEntity)
+        }
     }
     
     override fun findByUserIdAndDate(userId: UserId, date: LocalDate): DailyQuestSummary? {

@@ -80,6 +80,11 @@ class SecurityConfig(
                         HttpMethod.GET, "/api/v1/levels/**"
                     ).permitAll()
                     
+                    // Public daily quest endpoints (read-only) - for quest viewing
+                    .requestMatchers(
+                        HttpMethod.GET, "/api/v1/daily-quests/**"
+                    ).permitAll()
+                    
                     // Allow WebSocket connections
                     .requestMatchers(
                         "/ws/**"
@@ -91,6 +96,7 @@ class SecurityConfig(
                     .requestMatchers("/api/v1/stories/**").authenticated()    // All story operations
                     .requestMatchers("/api/v1/stats/**").authenticated()      // All stats operations
                     .requestMatchers("/api/v1/levels/**").authenticated()     // All level operations
+                    .requestMatchers("/api/v1/daily-quests/**").authenticated() // All daily quest operations (except GET)
                     .requestMatchers("/api/v1/notifications/**").authenticated() // All notification operations
                     .requestMatchers("/api/v1/hashtags/**").authenticated()   // All hashtag operations
                     .requestMatchers("/api/v1/rewards/**").authenticated()    // All reward operations

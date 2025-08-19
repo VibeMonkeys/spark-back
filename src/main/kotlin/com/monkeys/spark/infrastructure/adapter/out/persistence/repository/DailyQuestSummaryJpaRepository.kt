@@ -2,9 +2,11 @@ package com.monkeys.spark.infrastructure.adapter.out.persistence.repository
 
 import com.monkeys.spark.infrastructure.adapter.out.persistence.entity.DailyQuestSummaryEntity
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 
 /**
@@ -191,4 +193,38 @@ interface DailyQuestSummaryJpaRepository : JpaRepository<DailyQuestSummaryEntity
      */
     @Query("SELECT dqs.completionPercentage FROM DailyQuestSummaryEntity dqs WHERE dqs.userId = :userId ORDER BY dqs.summaryDate DESC LIMIT :days")
     fun getRecentCompletionRatesForTrend(@Param("userId") userId: Long, @Param("days") days: Int): List<Int>
+    
+    /**
+     * Native UPDATE: 기존 Summary 직접 업데이트 (제약조건 위반 완전 해결)
+     */
+    @Modifying
+    @Transactional
+    @Query(value = """
+        UPDATE daily_quest_summary SET
+            completed_count = :completedCount,
+            total_count = :totalCount,
+            completion_percentage = :completionPercentage,
+            base_reward_points = :baseRewardPoints,
+            special_reward_points = :specialRewardPoints,
+            total_reward_points = :totalRewardPoints,
+            special_rewards_earned = :specialRewardsEarned,
+            total_stat_reward = :totalStatReward,
+            status_message = :statusMessage,
+            updated_at = :updatedAt
+        WHERE user_id = :userId AND summary_date = :summaryDate
+    """, nativeQuery = true)
+    fun updateByUserIdAndDate(
+        @Param("userId") userId: Long,
+        @Param("summaryDate") summaryDate: LocalDate,
+        @Param("completedCount") completedCount: Int,
+        @Param("totalCount") totalCount: Int,
+        @Param("completionPercentage") completionPercentage: Int,
+        @Param("baseRewardPoints") baseRewardPoints: Int,
+        @Param("specialRewardPoints") specialRewardPoints: Int,
+        @Param("totalRewardPoints") totalRewardPoints: Int,
+        @Param("specialRewardsEarned") specialRewardsEarned: String,
+        @Param("totalStatReward") totalStatReward: Int,
+        @Param("statusMessage") statusMessage: String,
+        @Param("updatedAt") updatedAt: java.time.LocalDateTime
+    ): Int
 }
