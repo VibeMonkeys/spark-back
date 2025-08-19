@@ -32,7 +32,7 @@ class DailyQuestController(
      */
     @GetMapping("/today")
     fun getTodayDailyQuests(@RequestParam userId: Long): ResponseEntity<ApiResponse<Any>> {
-        val userIdVO = UserId(userId.toString())
+        val userIdVO = UserId(userId)
         val query = GetTodayDailyQuestsQuery(userIdVO)
         val result = dailyQuestUseCase.getTodayDailyQuests(query)
         
@@ -53,7 +53,7 @@ class DailyQuestController(
         @PathVariable date: String,
         @RequestParam userId: Long
     ): ResponseEntity<ApiResponse<Any>> {
-        val userIdVO = UserId(userId.toString())
+        val userIdVO = UserId(userId)
         val targetDate = LocalDate.parse(date)
         val query = GetDailyQuestsByDateQuery(userIdVO, targetDate)
         val result = dailyQuestUseCase.getDailyQuestsByDate(query)
@@ -75,7 +75,7 @@ class DailyQuestController(
         @RequestParam userId: Long,
         @RequestParam(required = false) date: String?
     ): ResponseEntity<ApiResponse<Any>> {
-        val userIdVO = UserId(userId.toString())
+        val userIdVO = UserId(userId)
         val targetDate = date?.let { LocalDate.parse(it) } ?: LocalDate.now()
         val result = dailyQuestUseCase.getDailyQuestSummary(userIdVO, targetDate)
         
@@ -97,7 +97,7 @@ class DailyQuestController(
      */
     @PostMapping("/complete")
     fun completeDailyQuest(@RequestBody request: CompleteDailyQuestRequest): ResponseEntity<ApiResponse<Any>> {
-        val userIdVO = UserId(request.userId.toString())
+        val userIdVO = UserId(request.userId)
         val questType = DailyQuestType.valueOf(request.questType)
         val command = CompleteDailyQuestCommand(userIdVO, questType)
         val result = dailyQuestUseCase.completeDailyQuest(command)
@@ -116,7 +116,7 @@ class DailyQuestController(
      */
     @DeleteMapping("/complete")
     fun uncompleteDailyQuest(@RequestBody request: CompleteDailyQuestRequest): ResponseEntity<ApiResponse<Any>> {
-        val userIdVO = UserId(request.userId.toString())
+        val userIdVO = UserId(request.userId)
         val questType = DailyQuestType.valueOf(request.questType)
         val command = UncompleteDailyQuestCommand(userIdVO, questType)
         val result = dailyQuestUseCase.uncompleteDailyQuest(command)
@@ -142,7 +142,7 @@ class DailyQuestController(
         @RequestParam userId: Long,
         @RequestParam(defaultValue = "30") days: Int
     ): ResponseEntity<ApiResponse<Any>> {
-        val userIdVO = UserId(userId.toString())
+        val userIdVO = UserId(userId)
         val endDate = LocalDate.now()
         val startDate = endDate.minusDays(days.toLong())
         val query = GetDailyQuestStatsQuery(userIdVO, startDate, endDate)
@@ -162,7 +162,7 @@ class DailyQuestController(
      */
     @GetMapping("/consecutive-perfect-days")
     fun getConsecutivePerfectDays(@RequestParam userId: Long): ResponseEntity<ApiResponse<Any>> {
-        val userIdVO = UserId(userId.toString())
+        val userIdVO = UserId(userId)
         val query = GetConsecutivePerfectDaysQuery(userIdVO)
         val result = dailyQuestUseCase.getConsecutivePerfectDays(query)
         
@@ -187,7 +187,7 @@ class DailyQuestController(
         @RequestParam year: Int,
         @RequestParam month: Int
     ): ResponseEntity<ApiResponse<Any>> {
-        val userIdVO = UserId(userId.toString())
+        val userIdVO = UserId(userId)
         val query = GetMonthlyDailyQuestStatsQuery(userIdVO, year, month)
         val result = dailyQuestUseCase.getMonthlyStats(query)
         
@@ -208,7 +208,7 @@ class DailyQuestController(
         @RequestParam userId: Long,
         @RequestParam(defaultValue = "30") days: Int
     ): ResponseEntity<ApiResponse<Any>> {
-        val userIdVO = UserId(userId.toString())
+        val userIdVO = UserId(userId)
         val query = GetImprovementTrendQuery(userIdVO, days)
         val result = dailyQuestUseCase.getImprovementTrend(query)
         
@@ -310,7 +310,7 @@ class DailyQuestController(
         @RequestParam userId: Long,
         @RequestParam(required = false) date: String?
     ): ResponseEntity<ApiResponse<Any>> {
-        val userIdVO = UserId(userId.toString())
+        val userIdVO = UserId(userId)
         val targetDate = date?.let { LocalDate.parse(it) } ?: LocalDate.now()
         val result = dailyQuestUseCase.getGameifiedStatusMessage(userIdVO, targetDate)
         
@@ -331,7 +331,7 @@ class DailyQuestController(
         @RequestParam userId: Long,
         @RequestParam(required = false) date: String?
     ): ResponseEntity<ApiResponse<Any>> {
-        val userIdVO = UserId(userId.toString())
+        val userIdVO = UserId(userId)
         val targetDate = date?.let { LocalDate.parse(it) } ?: LocalDate.now()
         val result = dailyQuestUseCase.getNextMilestone(userIdVO, targetDate)
         
@@ -352,7 +352,7 @@ class DailyQuestController(
         @RequestParam userId: Long,
         @RequestParam(defaultValue = "30") days: Int
     ): ResponseEntity<ApiResponse<Any>> {
-        val userIdVO = UserId(userId.toString())
+        val userIdVO = UserId(userId)
         val result = dailyQuestUseCase.analyzeUserAchievement(userIdVO, days)
         
         return ResponseEntity.ok(
@@ -389,7 +389,7 @@ class DailyQuestController(
      */
     @GetMapping("/special-reward-stats")
     fun getSpecialRewardStats(@RequestParam userId: Long): ResponseEntity<ApiResponse<Any>> {
-        val userIdVO = UserId(userId.toString())
+        val userIdVO = UserId(userId)
         val result = dailyQuestUseCase.getSpecialRewardStats(userIdVO)
         
         return ResponseEntity.ok(
@@ -403,6 +403,24 @@ class DailyQuestController(
     // ===============================================
     // 7. 헬스체크 및 유틸리티 API
     // ===============================================
+
+    /**
+     * 사용자 일일 퀘스트 초기화
+     * POST /api/v1/daily-quests/{userId}/initialize
+     */
+    @PostMapping("/{userId}/initialize")
+    fun initializeDailyQuests(@PathVariable userId: Long): ResponseEntity<ApiResponse<Any>> {
+        val userIdVO = UserId(userId)
+        val command = InitializeDailyQuestsCommand(userIdVO, LocalDate.now())
+        val result = dailyQuestUseCase.initializeDailyQuests(command)
+        
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                data = result,
+                message = "🎮 오늘의 일일 퀘스트가 준비되었습니다! 삶을 게임처럼 즐겨보세요."
+            )
+        )
+    }
 
     /**
      * 일일 퀘스트 시스템 상태 확인
