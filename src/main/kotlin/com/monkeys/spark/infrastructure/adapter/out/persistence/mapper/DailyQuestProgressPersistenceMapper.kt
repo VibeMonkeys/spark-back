@@ -19,7 +19,7 @@ class DailyQuestProgressPersistenceMapper {
     fun toEntity(domain: DailyQuestProgress): DailyQuestProgressEntity {
         val entity = DailyQuestProgressEntity()
         entity.id = if (domain.id.value == "0") 0L else domain.id.value.toLongOrNull() ?: 0L
-        entity.userId = domain.userId.value.toLongOrNull() ?: 0L
+        entity.userId = domain.userId.value
         entity.dailyQuestId = domain.dailyQuestId.value.toLongOrNull() ?: 0L
         entity.questType = domain.questType.name
         entity.questDate = domain.date
@@ -36,7 +36,7 @@ class DailyQuestProgressPersistenceMapper {
     fun toDomain(entity: DailyQuestProgressEntity): DailyQuestProgress {
         return DailyQuestProgress(
             id = DailyQuestProgressId(entity.id.toString()),
-            userId = UserId(entity.userId.toString()),
+            userId = UserId(entity.userId),
             dailyQuestId = DailyQuestId.from(entity.dailyQuestId.toString()),
             questType = DailyQuestType.valueOf(entity.questType),
             date = entity.questDate,

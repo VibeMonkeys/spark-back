@@ -22,7 +22,7 @@ class DailyQuestSummaryPersistenceMapper {
      */
     fun toEntity(domain: DailyQuestSummary): DailyQuestSummaryEntity {
         val entity = DailyQuestSummaryEntity()
-        entity.userId = domain.userId.value.toLongOrNull() ?: 0L
+        entity.userId = domain.userId.value
         entity.summaryDate = domain.date
         entity.completedCount = domain.getCompletedCount()
         entity.totalCount = domain.getTotalCount()
@@ -51,7 +51,7 @@ class DailyQuestSummaryPersistenceMapper {
         
         // 임시로 빈 progresses로 생성 (실제로는 별도 로드 필요)
         val summary = DailyQuestSummary(
-            userId = UserId(entity.userId.toString()),
+            userId = UserId(entity.userId),
             date = entity.summaryDate,
             progresses = mutableListOf(),
             specialRewardsEarned = specialRewards.toMutableList(),

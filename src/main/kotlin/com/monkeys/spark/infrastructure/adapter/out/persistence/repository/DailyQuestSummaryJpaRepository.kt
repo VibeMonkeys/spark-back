@@ -51,17 +51,18 @@ interface DailyQuestSummaryJpaRepository : JpaRepository<DailyQuestSummaryEntity
      * 사용자의 연속 완벽한 하루 수 계산
      */
     @Query("""
-        SELECT COUNT(*)
-        FROM (
-            SELECT dqs.summaryDate,
-                   LAG(dqs.summaryDate) OVER (ORDER BY dqs.summaryDate) as prev_date
-            FROM DailyQuestSummaryEntity dqs
-            WHERE dqs.userId = :userId 
-            AND dqs.completionPercentage = 100
-            AND dqs.summaryDate <= CURRENT_DATE
-            ORDER BY dqs.summaryDate DESC
-        ) t
-        WHERE prev_date IS NULL OR DATEDIFF(summaryDate, prev_date) = 1
+        SELECT COUNT(dqs)
+        FROM DailyQuestSummaryEntity dqs
+        WHERE dqs.userId = :userId 
+        AND dqs.completionPercentage = 100
+        AND dqs.summaryDate >= (
+            SELECT MAX(dqs2.summaryDate)
+            FROM DailyQuestSummaryEntity dqs2
+            WHERE dqs2.userId = :userId 
+            AND dqs2.completionPercentage < 100
+            AND dqs2.summaryDate <= CURRENT_DATE
+        )
+        AND dqs.summaryDate <= CURRENT_DATE
     """)
     fun countConsecutivePerfectDays(@Param("userId") userId: Long): Long
     
@@ -77,8 +78,8 @@ interface DailyQuestSummaryJpaRepository : JpaRepository<DailyQuestSummaryEntity
             SUM(dqs.totalRewardPoints) as totalRewardPoints
         FROM DailyQuestSummaryEntity dqs 
         WHERE dqs.userId = :userId 
-        AND YEAR(dqs.summaryDate) = :year 
-        AND MONTH(dqs.summaryDate) = :month
+        AND EXTRACT(YEAR FROM dqs.summaryDate) = :year 
+        AND EXTRACT(MONTH FROM dqs.summaryDate) = :month
     """)
     fun getMonthlyStats(@Param("userId") userId: Long, @Param("year") year: Int, @Param("month") month: Int): Array<Any>
     
@@ -94,7 +95,7 @@ interface DailyQuestSummaryJpaRepository : JpaRepository<DailyQuestSummaryEntity
             SUM(dqs.totalRewardPoints) as totalRewardPoints
         FROM DailyQuestSummaryEntity dqs 
         WHERE dqs.userId = :userId 
-        AND YEAR(dqs.summaryDate) = :year
+        AND EXTRACT(YEAR FROM dqs.summaryDate) = :year
     """)
     fun getYearlyStats(@Param("userId") userId: Long, @Param("year") year: Int): Array<Any>
     
@@ -113,31 +114,20 @@ interface DailyQuestSummaryJpaRepository : JpaRepository<DailyQuestSummaryEntity
     /**
      * 최고 완료율 달성자들 조회 (리더보드용)
      */
-    @Query("SELECT dqs FROM DailyQuestSummaryEntity dqs WHERE dqs.summaryDate = :date ORDER BY dqs.completionPercentage DESC, dqs.totalRewardPoints DESC LIMIT :limit")
-    fun findTopPerformersByDate(@Param("date") date: LocalDate, @Param("limit") limit: Int): List<DailyQuestSummaryEntity>
+    @Query("SELECT dqs FROM DailyQuestSummaryEntity dqs WHERE dqs.summaryDate = :date ORDER BY dqs.completionPercentage DESC, dqs.totalRewardPoints DESC")
+    fun findTopPerformersByDate(@Param("date") date: LocalDate): List<DailyQuestSummaryEntity>
     
     /**
      * 최고 연속 완벽한 하루 달성자들 조회
      */
     @Query("""
-        SELECT dqs.userId, MAX(consecutive_days) as max_consecutive
-        FROM (
-            SELECT userId,
-                   COUNT(*) as consecutive_days
-            FROM (
-                SELECT userId, summaryDate,
-                       ROW_NUMBER() OVER (PARTITION BY userId ORDER BY summaryDate) - 
-                       ROW_NUMBER() OVER (PARTITION BY userId ORDER BY summaryDate) as grp
-                FROM DailyQuestSummaryEntity
-                WHERE completionPercentage = 100
-            ) t
-            GROUP BY userId, grp
-        ) dqs
+        SELECT dqs.userId, COUNT(dqs.userId) as consecutive_days
+        FROM DailyQuestSummaryEntity dqs
+        WHERE dqs.completionPercentage = 100
         GROUP BY dqs.userId
-        ORDER BY max_consecutive DESC
-        LIMIT :limit
+        ORDER BY consecutive_days DESC
     """)
-    fun findTopConsecutivePerfectDaysUsers(@Param("limit") limit: Int): List<Array<Any>>
+    fun findTopConsecutivePerfectDaysUsers(): List<Array<Any>>
     
     /**
      * 특정 보상 등급을 달성한 사용자 수 조회
