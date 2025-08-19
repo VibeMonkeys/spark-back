@@ -21,7 +21,6 @@ class DailyQuestRewardDomainService {
         
         val updatedUserStats = userStats?.let {
             it.addStatValue(StatType.DISCIPLINE, 1)
-            it
         }
         
         return updatedUser to updatedUserStats
@@ -42,7 +41,6 @@ class DailyQuestRewardDomainService {
         val updatedUserStats = userStats?.let {
             val bonusStats = calculateMilestoneStatBonus(milestone)
             it.addStatValue(StatType.DISCIPLINE, bonusStats)
-            it
         }
         
         return updatedUser to updatedUserStats
@@ -69,7 +67,6 @@ class DailyQuestRewardDomainService {
                 else -> 0
             }
             it.addStatValue(StatType.DISCIPLINE, bonusStats)
-            it
         }
         
         return updatedUser to updatedUserStats

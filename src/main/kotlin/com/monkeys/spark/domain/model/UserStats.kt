@@ -106,6 +106,44 @@ data class UserStats(
     }
 
     /**
+     * 스탯 포인트 직접 추가 (일일 퀘스트용)
+     */
+    fun addStatValue(statType: StatType, points: Int): UserStats {
+        return when (statType) {
+            StatType.STRENGTH -> copy(
+                strength = strength.increaseByStat(points),
+                totalEarnedPoints = totalEarnedPoints + points,
+                lastUpdatedAt = LocalDateTime.now()
+            )
+            StatType.INTELLIGENCE -> copy(
+                intelligence = intelligence.increaseByStat(points),
+                totalEarnedPoints = totalEarnedPoints + points,
+                lastUpdatedAt = LocalDateTime.now()
+            )
+            StatType.CREATIVITY -> copy(
+                creativity = creativity.increaseByStat(points),
+                totalEarnedPoints = totalEarnedPoints + points,
+                lastUpdatedAt = LocalDateTime.now()
+            )
+            StatType.SOCIABILITY -> copy(
+                sociability = sociability.increaseByStat(points),
+                totalEarnedPoints = totalEarnedPoints + points,
+                lastUpdatedAt = LocalDateTime.now()
+            )
+            StatType.ADVENTUROUS -> copy(
+                adventurous = adventurous.increaseByStat(points),
+                totalEarnedPoints = totalEarnedPoints + points,
+                lastUpdatedAt = LocalDateTime.now()
+            )
+            StatType.DISCIPLINE -> copy(
+                discipline = discipline.increaseByStat(points),
+                totalEarnedPoints = totalEarnedPoints + points,
+                lastUpdatedAt = LocalDateTime.now()
+            )
+        }
+    }
+
+    /**
      * 미션 완료로 스탯 증가
      */
     fun increaseMissionStat(missionCategory: String): UserStats {
