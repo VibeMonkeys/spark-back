@@ -400,6 +400,67 @@ class DailyQuestController(
         )
     }
 
+    /**
+     * 주간 요약 조회 (프론트엔드용)
+     * GET /api/v1/daily-quests/weekly-summary?userId={userId}
+     */
+    @GetMapping("/weekly-summary")
+    fun getWeeklySummary(@RequestParam userId: Long): ResponseEntity<ApiResponse<Any>> {
+        val userIdVO = UserId(userId)
+        val endDate = LocalDate.now()
+        val startDate = endDate.minusDays(6) // 지난 7일
+        val query = GetDailyQuestStatsQuery(userIdVO, startDate, endDate)
+        val stats = dailyQuestUseCase.getDailyQuestStats(query)
+        
+        // 주간 요약 데이터 생성
+        val weeklySummary = mapOf(
+            "week" to "이번 주",
+            "totalQuests" to (stats.totalDays * 4), // 7일 * 4개 퀘스트
+            "completionRate" to String.format("%.1f%%", stats.averageCompletionRate * 100),
+            "streak" to stats.consecutivePerfectDays,
+            "perfectDays" to stats.perfectDays,
+            "totalPoints" to (stats.perfectDays * 20), // 추정 포인트
+            "avgDailyCompletion" to String.format("%.1f", stats.averageCompletionRate * 4)
+        )
+        
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                data = weeklySummary,
+                message = "주간 요약을 조회했습니다."
+            )
+        )
+    }
+
+    /**
+     * 월간 요약 조회 (프론트엔드용)
+     * GET /api/v1/daily-quests/monthly-summary?userId={userId}
+     */
+    @GetMapping("/monthly-summary") 
+    fun getMonthlySummary(@RequestParam userId: Long): ResponseEntity<ApiResponse<Any>> {
+        val userIdVO = UserId(userId)
+        val now = LocalDate.now()
+        val query = GetMonthlyDailyQuestStatsQuery(userIdVO, now.year, now.monthValue)
+        val monthlyStats = dailyQuestUseCase.getMonthlyStats(query)
+        
+        // 월간 요약 데이터 생성
+        val monthlySummary = mapOf(
+            "month" to "${now.year}년 ${now.monthValue}월",
+            "totalQuests" to (monthlyStats.totalDays * 4), // 일수 * 4개 퀘스트
+            "completionRate" to String.format("%.1f%%", monthlyStats.averageCompletionRate * 100),
+            "perfectDays" to monthlyStats.perfectDays,
+            "totalPoints" to (monthlyStats.perfectDays * 20), // 추정 포인트
+            "activeDays" to monthlyStats.completedDays,
+            "bestStreak" to monthlyStats.perfectDays
+        )
+        
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                data = monthlySummary,
+                message = "월간 요약을 조회했습니다."
+            )
+        )
+    }
+
     // ===============================================
     // 7. 헬스체크 및 유틸리티 API
     // ===============================================

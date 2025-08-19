@@ -97,25 +97,79 @@ class DailyQuestSummaryPersistenceAdapter(
     override fun getMonthlyStats(userId: UserId, year: Int, month: Int): Map<String, Any> {
         val result = jpaRepository.getMonthlyStats(userId.value, year, month)
         
-        return mapOf(
-            "totalDays" to (result[0] as Number).toInt(),
-            "completedDays" to (result[1] as Number).toInt(),
-            "perfectDays" to (result[2] as Number).toInt(),
-            "averageCompletionRate" to (result[3] as Number).toDouble(),
-            "totalRewardPoints" to (result[4] as Number).toInt()
-        )
+        // JPA 집계 쿼리 결과를 안전하게 처리
+        return when (result.size) {
+            1 -> {
+                // 단일 결과가 배열로 래핑된 경우 (JPA가 배열 내부에 모든 컬럼을 포함)
+                val row = result[0] as Array<*>
+                mapOf(
+                    "totalDays" to ((row[0] as? Number)?.toInt() ?: 0),
+                    "completedDays" to ((row[1] as? Number)?.toInt() ?: 0),
+                    "perfectDays" to ((row[2] as? Number)?.toInt() ?: 0),
+                    "averageCompletionRate" to ((row[3] as? Number)?.toDouble() ?: 0.0),
+                    "totalRewardPoints" to ((row[4] as? Number)?.toInt() ?: 0)
+                )
+            }
+            5 -> {
+                // 각 컬럼이 별도 요소로 반환된 경우
+                mapOf(
+                    "totalDays" to ((result[0] as? Number)?.toInt() ?: 0),
+                    "completedDays" to ((result[1] as? Number)?.toInt() ?: 0),
+                    "perfectDays" to ((result[2] as? Number)?.toInt() ?: 0),
+                    "averageCompletionRate" to ((result[3] as? Number)?.toDouble() ?: 0.0),
+                    "totalRewardPoints" to ((result[4] as? Number)?.toInt() ?: 0)
+                )
+            }
+            else -> {
+                // 빈 결과나 예상하지 못한 구조일 때 기본값 반환
+                mapOf(
+                    "totalDays" to 0,
+                    "completedDays" to 0,
+                    "perfectDays" to 0,
+                    "averageCompletionRate" to 0.0,
+                    "totalRewardPoints" to 0
+                )
+            }
+        }
     }
     
     override fun getYearlyStats(userId: UserId, year: Int): Map<String, Any> {
         val result = jpaRepository.getYearlyStats(userId.value, year)
         
-        return mapOf(
-            "totalDays" to (result[0] as Number).toInt(),
-            "completedDays" to (result[1] as Number).toInt(),
-            "perfectDays" to (result[2] as Number).toInt(),
-            "averageCompletionRate" to (result[3] as Number).toDouble(),
-            "totalRewardPoints" to (result[4] as Number).toInt()
-        )
+        // JPA 집계 쿼리 결과를 안전하게 처리
+        return when (result.size) {
+            1 -> {
+                // 단일 결과가 배열로 래핑된 경우 (JPA가 배열 내부에 모든 컬럼을 포함)
+                val row = result[0] as Array<*>
+                mapOf(
+                    "totalDays" to ((row[0] as? Number)?.toInt() ?: 0),
+                    "completedDays" to ((row[1] as? Number)?.toInt() ?: 0),
+                    "perfectDays" to ((row[2] as? Number)?.toInt() ?: 0),
+                    "averageCompletionRate" to ((row[3] as? Number)?.toDouble() ?: 0.0),
+                    "totalRewardPoints" to ((row[4] as? Number)?.toInt() ?: 0)
+                )
+            }
+            5 -> {
+                // 각 컬럼이 별도 요소로 반환된 경우
+                mapOf(
+                    "totalDays" to ((result[0] as? Number)?.toInt() ?: 0),
+                    "completedDays" to ((result[1] as? Number)?.toInt() ?: 0),
+                    "perfectDays" to ((result[2] as? Number)?.toInt() ?: 0),
+                    "averageCompletionRate" to ((result[3] as? Number)?.toDouble() ?: 0.0),
+                    "totalRewardPoints" to ((result[4] as? Number)?.toInt() ?: 0)
+                )
+            }
+            else -> {
+                // 빈 결과나 예상하지 못한 구조일 때 기본값 반환
+                mapOf(
+                    "totalDays" to 0,
+                    "completedDays" to 0,
+                    "perfectDays" to 0,
+                    "averageCompletionRate" to 0.0,
+                    "totalRewardPoints" to 0
+                )
+            }
+        }
     }
     
     override fun getCompletionDistributionByDate(date: LocalDate): Map<Int, Long> {
