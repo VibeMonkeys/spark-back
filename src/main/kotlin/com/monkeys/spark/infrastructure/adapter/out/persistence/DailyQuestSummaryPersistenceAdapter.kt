@@ -30,14 +30,12 @@ class DailyQuestSummaryPersistenceAdapter(
     }
     
     override fun findByUserIdAndDate(userId: UserId, date: LocalDate): DailyQuestSummary? {
-        val userIdLong = userId.value.toLongOrNull() ?: return null
-        return jpaRepository.findByUserIdAndSummaryDate(userIdLong, date)
+        return jpaRepository.findByUserIdAndSummaryDate(userId.value, date)
             ?.let { mapper.toDomain(it) }
     }
     
     override fun findTodaySummaryByUserId(userId: UserId): DailyQuestSummary? {
-        val userIdLong = userId.value.toLongOrNull() ?: return null
-        return jpaRepository.findTodaySummaryByUserId(userIdLong)
+        return jpaRepository.findTodaySummaryByUserId(userId.value)
             ?.let { mapper.toDomain(it) }
     }
     
@@ -46,31 +44,29 @@ class DailyQuestSummaryPersistenceAdapter(
         startDate: LocalDate,
         endDate: LocalDate
     ): List<DailyQuestSummary> {
-        val userIdLong = userId.value.toLongOrNull() ?: return emptyList()
+        val userIdLong = userId.value
         return jpaRepository.findByUserIdAndDateRange(userIdLong, startDate, endDate)
             .let { mapper.toDomainList(it) }
     }
     
     override fun findRecentSummariesByUserId(userId: UserId, days: Int): List<DailyQuestSummary> {
-        val userIdLong = userId.value.toLongOrNull() ?: return emptyList()
+        val userIdLong = userId.value
         return jpaRepository.findRecentSummariesByUserId(userIdLong, days)
             .let { mapper.toDomainList(it) }
     }
     
     override fun findPerfectDaysByUserId(userId: UserId): List<DailyQuestSummary> {
-        val userIdLong = userId.value.toLongOrNull() ?: return emptyList()
+        val userIdLong = userId.value
         return jpaRepository.findPerfectDaysByUserId(userIdLong)
             .let { mapper.toDomainList(it) }
     }
     
     override fun countConsecutivePerfectDays(userId: UserId): Long {
-        val userIdLong = userId.value.toLongOrNull() ?: return 0L
-        return jpaRepository.countConsecutivePerfectDays(userIdLong)
+        return jpaRepository.countConsecutivePerfectDays(userId.value)
     }
     
     override fun getMonthlyStats(userId: UserId, year: Int, month: Int): Map<String, Any> {
-        val userIdLong = userId.value.toLongOrNull() ?: return emptyMap()
-        val result = jpaRepository.getMonthlyStats(userIdLong, year, month)
+        val result = jpaRepository.getMonthlyStats(userId.value, year, month)
         
         return mapOf(
             "totalDays" to (result[0] as Number).toInt(),
@@ -82,8 +78,7 @@ class DailyQuestSummaryPersistenceAdapter(
     }
     
     override fun getYearlyStats(userId: UserId, year: Int): Map<String, Any> {
-        val userIdLong = userId.value.toLongOrNull() ?: return emptyMap()
-        val result = jpaRepository.getYearlyStats(userIdLong, year)
+        val result = jpaRepository.getYearlyStats(userId.value, year)
         
         return mapOf(
             "totalDays" to (result[0] as Number).toInt(),
@@ -104,14 +99,15 @@ class DailyQuestSummaryPersistenceAdapter(
     }
     
     override fun findTopPerformersByDate(date: LocalDate, limit: Int): List<DailyQuestSummary> {
-        return jpaRepository.findTopPerformersByDate(date, limit)
+        return jpaRepository.findTopPerformersByDate(date)
+            .take(limit)
             .let { mapper.toDomainList(it) }
     }
     
     override fun findTopConsecutivePerfectDaysUsers(limit: Int): List<Pair<UserId, Long>> {
-        val results = jpaRepository.findTopConsecutivePerfectDaysUsers(limit)
-        return results.map { result ->
-            val userId = UserId((result[0] as Number).toString())
+        val results = jpaRepository.findTopConsecutivePerfectDaysUsers()
+        return results.take(limit).map { result ->
+            val userId = UserId((result[0] as Number).toLong())
             val consecutiveDays = (result[1] as Number).toLong()
             userId to consecutiveDays
         }
@@ -122,8 +118,7 @@ class DailyQuestSummaryPersistenceAdapter(
     }
     
     override fun findSpecialRewardsByUserIdAndDate(userId: UserId, date: LocalDate): List<SpecialRewardTier> {
-        val userIdLong = userId.value.toLongOrNull() ?: return emptyList()
-        val json = jpaRepository.findSpecialRewardsByUserIdAndDate(userIdLong, date) ?: return emptyList()
+        val json = jpaRepository.findSpecialRewardsByUserIdAndDate(userId.value, date) ?: return emptyList()
         
         return try {
             if (json.isBlank() || json == "[]") {
@@ -144,8 +139,7 @@ class DailyQuestSummaryPersistenceAdapter(
     }
     
     override fun getTotalSpecialRewardStats(userId: UserId): Map<SpecialRewardTier, Long> {
-        val userIdLong = userId.value.toLongOrNull() ?: return emptyMap()
-        val jsonResults = jpaRepository.getTotalSpecialRewardStats(userIdLong)
+        val jsonResults = jpaRepository.getTotalSpecialRewardStats(userId.value)
         
         val rewardCounts = mutableMapOf<SpecialRewardTier, Long>()
         
@@ -169,8 +163,7 @@ class DailyQuestSummaryPersistenceAdapter(
     }
     
     override fun deleteByUserIdAndDate(userId: UserId, date: LocalDate) {
-        val userIdLong = userId.value.toLongOrNull() ?: return
-        jpaRepository.deleteByUserIdAndSummaryDate(userIdLong, date)
+        jpaRepository.deleteByUserIdAndSummaryDate(userId.value, date)
     }
     
     override fun deleteSummariesOlderThan(date: LocalDate): Long {
@@ -178,9 +171,8 @@ class DailyQuestSummaryPersistenceAdapter(
     }
     
     override fun calculateAverageCompletionRate(userId: UserId, days: Int): Double {
-        val userIdLong = userId.value.toLongOrNull() ?: return 0.0
         val startDate = LocalDate.now().minusDays(days.toLong())
-        return jpaRepository.calculateAverageCompletionRate(userIdLong, startDate) ?: 0.0
+        return jpaRepository.calculateAverageCompletionRate(userId.value, startDate) ?: 0.0
     }
     
     override fun calculateGlobalAverageCompletionRate(date: LocalDate): Double {
@@ -188,8 +180,7 @@ class DailyQuestSummaryPersistenceAdapter(
     }
     
     override fun analyzeImprovementTrend(userId: UserId, days: Int): String {
-        val userIdLong = userId.value.toLongOrNull() ?: return "데이터 없음"
-        val recentRates = jpaRepository.getRecentCompletionRatesForTrend(userIdLong, days)
+        val recentRates = jpaRepository.getRecentCompletionRatesForTrend(userId.value, days)
         
         if (recentRates.size < 2) {
             return "데이터 부족"
@@ -213,9 +204,8 @@ class DailyQuestSummaryPersistenceAdapter(
         completionRate: Int,
         days: Int
     ): List<DailyQuestSummary> {
-        val userIdLong = userId.value.toLongOrNull() ?: return emptyList()
         val startDate = LocalDate.now().minusDays(days.toLong())
-        return jpaRepository.findDaysWithCompletionRateAbove(userIdLong, completionRate, startDate)
+        return jpaRepository.findDaysWithCompletionRateAbove(userId.value, completionRate, startDate)
             .let { mapper.toDomainList(it) }
     }
 }

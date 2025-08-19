@@ -35,8 +35,7 @@ class DailyQuestProgressPersistenceAdapter(
     }
     
     override fun findByUserIdAndDate(userId: UserId, date: LocalDate): List<DailyQuestProgress> {
-        val userIdLong = userId.value.toLongOrNull() ?: return emptyList()
-        return jpaRepository.findByUserIdAndQuestDateOrderByDailyQuestId(userIdLong, date)
+        return jpaRepository.findByUserIdAndQuestDateOrderByDailyQuestId(userId.value, date)
             .let { mapper.toDomainList(it) }
     }
     
@@ -45,13 +44,12 @@ class DailyQuestProgressPersistenceAdapter(
         date: LocalDate,
         questType: DailyQuestType
     ): DailyQuestProgress? {
-        val userIdLong = userId.value.toLongOrNull() ?: return null
-        return jpaRepository.findByUserIdAndQuestDateAndQuestType(userIdLong, date, questType.name)
+        return jpaRepository.findByUserIdAndQuestDateAndQuestType(userId.value, date, questType.name)
             ?.let { mapper.toDomain(it) }
     }
     
     override fun findTodayProgressByUserId(userId: UserId): List<DailyQuestProgress> {
-        val userIdLong = userId.value.toLongOrNull() ?: return emptyList()
+        val userIdLong = userId.value
         return jpaRepository.findTodayProgressByUserId(userIdLong)
             .let { mapper.toDomainList(it) }
     }
@@ -61,23 +59,21 @@ class DailyQuestProgressPersistenceAdapter(
         startDate: LocalDate,
         endDate: LocalDate
     ): List<DailyQuestProgress> {
-        val userIdLong = userId.value.toLongOrNull() ?: return emptyList()
+        val userIdLong = userId.value
         return jpaRepository.findCompletedProgressByUserIdAndDateRange(userIdLong, startDate, endDate)
             .let { mapper.toDomainList(it) }
     }
     
     override fun countCompletedByUserIdAndDate(userId: UserId, date: LocalDate): Long {
-        val userIdLong = userId.value.toLongOrNull() ?: return 0L
-        return jpaRepository.countCompletedByUserIdAndDate(userIdLong, date)
+        return jpaRepository.countCompletedByUserIdAndDate(userId.value, date)
     }
     
     override fun countTodayCompletedByUserId(userId: UserId): Long {
-        val userIdLong = userId.value.toLongOrNull() ?: return 0L
-        return jpaRepository.countTodayCompletedByUserId(userIdLong)
+        return jpaRepository.countTodayCompletedByUserId(userId.value)
     }
     
     override fun findRecentCompletionsByUserId(userId: UserId, days: Int): List<DailyQuestProgress> {
-        val userIdLong = userId.value.toLongOrNull() ?: return emptyList()
+        val userIdLong = userId.value
         val startDate = LocalDate.now().minusDays(days.toLong())
         return jpaRepository.findRecentCompletionsByUserId(userIdLong, startDate)
             .let { mapper.toDomainList(it) }
@@ -92,18 +88,16 @@ class DailyQuestProgressPersistenceAdapter(
     }
     
     override fun isQuestCompletedByUserToday(userId: UserId, questType: DailyQuestType): Boolean {
-        val userIdLong = userId.value.toLongOrNull() ?: return false
-        return jpaRepository.isQuestCompletedByUserToday(userIdLong, questType.name)
+        return jpaRepository.isQuestCompletedByUserToday(userId.value, questType.name)
     }
     
     override fun deleteById(progressId: DailyQuestProgressId) {
-        val id = progressId.value.toLongOrNull() ?: return
+        val id = progressId.value.toLong()
         jpaRepository.deleteById(id)
     }
     
     override fun deleteByUserIdAndDate(userId: UserId, date: LocalDate) {
-        val userIdLong = userId.value.toLongOrNull() ?: return
-        jpaRepository.deleteByUserIdAndQuestDate(userIdLong, date)
+        jpaRepository.deleteByUserIdAndQuestDate(userId.value, date)
     }
     
     override fun deleteProgressesOlderThan(date: LocalDate): Long {
@@ -111,8 +105,7 @@ class DailyQuestProgressPersistenceAdapter(
     }
     
     override fun getMonthlyCompletionStats(userId: UserId, year: Int, month: Int): Map<DailyQuestType, Int> {
-        val userIdLong = userId.value.toLongOrNull() ?: return emptyMap()
-        val results = jpaRepository.getMonthlyCompletionStats(userIdLong, year, month)
+        val results = jpaRepository.getMonthlyCompletionStats(userId.value, year, month)
         
         return results.associate { result ->
             val questTypeName = result[0] as String
@@ -122,8 +115,7 @@ class DailyQuestProgressPersistenceAdapter(
     }
     
     override fun getYearlyCompletionStats(userId: UserId, year: Int): Map<DailyQuestType, Int> {
-        val userIdLong = userId.value.toLongOrNull() ?: return emptyMap()
-        val results = jpaRepository.getYearlyCompletionStats(userIdLong, year)
+        val results = jpaRepository.getYearlyCompletionStats(userId.value, year)
         
         return results.associate { result ->
             val questTypeName = result[0] as String
