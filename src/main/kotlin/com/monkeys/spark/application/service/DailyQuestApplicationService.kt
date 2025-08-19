@@ -146,8 +146,8 @@ class DailyQuestApplicationService(
     }
 
     override fun initializeAllUsersDailyQuests(command: InitializeAllUsersDailyQuestsCommand): Int {
-        // 모든 사용자 조회 (실제 구현에서는 배치 처리 고려)
-        val users = userRepository.findAll() // 실제로는 페이징 처리 필요
+        // 모든 사용자 조회 (배치 처리로 페이징)
+        val users = userRepository.findAll(page = 0, size = 1000) // 배치 크기 1000으로 처리
         var initializedCount = 0
         
         users.forEach { user ->
@@ -190,12 +190,12 @@ class DailyQuestApplicationService(
         val improvementTrend = dailyQuestSummaryRepository.analyzeImprovementTrend(query.userId, 30)
         
         return DailyQuestStatsDto(
-            userId = query.userId.value,
+            userId = query.userId.value.toString(),
             totalDays = totalDays,
             perfectDays = perfectDays,
             consecutivePerfectDays = consecutivePerfectDays.toInt(),
             averageCompletionRate = averageCompletionRate,
-            totalSpecialRewards = totalSpecialRewards,
+            totalSpecialRewards = totalSpecialRewards.mapValues { it.value.toInt() },
             questTypeStats = questTypeStats,
             improvementTrend = improvementTrend
         )
@@ -211,7 +211,7 @@ class DailyQuestApplicationService(
         
         // 추가 로직 구현 필요
         return MonthlyDailyQuestStatsDto(
-            userId = query.userId.value,
+            userId = query.userId.value.toString(),
             year = query.year,
             month = query.month,
             totalDays = stats["totalDays"] as? Int ?: 0,
@@ -245,7 +245,7 @@ class DailyQuestApplicationService(
             val user = findUserById(summary.userId)
             DailyQuestRankingDto(
                 rank = index + 1,
-                userId = summary.userId.value,
+                userId = summary.userId.value.toString(),
                 userName = user.name.value,
                 completionRate = summary.getCompletionPercentage().value,
                 totalRewardPoints = summary.getTotalRewardPoints().value,
@@ -274,7 +274,7 @@ class DailyQuestApplicationService(
 
     override fun getTopConsecutivePerfectDaysUsers(limit: Int): List<Pair<String, Long>> {
         return dailyQuestSummaryRepository.findTopConsecutivePerfectDaysUsers(limit)
-            .map { (userId, days) -> userId.value to days }
+            .map { (userId, days) -> userId.value.toString() to days }
     }
 
     // ===============================================
@@ -420,8 +420,8 @@ class DailyQuestApplicationService(
         // 스탯 증가 (규율 스탯)
         val userStats = userStatsRepository.findByUserId(user.id)
         userStats?.let {
-            it.addStatValue(StatType.DISCIPLINE, 1)
-            userStatsRepository.save(it)
+            val updatedStats = it.addStatValue(StatType.DISCIPLINE, 1)
+            userStatsRepository.save(updatedStats)
         }
         
         // 특수 보상 처리
@@ -463,7 +463,7 @@ class DailyQuestApplicationService(
         }
         
         return DailyQuestProgressDto(
-            userId = userId.value,
+            userId = userId.value.toString(),
             date = date,
             quests = questDtos,
             completedCount = completedCount,
@@ -478,7 +478,7 @@ class DailyQuestApplicationService(
         val nextMilestone = completionPercentage.getNextMilestone()
         
         return DailyQuestSummaryDto(
-            userId = summary.userId.value,
+            userId = summary.userId.value.toString(),
             date = summary.date,
             completedCount = summary.getCompletedCount(),
             totalCount = summary.getTotalCount(),
@@ -509,5 +509,5 @@ class DailyQuestApplicationService(
 }
 
 // Custom Exceptions
-class DailyQuestNotFoundException(message: String) : DomainException(message)
-class DailyQuestProgressNotFoundException(message: String) : DomainException(message)
+class DailyQuestNotFoundException(message: String) : DomainException(message, "DAILY_QUEST_NOT_FOUND")
+class DailyQuestProgressNotFoundException(message: String) : DomainException(message, "DAILY_QUEST_PROGRESS_NOT_FOUND")
