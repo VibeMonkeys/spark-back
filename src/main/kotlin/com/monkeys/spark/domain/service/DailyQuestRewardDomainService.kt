@@ -16,14 +16,10 @@ class DailyQuestRewardDomainService {
      * 퀘스트 완료 시 사용자에게 보상 지급
      */
     fun grantQuestCompletionReward(user: User, userStats: UserStats?): Pair<User, UserStats?> {
-        // 기본 보상: 5포인트 + 규율 스탯 1 증가
-        val updatedUser = user.earnPoints(Points(5))
+        // 기본 보상: 3포인트
+        val updatedUser = user.earnPoints(Points(3))
         
-        val updatedUserStats = userStats?.let {
-            it.addStatValue(StatType.DISCIPLINE, 1)
-        }
-        
-        return updatedUser to updatedUserStats
+        return updatedUser to userStats
     }
     
     /**
