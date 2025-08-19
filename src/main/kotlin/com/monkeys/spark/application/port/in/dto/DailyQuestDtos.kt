@@ -78,6 +78,7 @@ data class DailyQuestStatsDto(
     val perfectDays: Int,
     val consecutivePerfectDays: Int,
     val averageCompletionRate: Double,
+    val totalQuestsCompleted: Int,
     val totalSpecialRewards: Map<SpecialRewardTier, Int>,
     val questTypeStats: Map<DailyQuestType, Int>,
     val improvementTrend: String

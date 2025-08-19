@@ -196,12 +196,16 @@ class DailyQuestApplicationService(
         )
         val improvementTrend = dailyQuestSummaryRepository.analyzeImprovementTrend(query.userId, 30)
         
+        // 총 완료된 일일 퀘스트 수 계산 (questTypeStats의 모든 값 합계)
+        val totalQuestsCompleted = questTypeStats.values.sum()
+        
         return DailyQuestStatsDto(
             userId = query.userId.value.toString(),
             totalDays = totalDays,
             perfectDays = perfectDays,
             consecutivePerfectDays = consecutivePerfectDays.toInt(),
             averageCompletionRate = averageCompletionRate,
+            totalQuestsCompleted = totalQuestsCompleted,
             totalSpecialRewards = totalSpecialRewards.mapValues { it.value.toInt() },
             questTypeStats = questTypeStats,
             improvementTrend = improvementTrend
