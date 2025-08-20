@@ -98,7 +98,23 @@ class DailyQuestController(
     @PostMapping("/complete")
     fun completeDailyQuest(@RequestBody request: CompleteDailyQuestRequest): ResponseEntity<ApiResponse<Any>> {
         val userIdVO = UserId(request.userId)
-        val questType = DailyQuestType.valueOf(request.questType)
+        
+        // questId가 제공된 경우 questId로 questType 조회
+        val questType = if (request.questId != null) {
+            // questId에서 questType을 조회하는 로직
+            val questIdVO = com.monkeys.spark.domain.vo.dailyquest.DailyQuestId(request.questId)
+            val todaysQuests = dailyQuestUseCase.getTodayDailyQuests(GetTodayDailyQuestsQuery(userIdVO))
+            
+            // 오늘의 퀘스트 중에서 questId에 해당하는 퀘스트의 type 찾기
+            val quest = todaysQuests.quests.find { it.id == request.questId }
+                ?: throw IllegalArgumentException("유효하지 않은 퀘스트 ID입니다: ${request.questId}")
+            
+            quest.type
+        } else {
+            // 기존 방식: questType 직접 사용 (호환성 유지)
+            DailyQuestType.valueOf(request.questType ?: throw IllegalArgumentException("questType이 제공되지 않았습니다."))
+        }
+        
         val command = CompleteDailyQuestCommand(userIdVO, questType)
         val result = dailyQuestUseCase.completeDailyQuest(command)
         
@@ -117,7 +133,7 @@ class DailyQuestController(
     @DeleteMapping("/complete")
     fun uncompleteDailyQuest(@RequestBody request: CompleteDailyQuestRequest): ResponseEntity<ApiResponse<Any>> {
         val userIdVO = UserId(request.userId)
-        val questType = DailyQuestType.valueOf(request.questType)
+        val questType = DailyQuestType.valueOf(request.questType ?: throw IllegalArgumentException("questType이 제공되지 않았습니다."))
         val command = UncompleteDailyQuestCommand(userIdVO, questType)
         val result = dailyQuestUseCase.uncompleteDailyQuest(command)
         
